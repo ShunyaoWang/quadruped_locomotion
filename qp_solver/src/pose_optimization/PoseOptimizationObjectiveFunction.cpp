@@ -7,13 +7,13 @@
  */
 
 #include "qp_solver/pose_optimization/PoseOptimizationObjectiveFunction.hpp"
-#include "qp_solver/pose_optimization/PoseParameterization.hpp"
-#include "qp_solver/TypeDefs.hpp"
-
+#include "free_gait_core/TypeDefs.hpp"
+using namespace qp_solver;
 namespace free_gait {
 
 PoseOptimizationObjectiveFunction::PoseOptimizationObjectiveFunction()
-    : NonlinearObjectiveFunction(),
+    : //NonlinearObjectiveFunction(),
+      QuadraticObjectiveFunction(),
       comWeight_(2.0)
 {
 
@@ -59,8 +59,8 @@ void PoseOptimizationObjectiveFunction::setCenterOfMass(const Position& centerOf
   centerOfMassInBaseFrame_ = centerOfMassInBaseFrame;
 }
 
-bool PoseOptimizationObjectiveFunction::computeValue(numopt_common::Scalar& value,
-                                                     const numopt_common::Parameterization& params,
+bool PoseOptimizationObjectiveFunction::computeValue(double& value,
+                                                     const PoseParameterization& params,
                                                      bool newParams)
 {
   const auto& poseParameterization = dynamic_cast<const PoseParameterization&>(params);
@@ -147,8 +147,9 @@ bool PoseOptimizationObjectiveFunction::computeValue(numopt_common::Scalar& valu
   return true;
 }
 
-bool PoseOptimizationObjectiveFunction::getLocalGradient(numopt_common::Vector& gradient,
-                                                         const numopt_common::Parameterization& params, bool newParams)
+bool PoseOptimizationObjectiveFunction::getLocalGradient(Eigen::VectorXd& gradient,
+                                                         const PoseParameterization& params,
+                                                         bool newParams)
 {
   // Numercical approach.
 //  numopt_common::Vector numericalGradient(params.getLocalSize());
@@ -156,7 +157,7 @@ bool PoseOptimizationObjectiveFunction::getLocalGradient(numopt_common::Vector& 
 //  std::cout << "Numerical: " << numericalGradient.transpose() << std::endl;
 
   // Analytical approach.
-  numopt_common::Vector analyticalGradient(params.getLocalSize());
+  Eigen::VectorXd analyticalGradient(params.getLocalSize());
   analyticalGradient.setZero();
   const auto& poseParameterization = dynamic_cast<const PoseParameterization&>(params);
   const Pose pose = poseParameterization.getPose();
@@ -192,8 +193,8 @@ bool PoseOptimizationObjectiveFunction::getLocalGradient(numopt_common::Vector& 
   return true;
 }
 
-bool PoseOptimizationObjectiveFunction::getLocalHessian(numopt_common::SparseMatrix& hessian,
-                                                        const numopt_common::Parameterization& params, bool newParams)
+bool PoseOptimizationObjectiveFunction::getLocalHessian(Eigen::MatrixXd& hessian,
+                                                        const PoseParameterization& params, bool newParams)
 {
   // Numerical approach.
 //  numopt_common::SparseMatrix numericalHessian(params.getLocalSize(), params.getLocalSize());

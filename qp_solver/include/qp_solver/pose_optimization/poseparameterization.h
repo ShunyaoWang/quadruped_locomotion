@@ -22,25 +22,25 @@ class PoseParameterization //: public numopt_common::Parameterization
 
 //  PoseParameterization(const PoseParameterization& other);
 
-  qp_solver::QuadraticProblemSolver::Param& getParams();
-  const qp_solver::QuadraticProblemSolver::Param& getParams() const;
+  qp_solver::QuadraticProblemSolver::parameters& getParams();
+  const qp_solver::QuadraticProblemSolver::parameters& getParams() const;
 
-  bool plus(qp_solver::QuadraticProblemSolver::Param& result,
-            const qp_solver::QuadraticProblemSolver::Param& p,
+  bool plus(qp_solver::QuadraticProblemSolver::parameters& result,
+            const qp_solver::QuadraticProblemSolver::parameters& p,
             const qp_solver::QuadraticProblemSolver::Delta& dp) const;
 
   bool getTransformMatrixLocalToGlobal(Eigen::MatrixXd& matrix,
-                                       const qp_solver::QuadraticProblemSolver::Param& params) const;
+                                       const qp_solver::QuadraticProblemSolver::parameters& params) const;
 
   bool getTransformMatrixGlobalToLocal(Eigen::MatrixXd& matrix,
-                                       const qp_solver::QuadraticProblemSolver::Param& params) const;
+                                       const qp_solver::QuadraticProblemSolver::parameters& params) const;
 
   int getGlobalSize() const;
   static const size_t getGlobalSizeStatic();
   int getLocalSize() const;
 
-  bool setRandom(qp_solver::QuadraticProblemSolver::Param& p) const;
-  bool setIdentity(qp_solver::QuadraticProblemSolver::Param& p) const;
+  bool setRandom(qp_solver::QuadraticProblemSolver::parameters& p) const;
+  bool setIdentity(qp_solver::QuadraticProblemSolver::parameters& p) const;
 
 //  Parameterization* clone() const;
 
@@ -56,7 +56,7 @@ class PoseParameterization //: public numopt_common::Parameterization
   const static size_t nRotLocal_ = 3;
 
   //! Global state vector with position and orientation.
-  qp_solver::QuadraticProblemSolver::Param params_;
+  qp_solver::QuadraticProblemSolver::parameters params_;
 };
 
 } /* namespace free_gait */

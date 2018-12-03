@@ -161,13 +161,14 @@ LinearFunctionConstraints::~LinearFunctionConstraints()
 {};
 bool LinearFunctionConstraints::setGlobalInequalityConstraintJacobian(Eigen::MatrixXd& A)
 {
-  int m = static_cast<int>(A.rows());
-  int n = static_cast<int>(A.cols());
+  Eigen::MatrixXd A_T = -A.transpose();
+  int m = static_cast<int>(A_T.rows());
+  int n = static_cast<int>(A_T.cols());
   quadprogpp::Matrix<double> CI;
   CI.resize(m, n);
   for (int i = 0; i < m; i++)
     for (int j = 0; j < n; j++)
-      CI[i][j] = A(i, j);
+      CI[i][j] = A_T(i, j);
   setCI_(CI);
 
 }

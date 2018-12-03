@@ -102,7 +102,7 @@ bool PoseOptimizationQP::optimize(Pose& pose)
   // Constraints.
   //auto constraints = std::shared_ptr<numopt_common::LinearFunctionConstraints>(new numopt_common::LinearFunctionConstraints());
   auto constraints = std::shared_ptr<qp_solver::LinearFunctionConstraints>(new qp_solver::LinearFunctionConstraints());
-  Eigen::MatrixXd G_sparse = -G.transpose().sparseView();// due to the interface of quadprog has some diffrence
+  Eigen::MatrixXd G_sparse = G.sparseView();
   Eigen::MatrixXd Aeq(P.cols(), 1);
   Eigen::VectorXd beq(1);
   constraints->setGlobalInequalityConstraintJacobian(G_sparse);

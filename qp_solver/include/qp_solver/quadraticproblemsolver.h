@@ -47,7 +47,7 @@ class LinearFunctionConstraints;
 class QuadraticProblemSolver
 {
 public:
-  class Param
+  class Param : public Eigen::VectorXd
   {
   public:
     Param() {};
@@ -127,10 +127,21 @@ class LinearFunctionConstraints : public QuadraticProblemSolver
 public:
   LinearFunctionConstraints();
   virtual ~LinearFunctionConstraints();
+  size_t getNumberOfInequalityConstraints()
+  {
+    return  nInequalityConstraints_;
+  };
+  size_t setNumberOfInequalityConstraints(size_t nInequalityConstraints)
+  {
+    nInequalityConstraints_ =nInequalityConstraints;
+  };
   bool setGlobalInequalityConstraintJacobian(Eigen::MatrixXd& A);
   bool setGlobalEqualityConstraintJacobian(Eigen::MatrixXd& Aeq);
   bool setInequalityConstraintMaxValues(Eigen::VectorXd& b);
   bool setEqualityConstraintMaxValues(Eigen::VectorXd& beq);
+
+  size_t nInequalityConstraints_;
+
 private:
 
 

@@ -24,33 +24,34 @@ PoseParameterization::~PoseParameterization()
 //{
 //}
 
-qp_solver::QuadraticProblemSolver::Param& PoseParameterization::getParams()
+qp_solver::QuadraticProblemSolver::parameters& PoseParameterization::getParams()
 {
   return params_;
 }
 
-const qp_solver::QuadraticProblemSolver::Param& PoseParameterization::getParams() const
+const qp_solver::QuadraticProblemSolver::parameters& PoseParameterization::getParams() const
 {
   return params_;
 }
 
-bool PoseParameterization::plus(qp_solver::QuadraticProblemSolver::Param& result,
-                                const qp_solver::QuadraticProblemSolver::Param& p,
+bool PoseParameterization::plus(qp_solver::QuadraticProblemSolver::parameters& result,
+                                const qp_solver::QuadraticProblemSolver::parameters& p,
                                 const qp_solver::QuadraticProblemSolver::Delta& dp) const
 {
   // Position.
-    result.head(nTransGlobal_) = p.head(nTransGlobal_) + Position(dp.head(nTransLocal_));
+    result.head(nTransGlobal_) = p.head(nTransGlobal_) + dp.head(nTransLocal_);
 
   //  // Orientation.
   ////  result.tail(nRotGlobal_) = RotationQuaternion(p.tail(nRotGlobal_)).boxPlus(
   ////      dp.tail(nRotLocal_)).vector();
-//    result.tail(nRotGlobal_) = RotationQuaternion(p.tail(nRotGlobal_)).boxPlus(dp.tail(nRotLocal_).vector());
+//  Eigen::VectorXd p1(7);
+//    result.tail(nRotGlobal_) = RotationQuaternion(p1.tail(nRotGlobal_)).boxPlus(dp.tail(nRotLocal_)).vector());
       result.tail(nRotGlobal_) = RotationQuaternion(p.tail(nRotGlobal_)).boxPlus(dp.tail(nRotLocal_)).vector();
     return true;
 }
 
 bool PoseParameterization::getTransformMatrixLocalToGlobal(Eigen::MatrixXd& matrix,
-                                                           const qp_solver::QuadraticProblemSolver::Param& params) const
+                                                           const qp_solver::QuadraticProblemSolver::parameters& params) const
 {
   Eigen::MatrixXd denseMatrix(Eigen::MatrixXd::Zero(getGlobalSize(), getLocalSize()));
   denseMatrix.topLeftCorner(nTransGlobal_, nTransLocal_).setIdentity();
@@ -62,7 +63,7 @@ bool PoseParameterization::getTransformMatrixLocalToGlobal(Eigen::MatrixXd& matr
 }
 
 bool PoseParameterization::getTransformMatrixGlobalToLocal(
-    Eigen::MatrixXd& matrix, const qp_solver::QuadraticProblemSolver::Param& params) const
+    Eigen::MatrixXd& matrix, const qp_solver::QuadraticProblemSolver::parameters& params) const
 {
   Eigen::MatrixXd denseMatrix(Eigen::MatrixXd::Zero(getLocalSize(), getGlobalSize()));
   denseMatrix.topLeftCorner(nTransLocal_, nTransGlobal_).setIdentity();
@@ -87,23 +88,24 @@ int PoseParameterization::getLocalSize() const
   return nTransLocal_ + nRotLocal_;
 }
 
-bool PoseParameterization::setRandom(qp_solver::QuadraticProblemSolver::Param& p) const
+bool PoseParameterization::setRandom(qp_solver::QuadraticProblemSolver::parameters& p) const
 {
   p.resize(getGlobalSize());
   p.head(nTransGlobal_).setRandom();
   RotationQuaternion randomQuaternion;
-  randomQuaternion.setIdentity(); //TODO(shunyao): setrandom
-  p.tail(nRotGlobal_) = randomQuaternion;//.vector();
+  randomQuaternion.setIdentity(); //TODO(shunyao): set random
+  p.tail(nRotGlobal_) = randomQuaternion.vector();
   return true;
 }
 
-bool PoseParameterization::setIdentity(qp_solver::QuadraticProblemSolver::Param& p) const
+bool PoseParameterization::setIdentity(qp_solver::QuadraticProblemSolver::parameters& p) const
 {
   p.resize(getGlobalSize());
   p.head(nTransGlobal_).setZero();
   RotationQuaternion identityQuaternion;
   identityQuaternion.setIdentity();
-  p.tail(nRotGlobal_) = identityQuaternion;//.vector();
+  std::cout<<identityQuaternion.vector()(0)<<std::endl;
+  p.tail(nRotGlobal_) = identityQuaternion.vector();
   return true;
 }
 
@@ -120,8 +122,8 @@ const Pose PoseParameterization::getPose() const
 
 void PoseParameterization::setPose(const Pose& pose)
 {
-  params_.head(nTransGlobal_) = pose.getPosition();//.vector();
-  params_.tail(nRotGlobal_) = pose.getRotation();//.vector();
+  params_.head(nTransGlobal_) = pose.getPosition().vector();
+  params_.tail(nRotGlobal_) = pose.getRotation().vector();
 }
 
 const Position PoseParameterization::getPosition() const

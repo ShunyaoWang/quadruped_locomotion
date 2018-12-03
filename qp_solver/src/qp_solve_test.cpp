@@ -2,6 +2,7 @@
 #include "qp_solver/pose_optimization/PoseOptimizationQP.hpp"
 #include "qp_solver/pose_optimization/PoseOptimizationGeometric.hpp"
 #include "qp_solver/pose_optimization/PoseConstraintsChecker.hpp"
+#include "qp_solver/pose_optimization/PoseOptimizationSQP.hpp"
 #include "free_gait_core/TypeDefs.hpp"
 #include "AdapterDummy.hpp"
 
@@ -87,15 +88,15 @@ int main(int argc, char *argv[])
 
 
   Stance footPositions;
-  kindr::EulerAnglesZyxPD rotation(0.0, -0.5, 0.0);
-  Position base_position(5,5,base_height);
+  kindr::EulerAnglesZyxPD rotation(0.0, 0.0, 0.0);
+  Position base_position(0,0,base_height);
   footPositions[LimbEnum::LF_LEG] = base_position + rotation.rotate(Position( 0.3,  0.2, -base_height));
   footPositions[LimbEnum::RF_LEG] = base_position + rotation.rotate(Position(0.3,  -0.2, -base_height));
   footPositions[LimbEnum::LH_LEG] = base_position + rotation.rotate(Position(-0.3, 0.2, -base_height));
   footPositions[LimbEnum::RH_LEG] = base_position + rotation.rotate(Position(-0.3, -0.2, -base_height));
   for(const auto& foot:footPositions)
   {
-    nominal_height += foot.second(3);
+    nominal_height += foot.second(2);
   }
   nominal_height = nominal_height/4 + base_height;
   cout<<"nominal hieght is : "<<nominal_height<<endl;
@@ -184,8 +185,22 @@ int main(int argc, char *argv[])
   bool is_satisfied = constraints_checker.check(result);
   cout<<"check result of constraints checker : "<<is_satisfied<<endl;
 
+  // test with SQP
+  PoseOptimizationSQP sqp_optimization(adapter);
+  sqp_optimization.setNominalStance(nominal_stance);
+  sqp_optimization.setStance(stance);
+  sqp_optimization.setSupportStance(support_stance);
+  sqp_optimization.setSupportRegion(supportRegion);
+  sqp_optimization.setLimbLengthConstraints(minLimbLenghts_, maxLimbLenghts_);
+  Pose result2;
+  sqp_optimization.optimize(result);
+  eular_zyx(result.getRotation());
+  cout<<"SQP optimization result:"<<endl<<result.getPosition()<<endl<<
+        "Rotation: "<<endl<<"Roll: "<<eular_zyx.roll()<<endl<<"Pitch: "<<
+        eular_zyx.pitch()<<endl<<"Yaw: "<<eular_zyx.yaw()<<endl;
 
-
+ is_satisfied = constraints_checker.check(result);
+  cout<<"check result of constraints checker : "<<is_satisfied<<endl;
 
   return 0;
 }

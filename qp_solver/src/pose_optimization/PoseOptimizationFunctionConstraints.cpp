@@ -7,14 +7,14 @@
  */
 
 #include "qp_solver/pose_optimization/PoseOptimizationFunctionConstraints.hpp"
-#include "qp_solver/pose_optimization/PoseParameterization.hpp"
 
 #include <stdexcept>
-
+using namespace qp_solver;
 namespace free_gait {
 
 PoseOptimizationFunctionConstraints::PoseOptimizationFunctionConstraints()
-    : NonlinearFunctionConstraints(),
+    : //NonlinearFunctionConstraints(),
+      LinearFunctionConstraints(),
       nSupportRegionInequalityConstraints_(0),
       nLimbLengthInequalityConstraints_(0)
 {
@@ -79,21 +79,21 @@ void PoseOptimizationFunctionConstraints::setCenterOfMass(const Position& center
 }
 
 bool PoseOptimizationFunctionConstraints::getGlobalBoundConstraintMinValues(
-    numopt_common::Vector& values)
+    Eigen::VectorXd& values)
 {
   values = Eigen::VectorXd::Constant(PoseParameterization::getGlobalSizeStatic(), std::numeric_limits<double>::lowest());
   return true;
 }
 
 bool PoseOptimizationFunctionConstraints::getGlobalBoundConstraintMaxValues(
-    numopt_common::Vector& values)
+    Eigen::VectorXd& values)
 {
   values = Eigen::VectorXd::Constant(PoseParameterization::getGlobalSizeStatic(), std::numeric_limits<double>::max());
   return true;
 }
 
-bool PoseOptimizationFunctionConstraints::getInequalityConstraintValues(numopt_common::Vector& values,
-                                                                        const numopt_common::Parameterization& p,
+bool PoseOptimizationFunctionConstraints::getInequalityConstraintValues(Eigen::VectorXd& values,
+                                                                        const PoseParameterization& p,
                                                                         bool newParams)
 {
   values.resize(getNumberOfInequalityConstraints());
@@ -122,9 +122,9 @@ bool PoseOptimizationFunctionConstraints::getInequalityConstraintValues(numopt_c
   return true;
 }
 
-bool PoseOptimizationFunctionConstraints::getInequalityConstraintMinValues(numopt_common::Vector& d)
+bool PoseOptimizationFunctionConstraints::getInequalityConstraintMinValues(Eigen::VectorXd& d)
 {
-  d = numopt_common::Vector::Constant(nInequalityConstraints_, std::numeric_limits<double>::lowest());
+  d = Eigen::VectorXd::Constant(nInequalityConstraints_, std::numeric_limits<double>::lowest());
 
   // Leg length.
   d.segment(nSupportRegionInequalityConstraints_, nLimbLengthInequalityConstraints_) =
@@ -133,9 +133,9 @@ bool PoseOptimizationFunctionConstraints::getInequalityConstraintMinValues(numop
   return true;
 }
 
-bool PoseOptimizationFunctionConstraints::getInequalityConstraintMaxValues(numopt_common::Vector& f)
+bool PoseOptimizationFunctionConstraints::getInequalityConstraintMaxValues(Eigen::VectorXd& f)
 {
-  f = numopt_common::Vector::Constant(nInequalityConstraints_, std::numeric_limits<double>::max());
+  f = Eigen::VectorXd::Constant(nInequalityConstraints_, std::numeric_limits<double>::max());
 
   // Support region.
   f.segment(0, nSupportRegionInequalityConstraints_) = supportRegionInequalityConstraintsMaxValues_;
@@ -148,7 +148,7 @@ bool PoseOptimizationFunctionConstraints::getInequalityConstraintMaxValues(numop
 }
 
 bool PoseOptimizationFunctionConstraints::getLocalInequalityConstraintJacobian(
-    numopt_common::SparseMatrix& jacobian, const numopt_common::Parameterization& params, bool newParams)
+    Eigen::MatrixXd& jacobian, const PoseParameterization& params, bool newParams)
 {
   // Numerical approach.
 //  numopt_common::SparseMatrix numericalJacobian(getNumberOfInequalityConstraints(), params.getLocalSize());

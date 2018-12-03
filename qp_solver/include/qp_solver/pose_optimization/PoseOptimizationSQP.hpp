@@ -16,7 +16,9 @@
 #include "qp_solver/pose_optimization/PoseOptimizationFunctionConstraints.hpp"
 
 #include <grid_map_core/Polygon.hpp>
-#include <numopt_common/QuadraticProblemSolver.hpp>
+//#include <numopt_common/QuadraticProblemSolver.hpp>
+#include "qp_solver/sequencequadraticproblemsolver.h"
+#include "qp_solver/quadraticproblemsolver.h"
 #include <std_utils/timers/ChronoTimer.hpp>
 
 #include <limits>
@@ -51,7 +53,7 @@ class PoseOptimizationSQP : public PoseOptimizationBase
    */
   bool optimize(Pose& pose);
 
-  void optimizationStepCallback(const size_t iterationStep, const numopt_common::Parameterization& parameters,
+  void optimizationStepCallback(const size_t iterationStep, const PoseParameterization& parameters,
                                 const double functionValue, const bool finalIteration);
 
   void callExternalOptimizationStepCallbackWithPose(const Pose& pose, const size_t iterationStep,

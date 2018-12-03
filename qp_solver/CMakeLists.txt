@@ -124,7 +124,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  /home/hitstar/catkin_ws/src/free_gait_core/include
+  /home/hitstar/catkin_ws/src/quadruped_locomotion-dev/free_gait_core/include
   include
   test
   ${catkin_INCLUDE_DIRS}
@@ -142,10 +142,10 @@ add_library(quadprog
    src/pose_optimization/PoseConstraintsChecker.cpp
    src/pose_optimization/PoseOptimizationGeometric.cpp
    src/pose_optimization/PoseOptimizationQP.cpp
-#   src/pose_optimization/PoseOptimizationSQP.cpp
-#   src/pose_optimization/PoseOptimizationObjectiveFunction.cpp
-#   src/pose_optimization/PoseOptimizationFunctionConstraints.cpp
-#   src/pose_optimization/PoseOptimizationProblem.cpp
+   src/pose_optimization/PoseOptimizationSQP.cpp
+   src/pose_optimization/PoseOptimizationObjectiveFunction.cpp
+   src/pose_optimization/PoseOptimizationFunctionConstraints.cpp
+   src/pose_optimization/PoseOptimizationProblem.cpp
 #   src/poseparameterization.h
 #   src/sequencequadraticproblemsolver.h
 #   include/qp_solver/quadraticproblemsolver.h
@@ -197,7 +197,7 @@ catkin_add_gtest(${PROJECT_NAME}-test
 #  test/StepTest.cpp
 #  test/FootstepTest.cpp
   test/PoseOptimizationQpTest.cpp
-#  test/PoseOptimizationSQPTest.cpp
+  test/PoseOptimizationSQPTest.cpp
 )
 if(TARGET ${PROJECT_NAME}-test)
   target_link_libraries(${PROJECT_NAME}-test

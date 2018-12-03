@@ -21,6 +21,8 @@ class PoseOptimizationProblem //: public numopt_common::ConstrainedNonlinearProb
   PoseOptimizationProblem(std::shared_ptr<PoseOptimizationObjectiveFunction> objectiveFunction,
                           std::shared_ptr<PoseOptimizationFunctionConstraints> functionConstraints);
   virtual ~PoseOptimizationProblem();
+  std::shared_ptr<PoseOptimizationObjectiveFunction> objectiveFunction_;
+  std::shared_ptr<PoseOptimizationFunctionConstraints> functionConstraints_;
 };
 
 } /* namespace */
