@@ -83,7 +83,12 @@ class AdapterDummy : public AdapterBase
       const LimbEnum& limb, const LinearAcceleration& endEffectorLinearAccelerationInWorldFrame) const;
 
   //! Hook to write data to internal robot representation from state.
-  virtual bool setInternalDataFromState(const State& state) const;
+//  virtual bool setInternalDataFromState(const State& state) const;
+  virtual bool setInternalDataFromState(const State& state, bool updateContacts = true, bool updatePosition = true,
+                                          bool updateVelocity = true, bool updateAcceleration = false) const;
+
+  virtual void createCopyOfState() const;
+  virtual void resetToCopyOfState() const;
 
   const State& getState() const;
 

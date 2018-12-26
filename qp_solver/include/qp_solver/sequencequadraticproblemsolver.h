@@ -1,10 +1,10 @@
 #ifndef SEQUENCEQUADRATICPROBLEMSOLVER_H
 #define SEQUENCEQUADRATICPROBLEMSOLVER_H
 #include "qp_solver/quadraticproblemsolver.h"
-#include "pose_optimization/PoseOptimizationProblem.hpp"
-#include "qp_solver/pose_optimization/PoseOptimizationFunctionConstraints.hpp"
-#include "qp_solver/pose_optimization/PoseOptimizationObjectiveFunction.hpp"
-#include "qp_solver/pose_optimization/poseparameterization.h"
+#include "free_gait_core/pose_optimization/PoseOptimizationProblem.hpp"
+#include "free_gait_core/pose_optimization/PoseOptimizationFunctionConstraints.hpp"
+#include "free_gait_core/pose_optimization/PoseOptimizationObjectiveFunction.hpp"
+#include "free_gait_core/pose_optimization/poseparameterization.h"
 #include <memory>
 namespace sqp_solver {
 using namespace free_gait;

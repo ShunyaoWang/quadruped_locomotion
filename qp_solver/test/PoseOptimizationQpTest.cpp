@@ -6,7 +6,7 @@
  *	 Institute: ETH Zurich, Autonomous Systems Lab
  */
 
-#include "qp_solver/pose_optimization/PoseOptimizationQP.hpp"
+#include "free_gait_core/pose_optimization/PoseOptimizationQP.hpp"
 #include "free_gait_core/TypeDefs.hpp"
 #include "AdapterDummy.hpp"
 
@@ -83,42 +83,42 @@ TEST(PoseOptimizationQP, quadrupedSymmetricWithOffsetUnconstrained)
   kindr::assertNear(startPose.getTransformationMatrix(), result.getTransformationMatrix(), 1e-3, KINDR_SOURCE_FILE_POS);
 }
 
-TEST(PoseOptimizationQP, quadrupedAsymmetricUnconstrained)
-{
-  AdapterDummy adapter;
-  PoseOptimizationQP optimization(adapter);
+//TEST(PoseOptimizationQP, quadrupedAsymmetricUnconstrained)
+//{
+//  AdapterDummy adapter;
+//  PoseOptimizationQP optimization(adapter);
 
-  optimization.setNominalStance( Stance({
-    {LimbEnum::LF_LEG, Position(1.0, 0.5, 0.0)},
-    {LimbEnum::RF_LEG, Position(1.0, -0.5, 0.0)},
-    {LimbEnum::LH_LEG, Position(-1.0, -0.5, 0.0)},
-    {LimbEnum::RH_LEG, Position(-1.0, 0.5, 0.0)} }));
+//  optimization.setNominalStance( Stance({
+//    {LimbEnum::LF_LEG, Position(1.0, 0.5, 0.0)},
+//    {LimbEnum::RF_LEG, Position(1.0, -0.5, 0.0)},
+//    {LimbEnum::LH_LEG, Position(-1.0, -0.5, 0.0)},
+//    {LimbEnum::RH_LEG, Position(-1.0, 0.5, 0.0)} }));
 
-  optimization.setStance( Stance({
-    {LimbEnum::LF_LEG, Position(2.0, 0.5, 0.0)},
-    {LimbEnum::RF_LEG, Position(1.0, -0.5, 0.0)},
-    {LimbEnum::LH_LEG, Position(-1.0, -0.5, 0.0)},
-    {LimbEnum::RH_LEG, Position(-1.0, 0.5, 0.0)} }));
+//  optimization.setStance( Stance({
+//    {LimbEnum::LF_LEG, Position(2.0, 0.5, 0.0)},
+//    {LimbEnum::RF_LEG, Position(1.0, -0.5, 0.0)},
+//    {LimbEnum::LH_LEG, Position(-1.0, -0.5, 0.0)},
+//    {LimbEnum::RH_LEG, Position(-1.0, 0.5, 0.0)} }));
 
-  optimization.setSupportStance( Stance({
-    {LimbEnum::LF_LEG, Position(2.0, 0.5, 0.0)},
-    {LimbEnum::RF_LEG, Position(1.0, -0.5, 0.0)},
-    {LimbEnum::LH_LEG, Position(-1.0, -0.5, 0.0)},
-    {LimbEnum::RH_LEG, Position(-1.0, 0.5, 0.0)} }));
+//  optimization.setSupportStance( Stance({
+//    {LimbEnum::LF_LEG, Position(2.0, 0.5, 0.0)},
+//    {LimbEnum::RF_LEG, Position(1.0, -0.5, 0.0)},
+//    {LimbEnum::LH_LEG, Position(-1.0, -0.5, 0.0)},
+//    {LimbEnum::RH_LEG, Position(-1.0, 0.5, 0.0)} }));
 
-  Pose result;
-  ASSERT_TRUE(optimization.optimize(result));
+//  Pose result;
+//  ASSERT_TRUE(optimization.optimize(result));
 
-  Eigen::Matrix3d expectedOrientation;
-  expectedOrientation <<  1.0, 0.1, 0.0,
-                          -0.1,  1.0, 0.0,
-                          0.0,  0.0, 1.0;
+//  Eigen::Matrix3d expectedOrientation;
+//  expectedOrientation <<  1.0, 0.1, 0.0,
+//                          -0.1,  1.0, 0.0,
+//                          0.0,  0.0, 1.0;
 
-  Eigen::Vector3d expectedPosition(0.25, 0.0, 0.0);
+//  Eigen::Vector3d expectedPosition(0.25, 0.0, 0.0);
 
-  kindr::assertNear(expectedOrientation, RotationMatrix(result.getRotation()).matrix(), 1e-2, KINDR_SOURCE_FILE_POS);
-  kindr::assertNear(expectedPosition, result.getPosition().vector(), 1e-3, KINDR_SOURCE_FILE_POS);
-}
+//  kindr::assertNear(expectedOrientation, RotationMatrix(result.getRotation()).matrix(), 1e-2, KINDR_SOURCE_FILE_POS);
+//  kindr::assertNear(expectedPosition, result.getPosition().vector(), 1e-3, KINDR_SOURCE_FILE_POS);
+//}
 
 TEST(PoseOptimizationQP, quadrupedSymmetricWithYawUnconstrained)
 {

@@ -1,11 +1,11 @@
 #include "qp_solver/quadraticproblemsolver.h"
-#include "qp_solver/pose_optimization/PoseOptimizationQP.hpp"
-#include "qp_solver/pose_optimization/PoseOptimizationGeometric.hpp"
-#include "qp_solver/pose_optimization/PoseConstraintsChecker.hpp"
-#include "qp_solver/pose_optimization/PoseOptimizationSQP.hpp"
+#include "free_gait_core/pose_optimization/PoseOptimizationQP.hpp"
+#include "free_gait_core/pose_optimization/PoseOptimizationGeometric.hpp"
+#include "free_gait_core/pose_optimization/PoseConstraintsChecker.hpp"
+#include "free_gait_core/pose_optimization/PoseOptimizationSQP.hpp"
 #include "free_gait_core/TypeDefs.hpp"
 #include "AdapterDummy.hpp"
-
+//#include "Eigen/QR"
 #include "iostream"
 #include <memory>
 //#include "nlopt.h"
@@ -74,6 +74,13 @@ int main(int argc, char *argv[])
 
   AdapterDummy adapter;
   Pose result;
+  LimbEnum le = LimbEnum::RF_LEG;
+//  cout<<le<<endl;
+  int le_int = static_cast<int>(le);
+  BranchEnum be = static_cast<BranchEnum>(le_int + 1);
+  BranchEnum be_map = quadruped_model::QuadrupedModel::QuadrupedDescription::mapEnums(le);
+//  cout<<be<<endl;
+  result = Pose(Position(0.1, 0.1, 0), RotationQuaternion());
   PoseOptimizationBase::LimbLengths minLimbLenghts_, maxLimbLenghts_;
   double supportMargin_ = 0.0;
   double base_height = 0.3;
@@ -112,7 +119,7 @@ int main(int argc, char *argv[])
   stance = footPositions;
   stance_for_orientation = footPositions;
   //!foothold in support
-  support_stance[LimbEnum::LF_LEG] = footPositions[LimbEnum::LF_LEG];
+//  support_stance[LimbEnum::LF_LEG] = footPositions[LimbEnum::LF_LEG];
   support_stance[LimbEnum::RF_LEG] = footPositions[LimbEnum::RF_LEG];
   support_stance[LimbEnum::LH_LEG] = footPositions[LimbEnum::LH_LEG];
   support_stance[LimbEnum::RH_LEG] = footPositions[LimbEnum::RH_LEG];

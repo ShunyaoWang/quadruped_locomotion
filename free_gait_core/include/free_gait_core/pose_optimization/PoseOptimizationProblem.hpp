@@ -11,16 +11,18 @@
 #include "free_gait_core/pose_optimization/PoseOptimizationObjectiveFunction.hpp"
 #include "free_gait_core/pose_optimization/PoseOptimizationFunctionConstraints.hpp"
 
-#include <numopt_common/ConstrainedNonlinearProblem.hpp>
+//#include <numopt_common/ConstrainedNonlinearProblem.hpp>
 
 namespace free_gait {
 
-class PoseOptimizationProblem : public numopt_common::ConstrainedNonlinearProblem
+class PoseOptimizationProblem //: public numopt_common::ConstrainedNonlinearProblem
 {
  public:
   PoseOptimizationProblem(std::shared_ptr<PoseOptimizationObjectiveFunction> objectiveFunction,
                           std::shared_ptr<PoseOptimizationFunctionConstraints> functionConstraints);
   virtual ~PoseOptimizationProblem();
+  std::shared_ptr<PoseOptimizationObjectiveFunction> objectiveFunction_;
+  std::shared_ptr<PoseOptimizationFunctionConstraints> functionConstraints_;
 };
 
 } /* namespace */

@@ -40,7 +40,7 @@ class StepParameters
   struct LegModeParameters
   {
     double duration = 0.5;
-    std::string frameId = "base";
+    std::string frameId = "base_link";
   } legModeParameters;
 
   struct BaseAutoParameters
@@ -54,7 +54,7 @@ class StepParameters
     BaseAutoParameters()
     {
       Position2 position;
-      position << 0.33, 0.22;
+      position << 0.4, 0.25;
       nominalPlanarStanceInBaseFrame.emplace(LimbEnum::LF_LEG, position);
       nominalPlanarStanceInBaseFrame.emplace(LimbEnum::RF_LEG, Position2(Eigen::Vector2d(position(0), -position(1))));
       nominalPlanarStanceInBaseFrame.emplace(LimbEnum::LH_LEG, Position2(Eigen::Vector2d(-position(0), position(1))));

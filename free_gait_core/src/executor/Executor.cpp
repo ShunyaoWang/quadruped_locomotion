@@ -34,6 +34,7 @@ bool Executor::initialize()
 {
   computer_.initialize();
   state_.initialize(adapter_.getLimbs(), adapter_.getBranches());
+  adapter_.setInternalDataFromState(state_);// add
   reset();
   return isInitialized_ = true;
 }
@@ -73,16 +74,21 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   }
 
   // Advance queue.
-  if (!queue_.advance(dt)) return false;
+  std::cout<<"Current Step Time : "<<queue_.getCurrentStep().getTime()<<std::endl;
+  if (!queue_.advance(dt)) return false;//Update a step cycle time
   if (!adapter_.updateExtrasBefore(queue_, state_)) return false;
 
   // For a new switch in step, do some work on step for the transition.
   while (queue_.hasSwitchedStep()) {
     auto& currentStep = queue_.getCurrentStep();
+    std::cout<<"================================================"<<std::endl
+            <<currentStep<<std::endl;
     if (!completer_.complete(state_, queue_, currentStep)) {//set step parameters
       std::cerr << "Executor::advance: Could not complete step." << std::endl;
       return false;
     }
+    std::cout<<"================================================"<<std::endl
+            <<currentStep<<std::endl;
     if (currentStep.needsComputation() && !computer_.isBusy()) {
       computer_.setStep(currentStep);
       addToFeedback("Starting computation of step.");
@@ -103,7 +109,7 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
     stream << "Switched step to:" << std::endl << queue_.getCurrentStep();
     addToFeedback(stream.str());
   }
-
+  std::cout<<"Executor update dt finished"<<std::endl;
   if (!writeIgnoreContact()) return false;
   if (!writeIgnoreForPoseAdaptation()) return false;
   if (!writeSupportLegs()) return false;
@@ -111,8 +117,8 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   if (!writeLegMotion()) return false;
   if (!writeTorsoMotion()) return false;
   if (!writeStepId()) return false;
-  if (!adapter_.updateExtrasAfter(queue_, state_)) return false;
-//  std::cout << state_ << std::endl;
+  if (!adapter_.updateExtrasAfter(queue_, state_)) return false;// TODO(Shunyao): update state to ex robot or sim
+  std::cout << state_ << std::endl;
 
   return true;
 }
@@ -361,7 +367,8 @@ bool Executor::writeLegMotion()
             std::cerr << "Failed to compute joint positions from end effector position for " <<limb << "." << std::endl;
             return false;
           }
-          state_.setJointPositionsForLimb(limb, jointPositions);
+          state_.setJointPositionsForLimb(limb, jointPositions);// update joint command
+
         }
         if (controlSetup[ControlLevel::Velocity]) {
           const std::string& frameId = endEffectorMotion.getFrameId(ControlLevel::Velocity);
@@ -428,6 +435,7 @@ bool Executor::writeTorsoMotion()
                                                     baseMotion.evaluatePose(time));
     state_.setPositionWorldToBaseInWorldFrame(poseInWorldFrame.getPosition());
     state_.setOrientationBaseToWorld(poseInWorldFrame.getRotation());
+    std::cout<<"pose in world frame : "<<poseInWorldFrame.getPosition()<<std::endl;
   }
   if (controlSetup[ControlLevel::Velocity]) {
     const std::string& frameId = baseMotion.getFrameId(ControlLevel::Velocity);

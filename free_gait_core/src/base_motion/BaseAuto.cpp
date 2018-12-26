@@ -96,17 +96,23 @@ bool BaseAuto::prepareComputation(const State& state, const Step& step, const St
       return false;
     }
   }
+  std::cout<<"computed height is "<<*height_<<std::endl;
   if (!generateFootholdLists(state, step, queue, adapter)) {
     std::cerr << "BaseAuto::compute: Could not generate foothold lists." << std::endl;
     return false;
   }
+  std::cout<<"footholds To Reach is "<<footholdsToReach_<<std::endl;
+  std::cout<<"footholds Stance is "<<footholdsInSupport_<<std::endl;
+  std::cout<<"footholds Nominal Stance is "<<nominalStanceInBaseFrame_<<std::endl;
 
   // Define support region.
   grid_map::Polygon supportRegion;
   std::vector<Position> footholdsOrdered;
   getFootholdsCounterClockwiseOrdered(footholdsInSupport_, footholdsOrdered);
+
   for (auto foothold : footholdsOrdered) {
     supportRegion.addVertex(foothold.vector().head<2>());
+//    std::cout<<"footholds ordered is "<<foothold.vector().head<2>()<<std::endl;
   }
   bool isLinePolygon = false;
   // if there are only 2 stance leg, treat as a line with 0.001m witdth
@@ -126,7 +132,7 @@ bool BaseAuto::prepareComputation(const State& state, const Step& step, const St
       maxLimbLenghts_[limb] = 0.565; // Foot leaves contact. // 0.6
     }
   }
-
+//  std::cout<<"support region "<<supportRegion.getVertex(1)<<std::endl;
   poseOptimizationGeometric_.reset(new PoseOptimizationGeometric(adapter));
   poseOptimizationGeometric_->setStance(footholdsToReach_);
   poseOptimizationGeometric_->setSupportStance(footholdsInSupport_);
@@ -307,6 +313,7 @@ bool BaseAuto::computeHeight(const State& state, const StepQueue& queue, const A
   }
   if (n == 0) return false;
   height_.reset(new double(heightSum / (double)(n)));
+  std::cout<<"height sum is "<<heightSum<<std::endl;
   return true;
 }
 /**

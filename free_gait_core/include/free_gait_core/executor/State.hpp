@@ -10,6 +10,7 @@
 
 #include "free_gait_core/TypeDefs.hpp"
 //#include <quadruped_model/QuadrupedState.hpp>
+#include "quadruped_model/quadruped_state.h"
 #include <quadruped_model/QuadrupedModel.hpp>
 
 // STD
@@ -24,7 +25,7 @@ namespace free_gait {
 class State : public quadruped_model::QuadrupedState
 {
  public:
-//  using QD = quadruped_model::QuadrupedModel::QuadrupedDescription;
+  using QD = quadruped_model::QuadrupedModel::QuadrupedDescription;
 
   State();
   virtual ~State();
@@ -80,7 +81,8 @@ class State : public quadruped_model::QuadrupedState
   void setEmptyControlSetup(const LimbEnum& limb);
 
   void getAllJointNames(std::vector<std::string>& jointNames) const;
-
+  Position getSupportFootPosition(const LimbEnum& limb);
+  void setSupportFootStance(const Stance& footInSupport);
   friend std::ostream& operator << (std::ostream& out, const State& state);
 
  private:
@@ -100,6 +102,8 @@ class State : public quadruped_model::QuadrupedState
   std::unordered_map<LimbEnum, Vector, EnumClassHash> surfaceNormals_;
   bool robotExecutionStatus_;
   std::string stepId_; // empty if undefined.
+
+  Stance footHoldInSupport_;
 };
 
 } /* namespace */

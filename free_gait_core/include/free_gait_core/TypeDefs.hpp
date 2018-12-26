@@ -21,14 +21,14 @@
 
 namespace free_gait {
 
-struct EnumClassHash
-{
-  template<typename T>
-  std::size_t operator()(T t) const
-  {
-    return static_cast<std::size_t>(t);
-  }
-};
+//struct EnumClassHash
+//{
+//  template<typename T>
+//  std::size_t operator()(T t) const
+//  {
+//    return static_cast<std::size_t>(t);
+//  }
+//};
 
 // Import enum aliases.
 using QD = quadruped_model::QuadrupedModel::QuadrupedDescription;

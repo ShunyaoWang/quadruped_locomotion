@@ -99,7 +99,6 @@ bool StepCompleter::complete(const State& state, const Step& step, EndEffectorMo
   bool velocityOut = controlSetupOut.at(ControlLevel::Velocity);
   bool accelerationOut = controlSetupOut.at(ControlLevel::Acceleration);
   bool effortOut = controlSetupOut.at(ControlLevel::Effort);
-
   if (positionOut) {
     const std::string& frameId = endEffectorMotion.getFrameId(ControlLevel::Position);
     if (!adapter_.frameIdExists(frameId)) {
@@ -108,7 +107,7 @@ bool StepCompleter::complete(const State& state, const Step& step, EndEffectorMo
     }
     Position startPositionInBaseFrame = adapter_.getPositionBaseToFootInBaseFrame(
         endEffectorMotion.getLimb(), state.getJointPositionsForLimb(endEffectorMotion.getLimb()));
-    Position startPosition = adapter_.transformPosition("base", frameId, startPositionInBaseFrame);
+    Position startPosition = adapter_.transformPosition("base_link", frameId, startPositionInBaseFrame);
     endEffectorMotion.updateStartPosition(startPosition);
   }
 
@@ -199,6 +198,7 @@ bool StepCompleter::complete(const State& state, const Step& step, const StepQue
       std::cerr << "Could not find frame '" << frameId << "' for free gait base motion!" << std::endl;
       return false;
     }
+
     Pose startPoseInWorld(state.getPositionWorldToBaseInWorldFrame(), state.getOrientationBaseToWorld());
     Pose startPose = adapter_.transformPose(adapter_.getWorldFrameId(), frameId, startPoseInWorld);
     baseMotion.updateStartPose(startPose);

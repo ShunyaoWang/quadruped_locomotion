@@ -12,13 +12,14 @@
 #include "free_gait_core/executor/State.hpp"
 
 #include <grid_map_core/Polygon.hpp>
-#include <numopt_common/NonlinearObjectiveFunction.hpp>
-
+#include "qp_solver/quadraticproblemsolver.h"
+//#include <numopt_common/NonlinearObjectiveFunction.hpp>
+#include "free_gait_core/pose_optimization/poseparameterization.h"
 #include <memory>
-
+using namespace qp_solver;
 namespace free_gait {
 
-class PoseOptimizationObjectiveFunction : public numopt_common::NonlinearObjectiveFunction
+class PoseOptimizationObjectiveFunction : public qp_solver::QuadraticObjectiveFunction//public numopt_common::NonlinearObjectiveFunction
 {
  public:
   /*!
@@ -55,7 +56,7 @@ class PoseOptimizationObjectiveFunction : public numopt_common::NonlinearObjecti
    * @param newParams   true if this class has already seen the parameters
    * @return  true if successful
    */
-  bool computeValue(numopt_common::Scalar& value, const numopt_common::Parameterization& params,
+  bool computeValue(double& value, const PoseParameterization& params,
                     bool newParams = true);
 
 
@@ -65,7 +66,7 @@ class PoseOptimizationObjectiveFunction : public numopt_common::NonlinearObjecti
    * @param newParams   true if this class has already seen the parameters
    * @returns true if successful
    */
-  bool getLocalGradient(numopt_common::Vector& gradient, const numopt_common::Parameterization& params,
+  bool getLocalGradient(Eigen::VectorXd& gradient, const PoseParameterization& params,
                         bool newParams = true);
 
   /*! Computes the local nxn Hessian matrix of the objective function.
@@ -76,7 +77,7 @@ class PoseOptimizationObjectiveFunction : public numopt_common::NonlinearObjecti
    * @param newParams   true if this class has already seen the parameters
    * @returns true if successful
    */
-  bool getLocalHessian(numopt_common::SparseMatrix& hessian, const numopt_common::Parameterization& params,
+  bool getLocalHessian(Eigen::MatrixXd& hessian, const PoseParameterization& params,
                        bool newParams = true);
 
  private:

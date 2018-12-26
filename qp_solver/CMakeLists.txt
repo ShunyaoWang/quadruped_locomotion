@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(qp_solver)
-#file(GLOB sources *.cc)
-#file(GLOB headers *.hh)
-#set(library_sources ${sources})
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -14,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   grid_map_core
   std_utils
+  quadruped_model
 )
 
 ## System dependencies are found with CMake's conventions
@@ -109,8 +107,9 @@ catkin_package(
   INCLUDE_DIRS
     include
     ${EIGEN3_INCLUDE_DIR}
-#  LIBRARIES qp_sovler
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS
+    quadruped_model
     roscpp
     grid_map_core
     std_utils
@@ -132,31 +131,32 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(quadprog
+add_library(${PROJECT_NAME}
    src/Array.cc
    src/QuadProg++.cc
    src/quadraticproblemsolver.cpp
    src/sequencequadraticproblemsolver.cpp
-   src/pose_optimization/poseparameterization.cpp
-   src/pose_optimization/PoseOptimizationBase.cpp
-   src/pose_optimization/PoseConstraintsChecker.cpp
-   src/pose_optimization/PoseOptimizationGeometric.cpp
-   src/pose_optimization/PoseOptimizationQP.cpp
-   src/pose_optimization/PoseOptimizationSQP.cpp
-   src/pose_optimization/PoseOptimizationObjectiveFunction.cpp
-   src/pose_optimization/PoseOptimizationFunctionConstraints.cpp
-   src/pose_optimization/PoseOptimizationProblem.cpp
+#   src/pose_optimization/poseparameterization.cpp
+#   src/pose_optimization/PoseOptimizationBase.cpp
+#   src/pose_optimization/PoseConstraintsChecker.cpp
+#   src/pose_optimization/PoseOptimizationGeometric.cpp
+#   src/pose_optimization/PoseOptimizationQP.cpp
+#   src/pose_optimization/PoseOptimizationSQP.cpp
+#   src/pose_optimization/PoseOptimizationObjectiveFunction.cpp
+#   src/pose_optimization/PoseOptimizationFunctionConstraints.cpp
+#   src/pose_optimization/PoseOptimizationProblem.cpp
+
 #   src/poseparameterization.h
 #   src/sequencequadraticproblemsolver.h
 #   include/qp_solver/quadraticproblemsolver.h
 #   include/qp_solver/Array.h
 #   include/qp_solver/QuadProg++.h
-    src/TypeDefs.cpp
-    src/State.cpp
-    src/AdapterBase.cpp
-    test/AdapterDummy.cpp
+#    src/TypeDefs.cpp
+#    src/State.cpp
+#    src/AdapterBase.cpp
+#    test/AdapterDummy.cpp
 )
-target_link_libraries(quadprog ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -166,10 +166,12 @@ target_link_libraries(quadprog ${catkin_LIBRARIES})
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/qp_sovler_node.cpp)
-add_executable(main src/main.cc)
-target_link_libraries(main ${catkin_LIBRARIES} quadprog)
-add_executable(qp_solve_test src/qp_solve_test.cpp)
-target_link_libraries(qp_solve_test ${catkin_LIBRARIES} quadprog)
+#add_executable(main src/main.cc)
+#target_link_libraries(main ${catkin_LIBRARIES} quadprog)
+
+#add_executable(qp_solve_test src/qp_solve_test.cpp)
+#target_link_libraries(qp_solve_test ${catkin_LIBRARIES} ${PROJECT_NAME})
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -201,7 +203,7 @@ catkin_add_gtest(${PROJECT_NAME}-test
 )
 if(TARGET ${PROJECT_NAME}-test)
   target_link_libraries(${PROJECT_NAME}-test
-    quadprog
+    ${PROJECT_NAME}
   )
 endif()
 
@@ -220,18 +222,18 @@ endif()
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+ install(TARGETS ${PROJECT_NAME} #${PROJECT_NAME}_node
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+ install(DIRECTORY include/${PROJECT_NAME}/
+   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 #   FILES_MATCHING PATTERN "*.h"
 #   PATTERN ".svn" EXCLUDE
-# )
+ )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES

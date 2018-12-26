@@ -45,6 +45,7 @@ bool AdapterDummy::updateExtrasBefore(const StepQueue& stepQueue, State& state)
 
 bool AdapterDummy::updateExtrasAfter(const StepQueue& stepQueue, State& state)
 {
+  //TODO(Shunyao): This is to update to Extras after Executor, real or sim Robot
   return true;
 }
 
@@ -260,10 +261,21 @@ JointAccelerationsLeg AdapterDummy::getJointAccelerationsFromEndEffectorLinearAc
   throw std::runtime_error("AdapterDummy::getJointAccelerationsFromEndEffectorLinearAccelerationInWorldFrame() is not implemented.");
 }
 
-bool AdapterDummy::setInternalDataFromState(const State& state) const
+bool AdapterDummy::setInternalDataFromState(const State& state, bool updateContacts, bool updatePosition,
+                                                 bool updateVelocity, bool updateAcceleration) const
 {
   *state_ = state;
   return true;
+}
+
+void AdapterDummy::createCopyOfState() const
+{
+
+}
+
+void AdapterDummy::resetToCopyOfState() const
+{
+
 }
 
 const State& AdapterDummy::getState() const

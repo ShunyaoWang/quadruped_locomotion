@@ -10,12 +10,13 @@
 
 #include <Eigen/Core>
 #include <Eigen/SVD>
+#include <Eigen/Sparse>
 #include <kindr/Core>
-#include <numopt_quadprog/ActiveSetFunctionMinimizer.hpp>
-#include <numopt_common/ParameterizationIdentity.hpp>
+//#include <numopt_quadprog/ActiveSetFunctionMinimizer.hpp>
+//#include <numopt_common/ParameterizationIdentity.hpp>
 
 using namespace Eigen;
-
+using namespace std;
 namespace free_gait {
 
 PoseOptimizationQP::PoseOptimizationQP(const AdapterBase& adapter)
@@ -23,29 +24,30 @@ PoseOptimizationQP::PoseOptimizationQP(const AdapterBase& adapter)
       nStates_(3),
       nDimensions_(3)
 {
-  solver_.reset(new numopt_quadprog::ActiveSetFunctionMinimizer());
+//  solver_.reset(new numopt_quadprog::ActiveSetFunctionMinimizer());
 }
 
 PoseOptimizationQP::~PoseOptimizationQP()
 {
 }
 
-PoseOptimizationQP::PoseOptimizationQP(const PoseOptimizationQP& other)
-    : PoseOptimizationBase(other),
-      nStates_(other.nStates_),
-      nDimensions_(other.nDimensions_)
-{
-  solver_.reset(new numopt_quadprog::ActiveSetFunctionMinimizer());
-}
+//PoseOptimizationQP::PoseOptimizationQP(const PoseOptimizationQP& other)
+//    : PoseOptimizationBase(other),
+//      nStates_(other.nStates_),
+//      nDimensions_(other.nDimensions_)
+//{
+////  solver_.reset(new numopt_quadprog::ActiveSetFunctionMinimizer());
+//}
 
 bool PoseOptimizationQP::optimize(Pose& pose)
 {
   checkSupportRegion();
 
-  state_.setPoseBaseToWorld(pose);
-  adapter_.setInternalDataFromState(state_, false, true, false, false); // To guide IK.
-  updateJointPositionsInState(state_);
-  adapter_.setInternalDataFromState(state_, false, true, false, false);
+  state_.setPoseBaseToWorld(pose); //TODO(Shunyao): fix bug in state class
+  adapter_.setInternalDataFromState(state_);
+//  adapter_.setInternalDataFromState(state_, false, true, false, false); // To guide IK.
+//  updateJointPositionsInState(state_);
+//  adapter_.setInternalDataFromState(state_, false, true, false, false);
 
   // Compute center of mass.
   const Position centerOfMassInBaseFrame(
@@ -53,7 +55,7 @@ bool PoseOptimizationQP::optimize(Pose& pose)
                                  adapter_.getCenterOfMassInWorldFrame()));
 
   // Problem definition:
-  // min Ax - b, Gx <= h
+  // min Ax - b, Gx <= h, x is base center (x,y,z),minimaze foothold offsets(I_r_F_hat - I_r_F)
   unsigned int nFeet = stance_.size();
   MatrixXd A = MatrixXd::Zero(nDimensions_ * nFeet, nStates_);
   VectorXd b = VectorXd::Zero(nDimensions_ * nFeet);
@@ -84,25 +86,42 @@ bool PoseOptimizationQP::optimize(Pose& pose)
 
   // Formulation as QP:
   // min 1/2 x'Px + q'x + r
-  MatrixXd P = 2 * A.transpose() * A;
-  VectorXd q = -2 * A.transpose() * b;
+  Eigen::MatrixXd P = 2 * A.transpose() * A;
+  Eigen::VectorXd q = -2 * A.transpose() * b;
+
 //  MatrixXd r = b.transpose() * b; // Not used.
 
   // Cost function.
-  auto costFunction = std::shared_ptr<numopt_common::QuadraticObjectiveFunction>(new numopt_common::QuadraticObjectiveFunction());
-  numopt_common::SparseMatrix P_sparse = P.sparseView();
+  //auto costFunction = std::shared_ptr<numopt_common::QuadraticObjectiveFunction>(new numopt_common::QuadraticObjectiveFunction());
+  auto costFunction = std::shared_ptr<qp_solver::QuadraticObjectiveFunction>(new qp_solver::QuadraticObjectiveFunction());
+
+  Eigen::MatrixXd P_sparse = P.sparseView();
   costFunction->setGlobalHessian(P_sparse);
   costFunction->setLinearTerm(q);
 
   // Constraints.
-  auto constraints = std::shared_ptr<numopt_common::LinearFunctionConstraints>(new numopt_common::LinearFunctionConstraints());
-  numopt_common::SparseMatrix G_sparse = G.sparseView();
+  //auto constraints = std::shared_ptr<numopt_common::LinearFunctionConstraints>(new numopt_common::LinearFunctionConstraints());
+  auto constraints = std::shared_ptr<qp_solver::LinearFunctionConstraints>(new qp_solver::LinearFunctionConstraints());
+  Eigen::MatrixXd G_sparse = G.sparseView();
+  Eigen::MatrixXd Aeq(P.cols(), 1);
+  Eigen::VectorXd beq(1);
   constraints->setGlobalInequalityConstraintJacobian(G_sparse);
-  constraints->setInequalityConstraintMinValues(std::numeric_limits<double>::lowest() * numopt_common::Vector::Ones(h.size()));
+  //constraints->setInequalityConstraintMinValues(std::numeric_limits<double>::lowest() * numopt_common::Vector::Ones(h.size()));
   constraints->setInequalityConstraintMaxValues(h);
+  constraints->setGlobalEqualityConstraintJacobian(Aeq.setZero());
+  constraints->setEqualityConstraintMaxValues(beq.setZero());
+  // BUG(shunyao,29/11/18) only the inequality max value is equal to Matlab,
+  // considering the -CI ?(fixed, optimization object different, here only for position(x,y,z))
+
+//  cout<<"Hessian Matrix is: "<<endl<<P_sparse<<endl;
+//  cout<<"Jacobian Vector is: "<<endl<<q<<endl;
+//  cout<<"Inequality Constraints Jacobian is: "<<endl<<G<<endl;
+//  cout<<"Equality Constraints Jacobian is: "<<endl<<Aeq<<endl;
+//  cout<<"Inequality Constraints value vector is: "<<endl<<h<<endl;
+//  cout<<"Equality Constraints value vector is: "<<endl<<beq<<endl;
 
   // Solve.
-  numopt_common::QuadraticProblem problem(costFunction, constraints);
+  /*numopt_common::QuadraticProblem problem(costFunction, constraints);
 
   Eigen::VectorXd x;
   numopt_common::ParameterizationIdentity params(x.size());
@@ -110,10 +129,12 @@ bool PoseOptimizationQP::optimize(Pose& pose)
   double cost = 0.0;
   if (!solver_->minimize(&problem, params, cost)) return false;
   x = params.getParams();
-//  std::cout << "x: " << std::endl << x << std::endl;
-
+  std::cout << "x: " << std::endl << x << std::endl;*/
+  Eigen::VectorXd params(P.cols());
+  if (!solver_->minimize(*costFunction, *constraints, params)) return false;
   // Return optimized pose.
-  pose.getPosition().vector() = x;
+  std::cout << "quadratic solution is : " << std::endl << params << std::endl;
+  pose.getPosition().vector() = params;
   return true;
 }
 

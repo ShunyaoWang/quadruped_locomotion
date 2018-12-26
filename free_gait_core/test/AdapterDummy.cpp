@@ -45,6 +45,7 @@ bool AdapterDummy::updateExtrasBefore(const StepQueue& stepQueue, State& state)
 
 bool AdapterDummy::updateExtrasAfter(const StepQueue& stepQueue, State& state)
 {
+  //TODO(Shunyao): This is to update to Extras after Executor, real or sim Robot
   return true;
 }
 
@@ -97,6 +98,7 @@ bool AdapterDummy::getLimbJointPositionsFromPositionBaseToFootInBaseFrame(
     const Position& positionBaseToFootInBaseFrame, const LimbEnum& limb,
     JointPositionsLeg& jointPositions) const
 {
+  // TODO(Shunyao): solve the single limb IK
   throw std::runtime_error("AdapterDummy::getLimbJointPositionsFromPositionBaseToFootInBaseFrame() is not implemented.");
 }
 
@@ -174,11 +176,13 @@ JointEfforts AdapterDummy::getAllJointEfforts() const
 
 Position AdapterDummy::getPositionWorldToBaseInWorldFrame() const
 {
+//  return Position(0,0,0);
   return state_->getPositionWorldToBaseInWorldFrame();
 }
 
 RotationQuaternion AdapterDummy::getOrientationBaseToWorld() const
 {
+//  return RotationQuaternion(1,0,0,0);
   return state_->getOrientationBaseToWorld();
 }
 
@@ -214,6 +218,7 @@ Position AdapterDummy::getPositionWorldToFootInWorldFrame(const LimbEnum& limb) 
 
 Position AdapterDummy::getCenterOfMassInWorldFrame() const
 {
+//  return Position(0,0,0);
   return state_->getPositionWorldToBaseInWorldFrame();
 }
 
@@ -257,10 +262,21 @@ JointAccelerationsLeg AdapterDummy::getJointAccelerationsFromEndEffectorLinearAc
   throw std::runtime_error("AdapterDummy::getJointAccelerationsFromEndEffectorLinearAccelerationInWorldFrame() is not implemented.");
 }
 
-bool AdapterDummy::setInternalDataFromState(const State& state) const
+bool AdapterDummy::setInternalDataFromState(const State& state, bool updateContacts, bool updatePosition,
+                                                 bool updateVelocity, bool updateAcceleration) const
 {
   *state_ = state;
   return true;
+}
+
+void AdapterDummy::createCopyOfState() const
+{
+
+}
+
+void AdapterDummy::resetToCopyOfState() const
+{
+
 }
 
 const State& AdapterDummy::getState() const

@@ -5,10 +5,11 @@ set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED COMPONENTS
-  #quadruped_model
+  quadruped_model
   #numopt_common
   #numopt_quadprog
   #numopt_sqp
+  qp_solver
   curves
   grid_map_core
   #robot_utils
@@ -35,13 +36,13 @@ catkin_package(
     LIBRARIES
       ${PROJECT_NAME}
     CATKIN_DEPENDS
-      quadruped_model
-      numopt_common
-      numopt_quadprog
-      numopt_sqp
+      #quadruped_model
+      #numopt_common
+      #numopt_quadprog
+      #numopt_sqp
       curves
       grid_map_core
-      robot_utils
+      #robot_utils
       std_utils
       message_logger
 )
@@ -98,7 +99,7 @@ add_library(${PROJECT_NAME}
    src/pose_optimization/PoseOptimizationGeometric.cpp
    src/pose_optimization/PoseOptimizationQP.cpp
    src/pose_optimization/PoseOptimizationSQP.cpp
-   src/pose_optimization/PoseParameterization.cpp
+   src/pose_optimization/poseparameterization.cpp
    src/pose_optimization/PoseOptimizationObjectiveFunction.cpp
    src/pose_optimization/PoseOptimizationFunctionConstraints.cpp
    src/pose_optimization/PoseOptimizationProblem.cpp

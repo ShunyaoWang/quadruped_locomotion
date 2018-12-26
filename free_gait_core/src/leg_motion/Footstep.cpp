@@ -28,8 +28,8 @@ Footstep::Footstep(LimbEnum limb)
       ignoreContact_(false),
       ignoreForPoseAdaptation_(false),
       isComputed_(false),
-      controlSetup_ { {ControlLevel::Position, true}, {ControlLevel::Velocity, true},
-                      {ControlLevel::Acceleration, true}, {ControlLevel::Effort, false} }
+      controlSetup_ { {ControlLevel::Position, true}, {ControlLevel::Velocity, false},
+                      {ControlLevel::Acceleration, false}, {ControlLevel::Effort, false} }
 {
 }
 

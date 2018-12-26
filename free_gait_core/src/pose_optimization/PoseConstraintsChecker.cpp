@@ -28,17 +28,22 @@ void PoseConstraintsChecker::setTolerances(const double centerOfMassTolerance, c
 
 bool PoseConstraintsChecker::check(const Pose& pose)
 {
-  state_.setPoseBaseToWorld(pose);
-  adapter_.setInternalDataFromState(state_, false, true, false, false); // To guide IK.
-  if (!updateJointPositionsInState(state_)) {
-    return false;
-  }
-  adapter_.setInternalDataFromState(state_, false, true, false, false);
+  // TODO(Shunyao): findout the useness of those lines
+//! state_ is a protected member in poseOptimizationBase, set it to AdapterBase,
+//! implemented in AdapterDummy
+    state_.setPoseBaseToWorld(pose); // this member function is in the quadrupedModel class, which is a parent class of State
+//  adapter_.setInternalDataFromState(state_, false, true, false, false); // To guide IK.
+    adapter_.setInternalDataFromState(state_); // To guide IK.
+//  if (!updateJointPositionsInState(state_)) {
+//    return false;
+//  }
+//  adapter_.setInternalDataFromState(state_, false, true, false, false);
 
   // Check center of mass.
   grid_map::Polygon supportRegionCopy(supportRegion_);
   supportRegionCopy.offsetInward(centerOfMassTolerance_);
   if (!supportRegion_.isInside(adapter_.getCenterOfMassInWorldFrame().vector().head(2))) {
+    std::cout<<"Center of mass: "<<adapter_.getCenterOfMassInWorldFrame()<<" is out of support region"<<std::endl;
     return false;
   }
 
@@ -48,6 +53,7 @@ bool PoseConstraintsChecker::check(const Pose& pose)
         adapter_.transformPosition(adapter_.getWorldFrameId(), adapter_.getBaseFrameId(), foot.second));
     const double legLength = Vector(footPositionInBase - adapter_.getPositionBaseToHipInBaseFrame(foot.first)).norm();
     if (legLength < minLimbLenghts_[foot.first] - legLengthTolerance_ || legLength > maxLimbLenghts_[foot.first] + legLengthTolerance_) {
+      std::cout<<"Leg lenth is out of limits"<<std::endl;
       return false;
     }
   }

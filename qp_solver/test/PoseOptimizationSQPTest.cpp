@@ -7,9 +7,9 @@
  */
 
 #include "free_gait_core/TypeDefs.hpp"
-#include "qp_solver/pose_optimization/PoseOptimizationSQP.hpp"
-#include "qp_solver/pose_optimization/PoseOptimizationObjectiveFunction.hpp"
-#include "qp_solver/pose_optimization/poseparameterization.h"
+#include "free_gait_core/pose_optimization/PoseOptimizationSQP.hpp"
+#include "free_gait_core/pose_optimization/PoseOptimizationObjectiveFunction.hpp"
+#include "free_gait_core/pose_optimization/poseparameterization.h"
 #include "AdapterDummy.hpp"
 
 #include <grid_map_core/Polygon.hpp>
@@ -150,8 +150,8 @@ TEST(PoseOptimizationSQP, OptimizationSquareUp)
   kindr::assertNear(expectedPosition.vector(), result.getPosition().vector(), 1e-3, KINDR_SOURCE_FILE_POS);
 
   // Translation only.
-//  result.setIdentity();
-  expectedPosition += Position(0.5, 0.25, 0.0);
+  result.setIdentity();
+  expectedPosition += Position(0.3, 0.2, 0.0);
   result = Pose(expectedPosition, RotationQuaternion());
   Stance translatedStance(stance);
   for (auto& stance : translatedStance) {

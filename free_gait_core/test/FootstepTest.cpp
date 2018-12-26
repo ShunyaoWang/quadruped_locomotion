@@ -8,6 +8,8 @@
 
 #include "free_gait_core/TypeDefs.hpp"
 #include "free_gait_core/leg_motion/Footstep.hpp"
+#include "free_gait_core/free_gait_core.hpp"
+#include "AdapterDummy.hpp"
 
 // gtest
 #include <gtest/gtest.h>
@@ -55,3 +57,30 @@ TEST(footstep, trianglehighLong)
     EXPECT_LT(position.x(), target.x() + 0.001);
   }
 }
+
+//TEST(executor, footstepExecute)
+//{
+//  AdapterDummy adapter;
+//  State state;
+//  StepParameters parameters;
+//  StepCompleter completer(parameters, adapter);
+//  StepComputer computer;
+//  Executor executor(completer, computer, adapter, state);
+//  StepRosConverter converter(adapter);
+//  std::vector<Step> steps;
+//  Step step;
+//  step.setId("01");
+//  // Footstep
+//  Footstep footstep(LimbEnum::LF_LEG);
+////  Position start(0.0, 0.0, 0.0);
+//  Position target(0.3, 0.0, 0.0);
+//  Vector sufaceNormal(0, 0, 1);
+////  footstep.updateStartPosition(start);
+//  footstep.setTargetPosition("map", target);
+//  footstep.setProfileHeight(0.05);
+//  footstep.setProfileType("triangle");
+//  footstep.setAverageVelocity(0.15);
+//  footstep.surfaceNormal_.reset(new Vector(sufaceNormal));
+
+
+//}

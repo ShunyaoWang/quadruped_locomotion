@@ -12,7 +12,9 @@ namespace free_gait {
 PoseOptimizationProblem::PoseOptimizationProblem(
     std::shared_ptr<PoseOptimizationObjectiveFunction> objectiveFunction,
     std::shared_ptr<PoseOptimizationFunctionConstraints> functionConstraints)
-    : ConstrainedNonlinearProblem(objectiveFunction, functionConstraints)
+    //: ConstrainedNonlinearProblem(objectiveFunction, functionConstraints)
+  : objectiveFunction_(objectiveFunction),
+    functionConstraints_(functionConstraints)
 {
 }
 

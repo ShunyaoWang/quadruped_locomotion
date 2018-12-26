@@ -7,7 +7,6 @@
  */
 
 #pragma once
-
 #include "free_gait_core/pose_optimization/PoseOptimizationBase.hpp"
 #include "free_gait_core/TypeDefs.hpp"
 

@@ -51,7 +51,10 @@ Step::Step()
 Step::~Step()
 {
 }
-
+/**
+ * @brief Step::Step Copy Constructor
+ * @param other
+ */
 Step::Step(const Step& other)
     : time_(other.time_),
       totalDuration_(other.totalDuration_),
@@ -185,7 +188,8 @@ void Step::reset()
   }
 }
 /**
- * @brief Step::update, update totalDuration_
+ * @brief Step::update, update totalDuration_, make the longest motion time as
+ * total duration
  * @return
  */
 bool Step::update()

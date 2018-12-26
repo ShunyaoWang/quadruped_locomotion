@@ -34,11 +34,11 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
   Position transformedPosition;
   bool frameError = false;
 
-  if (inputFrameId == getBaseFrameId()) {
+  if (inputFrameId == getBaseFrameId()) {//base
 
     if (outputFrameId == getBaseFrameId()) {
       transformedPosition = position;
-    } else if (outputFrameId == getWorldFrameId()) {
+    } else if (outputFrameId == getWorldFrameId()) {//odom
       transformedPosition = getPositionWorldToBaseInWorldFrame() + getOrientationBaseToWorld().rotate(position);
     } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {
       const Position positionInOdom = transformPosition(inputFrameId, getWorldFrameId(), position);
@@ -53,7 +53,7 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
       transformedPosition = getOrientationBaseToWorld().inverseRotate(position - getPositionWorldToBaseInWorldFrame());
     } else if (outputFrameId == getWorldFrameId()) {
       transformedPosition = position;
-    } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {
+    } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {//TODO(Shunyao): How to implenment getFrameTransform
       transformedPosition = getFrameTransform(outputFrameId).inverseTransform(position);
     } else {
       frameError = true;

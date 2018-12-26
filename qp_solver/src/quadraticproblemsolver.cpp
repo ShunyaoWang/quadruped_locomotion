@@ -14,12 +14,12 @@ QuadraticProblemSolver::QuadraticProblemSolver()
 //  ce0_.resize(variable_dimension_);
 //  ci0_.resize(variable_dimension_);
 //  x_.resize(variable_dimension_);
-  std::cout<<"construct a solver class"<<std::endl;
+  std::cout<<"construct a quadratic program solver class"<<std::endl;
 
 };
 QuadraticProblemSolver::~QuadraticProblemSolver()
 {
-  std::cout<<"solver class destroyed"<<std::endl;
+  std::cout<<"quadratic program solver class destroyed"<<std::endl;
 }
 bool QuadraticProblemSolver::setGlobalHessian(Eigen::MatrixXd& hessian)
 {

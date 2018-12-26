@@ -12,10 +12,12 @@
 #include "free_gait_core/pose_optimization/PoseOptimizationBase.hpp"
 
 #include <grid_map_core/Polygon.hpp>
-#include <numopt_common/QuadraticProblemSolver.hpp>
+#include <qp_solver/quadraticproblemsolver.h>
+
 
 #include <unordered_map>
 #include <memory>
+
 
 
 namespace free_gait {
@@ -25,7 +27,7 @@ class PoseOptimizationQP : public PoseOptimizationBase
  public:
   PoseOptimizationQP(const AdapterBase& adapter);
   virtual ~PoseOptimizationQP();
-  PoseOptimizationQP(const PoseOptimizationQP& other);
+//  PoseOptimizationQP(const PoseOptimizationQP& other);
 
   /*!
    * Computes the optimized pose.
@@ -35,7 +37,7 @@ class PoseOptimizationQP : public PoseOptimizationBase
   bool optimize(Pose& pose);
 
  private:
-  std::unique_ptr<numopt_common::QuadraticProblemSolver> solver_;
+  std::unique_ptr<qp_solver::QuadraticProblemSolver> solver_;
   unsigned int nStates_;
   unsigned int nDimensions_;
 };

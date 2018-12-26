@@ -70,8 +70,8 @@ bool PoseOptimizationBase::updateJointPositionsInState(State& state) const
     JointPositionsLeg jointPositions;
     const bool success = adapter_.getLimbJointPositionsFromPositionBaseToFootInBaseFrame(footPositionInBase, foot.first, jointPositions);
   //TODO(Shunyao): fix state feedback
-//    if (success) state.setJointPositionsForLimb(foot.first, jointPositions);
-//    else totalSuccess = totalSuccess && success;
+    if (success) state.setJointPositionsForLimb(foot.first, jointPositions);
+    else totalSuccess = totalSuccess && success;
   }
   return totalSuccess;
 }

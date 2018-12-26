@@ -13,9 +13,7 @@
 
   <depend>eigen</depend>
   <depend>quadruped_model</depend>
-  <depend>numopt_common</depend>
-  <depend>numopt_quadprog</depend>
-  <depend>numopt_sqp</depend>
+  <depend>qp_solver</depend>
   <depend>curves</depend>
   <depend>grid_map_core</depend>
   <depend>robot_utils</depend>
