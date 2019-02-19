@@ -107,7 +107,11 @@ target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   rviz_free_gait_additions
 )
+add_executable(class_load_test test/class_load_test.cpp)
 
+target_link_libraries(class_load_test
+  ${PROJECT_NAME}
+  )
 ## Install rules
 install(
   DIRECTORY include/${PROJECT_NAME}

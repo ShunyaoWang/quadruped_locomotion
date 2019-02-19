@@ -10,10 +10,11 @@
 #include "free_gait_core/TypeDefs.hpp"
 #include "free_gait_core/leg_motion/Footstep.hpp"
 #include "free_gait_core/free_gait_core.hpp"
-#include "AdapterDummy.hpp"
+//#include "free_gait_core/executor/AdapterDummy.hpp"
 //#include "free_gait_ros/StepRosConverter.hpp"
 #include "free_gait_msgs/Footstep.h"
 #include "free_gait_ros/free_gait_ros.hpp"
+#include "pluginlib/class_loader.h"
 
 
 using namespace free_gait;
@@ -23,26 +24,34 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "step_test");
   ros::NodeHandle nh("~");
-  AdapterDummy adapter;
+  AdapterRos adapterRos_(nh, free_gait::AdapterRos::AdapterType::Preview);
+  pluginlib::ClassLoader<AdapterBase> adapter_loader("free_gait_ros", "free_gait::AdapterBase");
+  std::unique_ptr<AdapterBase> adapter;
+  adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
+
+//  const AdapterDummy& adapter = dynamic_cast<AdapterDummy&>(adapterRos_.getAdapter());
+//  AdapterDummy adapter;
+//  AdapterBase& adapter = adapterRos_.getAdapter();
   JointPositionsLeg joints(0,0,0);
 //  Position end(0.4,0.25,-0.5);
 //  State testState;
 //  testState.getPositionBaseToFootInBaseFrame(LimbEnum::LF_LEG,joints);
-  Position end = adapter.getPositionBaseToFootInBaseFrame(LimbEnum::LF_LEG,joints);
+  Position end = adapter->getPositionBaseToFootInBaseFrame(LimbEnum::LF_LEG,joints);
   cout<<end<<endl;
-  adapter.getLimbJointPositionsFromPositionBaseToFootInBaseFrame(end,LimbEnum::LF_LEG,joints);
+  adapter->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(end,LimbEnum::LF_LEG,joints);
   cout<<joints<<endl;
 
   State state;
   StepParameters parameters;
-  StepCompleter completer(parameters, adapter);
+  StepCompleter completer(parameters, *adapter);
   StepComputer computer;
-  Executor executor(completer, computer, adapter, state);
+  Executor executor(completer, computer, *adapter, state);
+  BatchExecutor batch_executor(executor);
   cout<<"======================"<<endl;
   executor.initialize();
   cout<<"======================"<<endl;
-  StepRosConverter converter(adapter);
-  StateRosPublisher rosPublisher(nh, adapter);
+  StepRosConverter converter(*adapter);
+  StateRosPublisher rosPublisher(nh, *adapter);
 
   std::vector<Step> steps;
   Step step;
@@ -169,14 +178,14 @@ int main(int argc, char **argv)
 
   executor.getQueue().add(steps);
   executor.setPreemptionType(Executor::PreemptionType::PREEMPT_IMMEDIATE);
-  double dt = 0.01;
+  double dt = 0.001;
   double time = 0.0;
   ros::Time t_start = ros::Time::now();
-  ros::Rate rate(100);
+  ros::Rate rate(1000);
   while (!executor.getQueue().empty()) {
     executor.advance(dt, true);
     time = time + dt;
-    rosPublisher.publish(adapter.getState());
+    rosPublisher.publish(adapter->getState());
     rate.sleep();
   }
   ros::Time t_end = ros::Time::now();

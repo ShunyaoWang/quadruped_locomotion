@@ -19,4 +19,9 @@
   <depend>robot_utils</depend>
   <depend>std_utils</depend>
   <depend>message_logger</depend>
+
+  <!-- <export>
+    <free_gait_core plugin="${prefix}/plugin_description.xml"/>
+  </export> -->
+
 </package>

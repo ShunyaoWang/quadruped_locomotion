@@ -1,0 +1,5 @@
+steps:
+  - step:
+    - base_auto:
+       height: 0.4
+       ignore_timing_of_leg_motion: false

@@ -1,0 +1,7 @@
+<library path="lib/libfree_gait_core">
+  <class name="free_gait_core/AdapterDummy"
+         type="free_gait::AdapterDummy"
+         base_class_type="free_gait::AdapterBase">
+    <description>Display to preview Free Gait actions.</description>
+  </class>
+</library>

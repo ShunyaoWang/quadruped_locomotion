@@ -72,6 +72,7 @@ void FreeGaitActionServer::update()
     }
   } else {
     // Ongoing.
+    ROS_INFO("publish feedback");
     lock.lock();
     if (executor_.getQueue().active()) publishFeedback();
     lock.unlock();

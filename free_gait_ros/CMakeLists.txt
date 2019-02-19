@@ -75,15 +75,26 @@ add_library(${PROJECT_NAME}
    src/FreeGaitActionClient.cpp
    src/AdapterRos.cpp
    src/AdapterRosInterfaceBase.cpp
+   #src/AdapterRosInterfaceDummy.cpp
    src/StateRosPublisher.cpp
    src/RosVisualization.cpp
 )
-
+add_library(${PROJECT_NAME}_plugin
+  src/AdapterRosInterfaceDummy.cpp
+  src/AdapterDummy.cpp
+  )
+target_link_libraries(${PROJECT_NAME}_plugin
+  ${catkin_LIBRARIES}
+)
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
 )
-add_executable(steps_test test/test.cpp test/AdapterDummy.cpp)
+add_executable(steps_test test/test.cpp) #test/AdapterDummy.cpp)
 target_link_libraries(steps_test ${PROJECT_NAME}
+  ${catkin_LIBRARIES})
+add_executable(action_server_test_node test/action_server_test.cpp)
+target_link_libraries(action_server_test_node
+  ${PROJECT_NAME}
   ${catkin_LIBRARIES})
 #############
 ## Testing ##

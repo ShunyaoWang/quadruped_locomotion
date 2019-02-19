@@ -12,6 +12,7 @@
 #include <free_gait_ros/AdapterRosInterfaceBase.hpp>
 #include <ros/node_handle.h>
 #include <pluginlib/class_loader.h>
+#include "pluginlib_tutorials/polygon_base.h"
 
 // STD
 #include <memory>
@@ -39,6 +40,8 @@ class AdapterRos
 
  private:
   ros::NodeHandle& nodeHandle_;
+  pluginlib::ClassLoader<polygon_base::RegularPolygon> tutor_loader_;
+  std::unique_ptr<polygon_base::RegularPolygon> tutor_;
   pluginlib::ClassLoader<AdapterBase> adapterLoader_;
   std::unique_ptr<AdapterBase> adapter_;
   pluginlib::ClassLoader<AdapterRosInterfaceBase> adapterRosInterfaceLoader_;

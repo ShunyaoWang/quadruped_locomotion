@@ -85,7 +85,7 @@ bool StateRosPublisher::publish(const State& state)
 
   state.getAllJointNames(jointNames);
 
-  JointPositions jointPositions = state.getJointPositions();
+  JointPositions jointPositions = state.getJointPositionsToReach();//.getJointPositions();
 
   if (jointNames.size() != jointPositions.vector().size()) {
     ROS_ERROR("Joint name vector and joint position are not of equal size!");
@@ -94,12 +94,12 @@ bool StateRosPublisher::publish(const State& state)
   std::map<std::string, double> jointPositionsMap;
   for (size_t i = 0; i < jointNames.size(); ++i) {
     jointPositionsMap[jointNames[i]] = jointPositions(i);
-    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
+//    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
   }
 
   robotStatePublisher_->publishTransforms(jointPositionsMap, time, tfPrefix_);
   robotStatePublisher_->publishFixedTransforms(tfPrefix_);
-ROS_INFO("In ros state publisher");
+//ROS_INFO("In ros state publisher");
   // Publish base position.
   geometry_msgs::TransformStamped tfTransform;
   tfTransform.header.stamp = time;

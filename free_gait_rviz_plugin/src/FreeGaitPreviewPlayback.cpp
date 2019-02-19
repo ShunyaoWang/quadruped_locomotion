@@ -151,12 +151,16 @@ void FreeGaitPreviewPlayback::processingCallback(bool success)
   Lock lock(dataMutex_);
   clear();
   stateBatch_ = batchExecutor_->getStateBatch(); // Deep copy.
+//  std::cout<<"======================================="<<stateBatch_.getState(1.5).getJointPositions()<<
+//          "========================================="<<std::endl;
   stateBatchComputer_.computeEndEffectorTrajectories(stateBatch_);
   stateBatchComputer_.computeEndEffectorTargetsAndSurfaceNormals(stateBatch_);
   stateBatchComputer_.computeStances(stateBatch_);
   stateBatchComputer_.computeStepIds(stateBatch_);
   time_.fromSec(stateBatch_.getStartTime());
   ROS_DEBUG_STREAM("Resetting time to " << time_ << ".");
+//  std::cout<<"===================================================start time is "<<time_<<std::endl;
+//  std::cout<<stateBatch_.getState(1.5).getJointPositions()<<std::endl;
   newGoalCallback_();
 }
 
@@ -165,6 +169,7 @@ void FreeGaitPreviewPlayback::publish(const ros::Time& time)
   // TODO Increase speed by smarter locking.
   Lock lock(dataMutex_);
   const double timeInDouble = time.toSec();
+//  ROS_INFO("playback time stamp %f",timeInDouble);
   if (!stateBatch_.isValidTime(timeInDouble)) return;
   const State state = stateBatch_.getState(timeInDouble);
   stateRosPublisher_.publish(state);

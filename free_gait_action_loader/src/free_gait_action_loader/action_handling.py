@@ -69,6 +69,7 @@ class ActionEntry:
             self.name = parameters['name']
         if 'file' in parameters:
             self.file = abspath(join(package_path, parameters['file']))
+            rospy.loginfo(self.file)
         if 'type' in parameters:
             self.type = ActionType.from_text(parameters['type'])
         if 'description' in parameters:
@@ -95,11 +96,13 @@ class ActionList:
         self.actions = []
         rospack = rospkg.RosPack()
         packages = rospack.get_depends_on(self.name, implicit=False)
-        rospy.loginfo(packages)
+        rospy.loginfo(rospack)
         for package in packages:
             rospy.loginfo(package)
             manifest = rospack.get_manifest(package)
+            rospy.loginfo(manifest.exports)
             file_path = manifest.get_export(self.name, 'actions')
+            rospy.loginfo(file_path)
             if not file_path:
                 continue
             elif len(file_path) != 1:
@@ -114,7 +117,9 @@ class ActionList:
 
                 package_path = rospack.get_path(package)
                 parameters = load_file(file_path)
+                # rospy.loginfo(parameters[0][0]['actions'])
                 for action_parameters in parameters[0][0]['actions']:
+                    rospy.loginfo(action_parameters)
                     entry = ActionEntry(package_path, action_parameters['action'])
                     self.actions.append(entry)
 

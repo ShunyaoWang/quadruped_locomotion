@@ -1,0 +1,13 @@
+actions:
+  - action:
+      id: "1"
+      name: stand up
+      file: motion_scripts/standup.yaml
+      type: yaml
+      description: robot stand
+  - action:
+      id: "2"
+      name: sit down
+      file: motion_scripts/sitdown.yaml
+      type: yaml
+      description: robot sit down

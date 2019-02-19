@@ -14,15 +14,31 @@ QuadrupedState::QuadrupedState()
 //  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
   std::cout<<"Constructor QuadrupedState"<<std::endl;
 
-  setPoseBaseToWorld(Pose(Position(0,0,0), RotationQuaternion()));
-  joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
-  setCurrentLimbJoints(joint_positions_);
+//  setPoseBaseToWorld(Pose(Position(0,0,0), RotationQuaternion()));
+//  joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
+//  setCurrentLimbJoints(joint_positions_);
 };
+
+//QuadrupedState::QuadrupedState(const QuadrupedState& other)
+//    :
+
+//{
+
+//}
 
 QuadrupedState::~QuadrupedState()
 {
  std::cout<<"QuadrupedState Destroied"<<std::endl;
 };
+bool QuadrupedState::Initialize()
+{
+    std::cout<<"Initialize QuadrupedState"<<std::endl;
+
+    setPoseBaseToWorld(Pose(Position(0,0,0), RotationQuaternion()));
+    joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
+    //allJointPositionsToReach_ = joint_positions_;
+    setCurrentLimbJoints(joint_positions_);
+}
 
 const Position QuadrupedState::getPositionWorldToBaseInWorldFrame() const
 {
@@ -46,7 +62,7 @@ const Position QuadrupedState::getPositionBaseToFootInBaseFrame(const LimbEnum& 
 {
 //  std::cout<<"get here"<<std::endl;
   JointPositionsLimb jointPositions = current_limb_joints_.at(limb);
-  std::cout<<"in getPositionBaseToFootInBaseFrame()  "<<jointPositions<<std::endl;
+//  std::cout<<"in getPositionBaseToFootInBaseFrame()  "<<jointPositions<<std::endl;
   Pose foot_pose;
   FowardKinematicsSolve(jointPositions, limb, foot_pose);
   footPoseInBaseFrame_[limb] = foot_pose;
@@ -57,9 +73,16 @@ const RotationQuaternion QuadrupedState::getOrientationBaseToWorld() const
   return  poseInWorldFrame_.getRotation();
 }
 
+const JointPositions& QuadrupedState::getJointPositionsToReach() const
+{
+    return allJointPositionsToReach_;
+}
 
 JointPositions& QuadrupedState::getJointPositions()
 {
+  //TODO(shunyao): `joint_position_` was declared as a static member, which means
+  //  it doesn't change with the copy of class, so it always has one value, but is
+  //there necessary to use static member? And how to fix it?
   return joint_positions_;// joint command
 }
 JointVelocities& QuadrupedState::getJointVelocities()
@@ -96,6 +119,7 @@ bool QuadrupedState::setAngularVelocityBaseInBaseFrame(const LocalAngularVelocit
 bool QuadrupedState::setJointPositions(const JointPositions joint_positions)
 {
   joint_positions_ = joint_positions;
+//  allJointPositionsToReach_ = joint_positions_;
   setCurrentLimbJoints(joint_positions_);
   return true;
 }
@@ -122,9 +146,9 @@ bool QuadrupedState::getLimbJointPositionsFromPositionBaseToFootInBaseFrame(cons
   {
     return false;
   }
-  std::cout<<"***********************************"<<std::endl
-     <<jointPositions<<std::endl
-    <<"**********************************"<<std::endl;
+//  std::cout<<"***********************************"<<std::endl
+//     <<jointPositions<<std::endl
+//    <<"**********************************"<<std::endl;
   return true;
 
 }
@@ -144,6 +168,7 @@ LinearVelocity QuadrupedState::getEndEffectorLinearVelocityFromJointVelocities(c
 void QuadrupedState::setCurrentLimbJoints(JointPositions all_joints_position)
 {
 
+  allJointPositionsToReach_ = all_joints_position;
   current_limb_joints_[LimbEnum::LF_LEG] = JointPositionsLimb(all_joints_position(0),all_joints_position(1),all_joints_position(2));
   current_limb_joints_[LimbEnum::RF_LEG] = JointPositionsLimb(all_joints_position(3),all_joints_position(4),all_joints_position(5));
   current_limb_joints_[LimbEnum::RH_LEG] = JointPositionsLimb(all_joints_position(6),all_joints_position(7),all_joints_position(8));

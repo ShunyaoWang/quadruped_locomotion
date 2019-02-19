@@ -7,28 +7,47 @@
  */
 
 #include "free_gait_ros/AdapterRos.hpp"
-
 namespace free_gait {
 
 AdapterRos::AdapterRos(ros::NodeHandle& nodeHandle, const AdapterType type)
     : nodeHandle_(nodeHandle),
-      adapterLoader_("free_gait_core", "free_gait::AdapterBase"),
+      tutor_loader_("pluginlib_tutorials", "polygon_base::RegularPolygon"),
+      adapterLoader_("free_gait_ros", "free_gait::AdapterBase"),
       adapterRosInterfaceLoader_("free_gait_ros", "free_gait::AdapterRosInterfaceBase")
 {
   // Load and initialize adapter.
+  std::cout<<"Constructing AdapterRos..."<<std::endl;
+  std::cout<<adapterLoader_.getBaseClassType()<<std::endl;
+  std::cout<<adapterLoader_.getDeclaredClasses()[0]<<std::endl;
+//  std::cout<<adapterLoader_.g<<std::endl;
   std::string adapterParameterName;
   if (type == AdapterType::Base) {
     adapterParameterName = "/free_gait/adapter_plugin/base";
   } else if (type == AdapterType::Preview){
     adapterParameterName = "/free_gait/adapter_plugin/preview";
   }
-  std::string adapterPluginName;
-  nodeHandle.getParam(adapterParameterName, adapterPluginName);
-  adapter_.reset(adapterLoader_.createUnmanagedInstance(adapterPluginName));
 
+//  pluginlib::ClassLoader<polygon_base::RegularPolygon> tutor_loader("pluginlib_tutorials", "polygon_base::RegularPolygon");
+//  tutor_loader.createInstance("pluginlib_tutorials/regular_triangle");
+  tutor_.reset(tutor_loader_.createUnmanagedInstance("pluginlib_tutorials/regular_triangle"));
+  std::cout<<"Haved loaded tutorials"<<std::endl;
+  std::vector<std::string> libs_before = adapterRosInterfaceLoader_.getRegisteredLibraries();
   std::string adapterRosInterfacePluginName;
   nodeHandle.getParam("/free_gait/adapter_ros_interface_plugin", adapterRosInterfacePluginName);
+  std::cout<<"===="<<adapterRosInterfaceLoader_.getClassLibraryPath(adapterRosInterfacePluginName)<<std::endl;
+  adapterRosInterfaceLoader_.createInstance(adapterRosInterfacePluginName);
   adapterRosInterface_.reset(adapterRosInterfaceLoader_.createUnmanagedInstance(adapterRosInterfacePluginName));
+  std::vector<std::string> libs_after =adapterRosInterfaceLoader_.getRegisteredLibraries();
+  std::cout<<libs_after[0]<<std::endl;
+
+  std::string adapterPluginName;
+  nodeHandle.getParam(adapterParameterName, adapterPluginName);
+  std::cout<<"===="<<adapterLoader_.getClassLibraryPath(adapterPluginName)<<std::endl;
+  adapter_.reset(adapterLoader_.createUnmanagedInstance(adapterPluginName));
+
+//  std::string adapterRosInterfacePluginName;
+//  nodeHandle.getParam("/free_gait/adapter_ros_interface_plugin", adapterRosInterfacePluginName);
+//  adapterRosInterface_.reset(adapterRosInterfaceLoader_.createUnmanagedInstance(adapterRosInterfacePluginName));
 
   adapterRosInterface_->setNodeHandle(nodeHandle_);
   adapterRosInterface_->readRobotDescription();

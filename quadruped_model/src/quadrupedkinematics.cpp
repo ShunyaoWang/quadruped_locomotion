@@ -5,9 +5,9 @@ QuadrupedKinematics::QuadrupedKinematics()
 {
   // Load robot description
 
-  joint_positons_last_.resize(6);
-  for(unsigned int i = 0;i<6;i++)
-    joint_positons_last_(i) = 0.0;
+//  joint_positons_last_.resize(6);
+//  for(unsigned int i = 0;i<6;i++)
+//    joint_positons_last_(i) = 0.0;
   LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
 
   std::cout<<"Constructor QuadrupedKinematics"<<std::endl;
@@ -103,7 +103,7 @@ bool QuadrupedKinematics::setHipPoseInBase(const KDL::Chain& kdl_chain, const Li
   RotationMatrix rotation_matrix(cartisian_frame(0,0), cartisian_frame(0,1), cartisian_frame(0,2),
                                  cartisian_frame(1,0), cartisian_frame(1,1), cartisian_frame(1,2),
                                  cartisian_frame(2,0), cartisian_frame(2,1), cartisian_frame(2,2));
-  cout<<"set hip pose in Base"<<endl;
+//  cout<<"set hip pose in Base"<<endl;
   hip_pose_in_base_[limb] = Pose(translation, RotationQuaternion(rotation_matrix));
 
   return true;
@@ -300,13 +300,16 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
   d=0.1;
   l1=0.25;
   l2=0.25;
+//  cout<<"px in base = "<<foot_position(0)<<endl
+//      <<"py in base = "<<foot_position(1)<<endl
+//      <<"pz in base = "<<foot_position(2)<<endl;
   Position foot_position_in_hip = getPositionFootToHipInHipFrame(limb, foot_position);
   px=foot_position_in_hip(0);
   py=foot_position_in_hip(1);
   pz=foot_position_in_hip(2);
-  cout<<"px = "<<px<<endl
-      <<"py = "<<py<<endl
-      <<"pz = "<<pz<<endl;
+//  cout<<"px = "<<px<<endl
+//      <<"py = "<<py<<endl
+//      <<"pz = "<<pz<<endl;
   double cos_theta3 = (l2*l2 + l1*l1 - ((px*px + py*py + pz*pz) - d*d))/2/l1/l2;
   Eigen::VectorXd theta3(4);
   Eigen::MatrixXd results(4,3);
@@ -367,7 +370,7 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
     //    if(da.normalized())
   }
   joint_positions << results(min_index,0),results(min_index,1),results(min_index,2);
-  cout<<results<<endl;
+//  cout<<results<<endl;
   return true;
 }
 

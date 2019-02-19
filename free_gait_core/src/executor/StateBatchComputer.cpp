@@ -67,6 +67,7 @@ void StateBatchComputer::computeEndEffectorTrajectories(StateBatch& stateBatch)
   for (const auto& state : stateBatch.getStates()) {
     adapter_.setInternalDataFromState(state.second);
     size_t i = 0;
+//    std::cout<<state.second.getJointPositionsToReach()<<std::endl;
     for (const auto& limb : adapter_.getLimbs()) {
       const Position position = adapter_.getPositionWorldToFootInWorldFrame(limb);
       stateBatch.endEffectorPositions_[i++][state.first] = position;

@@ -1,0 +1,8 @@
+collections:
+  - collection:
+      id: "1"
+      name: collection_1
+      actions:
+        - "1"
+        - "2"
+      is_sequence: True

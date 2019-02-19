@@ -22,4 +22,8 @@
   <depend>robot_state_publisher</depend>
   <depend>kdl_parser</depend>
   <depend>eigen</depend>
+
+  <export>
+    <free_gait_ros plugin="${prefix}/plugin_description.xml"/>
+  </export>
 </package>

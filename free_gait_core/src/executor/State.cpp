@@ -33,6 +33,7 @@ void State::initialize(const std::vector<LimbEnum>& limbs, const std::vector<Bra
   for (const auto& branch : branches) {
     setEmptyControlSetup(branch);
   }
+  QuadrupedState::Initialize();
 }
 
 bool State::getRobotExecutionStatus() const

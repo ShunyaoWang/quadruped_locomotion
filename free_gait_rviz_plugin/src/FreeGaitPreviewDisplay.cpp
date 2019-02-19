@@ -444,9 +444,21 @@ void FreeGaitPreviewDisplay::processMessage(const free_gait_msgs::ExecuteStepsAc
     adapterRos_.updateAdapterWithState();
   } else if (startStateMethodProperty_->getOptionInt() == StartStateMethod::ContinuePreviewedState) {
       double time;
-      bool success = playback_.getStateBatch().getEndTimeOfStep(feedbackMessage_.feedback.step_id, time);
+//      bool success = playback_.getStateBatch().getEndTimeOfStep(feedbackMessage_.feedback.step_id, time);
+      bool success = true;
+      if(!playback_.getStateBatch().getStates().empty()){
+          time = playback_.getStateBatch().getEndTime();
+        }else{
+          time = 0;
+          success = false;
+        }
+//      if (success) {
       if (success) {
         adapterRos_.getAdapter().setInternalDataFromState(playback_.getStateBatch().getState(time));
+//        ROS_DEBUG("FreeGaitPreviewDisplay::processMessage: %f",adapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()(2));
+        std::cout<<"=================FreeGaitPreviewDisplay::processMessage================="
+                <<adapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()
+               <<"=================FreeGaitPreviewDisplay::processMessage================="<<std::endl;
       } else {
         ROS_DEBUG("FreeGaitPreviewDisplay::processMessage: No corresponding step found, resetting real state.");
         adapterRos_.updateAdapterWithState();

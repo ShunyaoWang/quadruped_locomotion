@@ -14,7 +14,7 @@
 
 #include <free_gait_msgs/ExecuteStepsActionGoal.h>
 #include <free_gait_ros/free_gait_ros.hpp>
-
+//#include "free_gait_core/executor/AdapterDummy.hpp"
 #include <rviz/message_filter_display.h>
 #include <rviz/display_group.h>
 #endif

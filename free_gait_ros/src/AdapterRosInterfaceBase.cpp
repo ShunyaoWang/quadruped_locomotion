@@ -10,6 +10,7 @@
 
 #include <pluginlib/pluginlib_exceptions.h>
 
+
 namespace free_gait {
 
 AdapterRosInterfaceBase::AdapterRosInterfaceBase()
@@ -34,13 +35,14 @@ bool AdapterRosInterfaceBase::readRobotDescription()
   } else {
     throw pluginlib::PluginlibException("Did not find ROS parameter for robot description '/free_gait/robot_description'.");
   }
-
-  if (nodeHandle_->hasParam(robotDescriptionPath)) {
-    nodeHandle_->getParam(robotDescriptionPath, robotDescriptionUrdfString_);
-  } else {
-    throw pluginlib::PluginlibException("Did not find ROS parameter for robot description '" + robotDescriptionPath + "'.");
-  }
-
+  robotDescriptionUrdfString_ = robotDescriptionPath;
+//  ROS_INFO("=================================================");
+//  if (nodeHandle_->hasParam(robotDescriptionPath)) {
+//    nodeHandle_->getParam(robotDescriptionPath, robotDescriptionUrdfString_);
+//  } else {
+//    throw pluginlib::PluginlibException("Did not find ROS parameter for robot description '" + robotDescriptionPath + "'.");
+//  }
+//  ROS_INFO("=================================================");
   return true;
 }
 bool AdapterRosInterfaceBase::updateAdapterWithRobotState(AdapterBase& adapter) const
@@ -54,17 +56,17 @@ bool AdapterRosInterfaceBase::updateAdapterWithRobotState(AdapterBase& adapter) 
 bool AdapterRosInterfaceBase::subscribeToRobotState(const std::string& robotStateTopic)
 {
   // topic: "/free_gait/robot_state",
-  joint_states_sub_ = nodeHandle_->subscribe("/robot_state", 1, &AdapterRosInterfaceBase::updateRobotState,this);
+  //joint_states_sub_ = nodeHandle_->subscribe("/robot_state", 1, &AdapterRosInterfaceBase::updateRobotState,this);
 
 }
 
-void AdapterRosInterfaceBase::updateRobotState(const free_gait_msgs::RobotStateConstPtr& robotState)
-{
-  for(int i = 1;i<12;i++)
-  {
-    all_joint_positions_(i) = robotState->lf_leg_joints.position[i];
-  }
+//void AdapterRosInterfaceBase::updateRobotState(const free_gait_msgs::RobotStateConstPtr& robotState)
+//{
+//  for(int i = 1;i<12;i++)
+//  {
+//    all_joint_positions_(i) = robotState->lf_leg_joints.position[i];
+//  }
 
-}
+//}
 
 } /* namespace free_gait */

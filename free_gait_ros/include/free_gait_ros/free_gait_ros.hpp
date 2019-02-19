@@ -17,3 +17,4 @@
 #include "free_gait_ros/StepFrameConverter.hpp"
 #include "free_gait_ros/StateRosPublisher.hpp"
 #include "free_gait_ros/RosVisualization.hpp"
+#include "free_gait_ros/AdapterDummy.hpp"

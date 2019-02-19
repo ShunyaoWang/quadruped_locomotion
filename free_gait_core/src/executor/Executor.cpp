@@ -74,7 +74,7 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   }
 
   // Advance queue.
-  std::cout<<"Current Step Time : "<<queue_.getCurrentStep().getTime()<<std::endl;
+//  std::cout<<"Current Step Time : "<<queue_.getCurrentStep().getTime()<<std::endl;
   if (!queue_.advance(dt)) return false;//Update a step cycle time
   if (!adapter_.updateExtrasBefore(queue_, state_)) return false;
 
@@ -109,7 +109,7 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
     stream << "Switched step to:" << std::endl << queue_.getCurrentStep();
     addToFeedback(stream.str());
   }
-  std::cout<<"Executor update dt finished"<<std::endl;
+//  std::cout<<"===========================Executor update dt started========================"<<std::endl;
   if (!writeIgnoreContact()) return false;
   if (!writeIgnoreForPoseAdaptation()) return false;
   if (!writeSupportLegs()) return false;
@@ -118,8 +118,10 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   if (!writeTorsoMotion()) return false;
   if (!writeStepId()) return false;
   if (!adapter_.updateExtrasAfter(queue_, state_)) return false;// TODO(Shunyao): update state to ex robot or sim
-  std::cout << state_ << std::endl;
-
+//  std::cout << state_ << std::endl;
+//  std::cout<<"===========================Executor update dt finished======================="<<std::endl;
+//  std::cout << state_.getPositionWorldToBaseInWorldFrame()<< std::endl;
+//  std::cout<<"Updated Joint Positions: "<<std::endl<<state_.getJointPositions()<<std::endl;
   return true;
 }
 
@@ -435,7 +437,7 @@ bool Executor::writeTorsoMotion()
                                                     baseMotion.evaluatePose(time));
     state_.setPositionWorldToBaseInWorldFrame(poseInWorldFrame.getPosition());
     state_.setOrientationBaseToWorld(poseInWorldFrame.getRotation());
-    std::cout<<"pose in world frame : "<<poseInWorldFrame.getPosition()<<std::endl;
+//    std::cout<<"pose in world frame : "<<poseInWorldFrame.getPosition()<<std::endl;
   }
   if (controlSetup[ControlLevel::Velocity]) {
     const std::string& frameId = baseMotion.getFrameId(ControlLevel::Velocity);

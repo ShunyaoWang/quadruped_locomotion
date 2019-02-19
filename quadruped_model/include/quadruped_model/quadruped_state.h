@@ -11,10 +11,13 @@ public:
   typedef std::unordered_map<LimbEnum, JointPositionsLimb, EnumClassHash> limb_joints;
   QuadrupedState();
   ~QuadrupedState();
+//  QuadrupedState(const QuadrupedState& other);
+  bool Initialize();
   const Position getPositionWorldToBaseInWorldFrame() const;
   const RotationQuaternion getOrientationBaseToWorld() const;
   static JointPositions& getJointPositions();
   static JointVelocities& getJointVelocities();
+  const JointPositions& getJointPositionsToReach() const;
   const LinearVelocity getLinearVelocityBaseInWorldFrame() const;
   const LocalAngularVelocity getAngularVelocityBaseInBaseFrame() const;
 
@@ -53,6 +56,7 @@ private:
   FootPoseInBase footPoseInBaseFrame_;
   Pose poseInWorldFrame_;
   static JointPositions joint_positions_, joint_positions_feedback_;
+  JointPositions allJointPositionsToReach_;
   static JointVelocities joint_velocities_;
   Position positionWorldToBaseInWorldFrame_;
   RotationQuaternion orientationBaseToWorld_;

@@ -73,7 +73,9 @@ void BatchExecutor::processInThread()
   while (!executor_.getQueue().empty() && !requestForCancelling_) {
     executor_.advance(timeStep_);
     time += timeStep_;
+//    std::cout<<"Updated Joint Positions: "<<std::endl<<executor_.getState().getJointPositions()<<std::endl;
     stateBatch_.addState(time, executor_.getState());
+//    std::cout<<"Updated Joint Positions: "<<std::endl<<stateBatch_.getState(time).getJointPositions()<<std::endl;
   }
   requestForCancelling_ = false;
   isProcessing_ = false;
