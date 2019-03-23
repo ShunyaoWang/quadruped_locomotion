@@ -106,8 +106,11 @@ bool StepCompleter::complete(const State& state, const Step& step, EndEffectorMo
       return false;
     }
     Position startPositionInBaseFrame = adapter_.getPositionBaseToFootInBaseFrame(
-        endEffectorMotion.getLimb(), state.getJointPositionsForLimb(endEffectorMotion.getLimb()));
+        endEffectorMotion.getLimb());//, state.getJointPositionsForLimb(endEffectorMotion.getLimb()));
+    std::cout<<"Step completer, foot_pose_in_base is : "<<startPositionInBaseFrame<<std::endl;
     Position startPosition = adapter_.transformPosition("base_link", frameId, startPositionInBaseFrame);
+    std::cout<<"Step completer, foot_pose_in_world is : "<<startPosition<<std::endl;
+
     endEffectorMotion.updateStartPosition(startPosition);
   }
 
@@ -194,14 +197,20 @@ bool StepCompleter::complete(const State& state, const Step& step, const StepQue
 {
   if (baseMotion.getControlSetup().at(ControlLevel::Position)) {
     const std::string& frameId = baseMotion.getFrameId(ControlLevel::Position);
+    std::cout<<"+++++++++++++++++++++++++++"<<frameId<<std::endl;
     if (!adapter_.frameIdExists(frameId)) {
       std::cerr << "Could not find frame '" << frameId << "' for free gait base motion!" << std::endl;
       return false;
     }
+    if(frameId == adapter_.getWorldFrameId()){
+        Pose startPoseInWorld(state.getPositionWorldToBaseInWorldFrame(), state.getOrientationBaseToWorld());
+        Pose startPose = adapter_.transformPose(adapter_.getWorldFrameId(), frameId, startPoseInWorld);
+        baseMotion.updateStartPose(startPose);
+      } else if (frameId == adapter_.getBaseFrameId()) {
+          Pose startPoseInBase(Position(0,0,0), RotationQuaternion(state.getOrientationBaseToWorld()));
+          baseMotion.updateStartPose(startPoseInBase);
+    }
 
-    Pose startPoseInWorld(state.getPositionWorldToBaseInWorldFrame(), state.getOrientationBaseToWorld());
-    Pose startPose = adapter_.transformPose(adapter_.getWorldFrameId(), frameId, startPoseInWorld);
-    baseMotion.updateStartPose(startPose);
   }
   if (baseMotion.getControlSetup().at(ControlLevel::Velocity)) {
     // TODO

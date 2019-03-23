@@ -48,8 +48,8 @@ public:
         {
             LF_LEG,
             RF_LEG,
-            LH_LEG,
             RH_LEG,
+            LH_LEG,
         };
 
         enum class BranchEnum

@@ -114,7 +114,11 @@ void State::setIgnoreForPoseAdaptation(const LimbEnum& limb, bool ignorePoseAdap
 {
   ignoreForPoseAdaptation_[limb] = ignorePoseAdaptation;
 }
-
+/**
+ * @brief State::getJointPositionsForLimb, get the target joint positions
+ * @param limb
+ * @return
+ */
 const JointPositionsLeg State::getJointPositionsForLimb(const LimbEnum& limb) const
 {
   //TODO(Shunyao): fix state feedback
@@ -129,7 +133,11 @@ const JointPositionsLeg State::getJointPositionsForLimb(const LimbEnum& limb) co
 //          QD::getLimbStartIndexInJ(limb))
 //  );
 }
-
+/**
+ * @brief State::setJointPositionsForLimb, set the Target Joint positions
+ * @param limb
+ * @param jointPositions
+ */
 void State::setJointPositionsForLimb(const LimbEnum& limb, const JointPositionsLeg& jointPositions)
 {
 //TODO(Shunyao): fix state feedback, why can not use n replaced 3?
@@ -221,7 +229,7 @@ const JointEfforts& State::getAllJointEfforts() const
 
 void State::setJointEffortsForLimb(const LimbEnum& limb, const JointEffortsLeg& jointEfforts)
 {
-  jointEfforts_.getSegment<3>(QD::getLimbStartIndexInJ(limb)) = jointEfforts;
+  jointEfforts_.setSegment<3>(QD::getLimbStartIndexInJ(limb), jointEfforts);
 //  jointEfforts_.getSegment<QD::getNumDofLimb()>(QD::getLimbStartIndexInJ(limb)) = jointEfforts;
 }
 

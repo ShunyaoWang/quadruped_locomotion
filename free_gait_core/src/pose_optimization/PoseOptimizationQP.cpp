@@ -53,6 +53,7 @@ bool PoseOptimizationQP::optimize(Pose& pose)
   const Position centerOfMassInBaseFrame(
       adapter_.transformPosition(adapter_.getWorldFrameId(), adapter_.getBaseFrameId(),
                                  adapter_.getCenterOfMassInWorldFrame()));
+  std::cout<<"COM is :"<<centerOfMassInBaseFrame<<std::endl;
 
   // Problem definition:
   // min Ax - b, Gx <= h, x is base center (x,y,z),minimaze foothold offsets(I_r_F_hat - I_r_F)
@@ -60,7 +61,7 @@ bool PoseOptimizationQP::optimize(Pose& pose)
   MatrixXd A = MatrixXd::Zero(nDimensions_ * nFeet, nStates_);
   VectorXd b = VectorXd::Zero(nDimensions_ * nFeet);
   Matrix3d R = RotationMatrix(pose.getRotation()).matrix();
-
+  std::cout<<"QP optimization stance :"<<stance_<<std::endl;
   unsigned int i = 0;
   for (const auto& footPosition : stance_) {
     A.block(nDimensions_ * i, 0, nStates_, A.cols()) << Matrix3d::Identity();

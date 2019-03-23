@@ -64,6 +64,7 @@
   <export>
     <!-- Other tools can request additional information be placed here -->
     <free_gait_action_loader actions="${prefix}/actions/test.yaml"/>
-    <free_gait_action_loader collections="${prefix}/collections/test_collections.yaml"/>
+    <free_gait_action_loader collections="${prefix}/collections/test_collections.yaml" />
+    <!-- <free_gait_action_loader collections="${prefix}/collections/walk_demo_collections.yaml"/> -->
   </export>
 </package>

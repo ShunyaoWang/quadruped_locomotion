@@ -13,7 +13,7 @@ namespace free_gait {
 
 BatchExecutor::BatchExecutor(free_gait::Executor& executor)
     : executor_(executor),
-      timeStep_(0.001),
+      timeStep_(0.01),
       isProcessing_(false),
       requestForCancelling_(false)
 {

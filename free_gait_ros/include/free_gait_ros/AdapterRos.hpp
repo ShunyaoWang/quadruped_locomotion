@@ -25,7 +25,8 @@ class AdapterRos
  public:
   enum class AdapterType {
     Base,
-    Preview
+    Preview,
+    Gazebo
   };
 
   AdapterRos(ros::NodeHandle& nodeHandle, const AdapterType type = AdapterType::Base);

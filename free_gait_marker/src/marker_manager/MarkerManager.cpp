@@ -24,11 +24,11 @@ static const int NUMBER_OF_LEGS = 4;
 static const std::string LEFT_FORE_NAME = "LF_LEG";
 static const int LEFT_FORE_ID = 0;
 static const std::string RIGHT_FORE_NAME = "RF_LEG";
-static const int RIGHT_FORE_ID = 1;
+static const int RIGHT_FORE_ID = 3;
 static const std::string LEFT_HIND_NAME = "LH_LEG";
 static const int LEFT_HIND_ID = 2;
-static const std::string RH_LEG_NAME = "RH_LEG";
-static const int RH_LEG_ID = 3;
+static const std::string RIGHT_HIND_NAME = "RH_LEG";
+static const int RIGHT_HIND_ID = 1;
 
 namespace free_gait_marker {
 
@@ -54,16 +54,24 @@ MarkerManager::MarkerManager(ros::NodeHandle& nodeHandle)
 //      nodeHandle.advertise<visualization_msgs::MarkerArray>("trajectory_points",
 //                                                            100);
 
-  trajectoriesPublisher_ =
-      nodeHandle.advertise<trajectory_msgs::MultiDOFJointTrajectory>("trajectory_points",
+  lf_trajectoriesPublisher_ =
+      nodeHandle.advertise<trajectory_msgs::MultiDOFJointTrajectory>("lf_trajectory_points",
                                                             100);
-
+  rf_trajectoriesPublisher_ =
+      nodeHandle.advertise<trajectory_msgs::MultiDOFJointTrajectory>("rf_trajectory_points",
+                                                            100);
+  rh_trajectoriesPublisher_ =
+      nodeHandle.advertise<trajectory_msgs::MultiDOFJointTrajectory>("rh_trajectory_points",
+                                                            100);
+  lh_trajectoriesPublisher_ =
+      nodeHandle.advertise<trajectory_msgs::MultiDOFJointTrajectory>("lh_trajectory_points",
+                                                            100);
 
   // Add an interactive marker for each foot
   addFootholdMarker(LEFT_FORE_ID, LEFT_FORE_NAME);
   addFootholdMarker(RIGHT_FORE_ID, RIGHT_FORE_NAME);
   addFootholdMarker(LEFT_HIND_ID, LEFT_HIND_NAME);
-  addFootholdMarker(RH_LEG_ID, RH_LEG_NAME);
+  addFootholdMarker(RIGHT_HIND_ID, RIGHT_HIND_NAME);
   applyChanges();
 
   // By default, the foot markers are initially deactivated
@@ -222,9 +230,9 @@ void MarkerManager::getIdAndNameFromMarker(
   } else if (feedback->marker_name.find(LEFT_HIND_NAME) != std::string::npos) {
     legId = LEFT_HIND_ID;
     name = LEFT_HIND_NAME;
-  } else if (feedback->marker_name.find(RH_LEG_NAME) != std::string::npos) {
-    legId = RH_LEG_ID;
-    name = RH_LEG_NAME;
+  } else if (feedback->marker_name.find(RIGHT_HIND_NAME) != std::string::npos) {
+    legId = RIGHT_HIND_ID;
+    name = RIGHT_HIND_NAME;
   } else {
     ROS_INFO_STREAM(
         "[MarkerManager::getIdAndNameFromMarker] Could not find id and name.");
@@ -265,17 +273,21 @@ void MarkerManager::addFootholdMarker(const unsigned int stepNumber,
 {
   markers::MarkerFoot marker;
   marker.loadParameters(nodeHandle_);
+  ROS_INFO("Foot hold frame in Manager %s", footholdFrameId_.c_str());
   marker.setupFootholdMarker(stepNumber, legName);
-
+  tf::Vector3 position(1,1,1);
+  tf::pointTFToMsg(position, marker.pose.position);
+  ROS_INFO("mark info : ");
+  std::cout<<"name : "<<marker.name<<std::endl;
   std::string footFrameId;
   if (legName == LEFT_FORE_NAME)
-    footFrameId = "LF_FOOT";
+    footFrameId = "lf_foot_Link";//"LF_FOOT";
   else if (legName == RIGHT_FORE_NAME)
-    footFrameId = "RF_FOOT";
+    footFrameId = "rf_foot_Link";//"RF_FOOT";
   else if (legName == LEFT_HIND_NAME)
-    footFrameId = "LH_FOOT";
-  else if (legName == RH_LEG_NAME)
-    footFrameId = "RH_FOOT";
+    footFrameId = "lh_foot_Link";//"LH_FOOT";
+  else if (legName == RIGHT_HIND_NAME)
+    footFrameId = "rh_foot_Link";//"RH_FOOT";
   else {
     ROS_WARN_STREAM(
         ("No corresponding frame id for the foot found for leg name `" + legName
@@ -288,6 +300,8 @@ void MarkerManager::addFootholdMarker(const unsigned int stepNumber,
   server_.insert(marker,
                  boost::bind(&MarkerManager::footholdCallback, this, _1));
   footMenuHandler_.apply(server_, marker.name);
+
+//  activateFoothold(getFootholdByMarkerName(marker.name));
 }
 
 void MarkerManager::addKnotMarker(const unsigned int markerNumber,
@@ -306,11 +320,13 @@ void MarkerManager::addKnotMarker(const unsigned int markerNumber,
 
   // set knot pose
   std_msgs::Header header;
-  header.frame_id = "map";
+  header.frame_id = marker.header.frame_id;//"map";
   header.stamp = ros::Time(0.0);
   if (!server_.setPose(markerName, pose, header)) {
     ROS_WARN_STREAM("Marker with name '" << markerName << "' not found.");
   }
+  ROS_INFO("set %s ,position is (%f, %f, %f)",markerName.c_str(), pose.position.x,
+           pose.position.y, pose.position.z);
   applyChanges();
 
 }
@@ -320,7 +336,7 @@ void MarkerManager::clearTrajectory(int legId)
   trajectories_[legId].points.clear();
   trajectories_[legId].joint_names.clear();
   trajectories_[legId].header.stamp = ros::Time::now();
-  trajectories_[legId].header.frame_id = "map";
+  trajectories_[legId].header.frame_id = footholdFrameId_;//"map";
 
   splines_[legId].clear();
   trajectoryIds_[legId] = 0;
@@ -397,7 +413,7 @@ void MarkerManager::updateTrajectory(int legId, const std::string& markerName)
       trajectories_.at(legId).points.push_back(point);
 
       trajectories_.at(legId).header.stamp = ros::Time::now();
-      trajectories_.at(legId).header.frame_id = "map";
+      trajectories_.at(legId).header.frame_id = footholdFrameId_;//"map";
       trajectories_.at(legId).joint_names.push_back(std::to_string(k));
 
     }
@@ -411,9 +427,8 @@ void MarkerManager::footholdCallback(
 {
 //  Foothold& foothold(getFootholdByMarkerName(feedback->marker_name.c_str()));
 //  if (foothold.isActive) return;
-//  if (!activateFoodhold(foothold))
-//    ROS_WARN_STREAM("Foothold marker with name `%s` could not be activated.",
-//             feedback->marker_name.c_str());
+//  if (!activateFoothold(foothold))
+////     ROS_WARN_STREAM("Foothold marker with name `%s` could not be activated.", feedback->marker_name.c_str());
 //  applyChanges();
 }
 
@@ -431,7 +446,6 @@ bool MarkerManager::activateFoothold(Foothold& foothold)
 {
   if (foothold.isActive)
     return true;
-
   // Get pose.
   markers::MarkerFoot marker;
   if (!getMarkerFromFoothold(foothold, marker))
@@ -445,7 +459,7 @@ bool MarkerManager::activateFoothold(Foothold& foothold)
                                     positionInActiveFrame);
   geometry_msgs::Pose pose;
   tf::pointTFToMsg(positionInActiveFrame, pose.position);
-
+  std::cout<<"positionInPassiveFrame : "<<positionInPassiveFrame<<"positionInActiveFrame"<<positionInActiveFrame<<std::endl;
   // Get header.
   std_msgs::Header header;
   header.frame_id = positionInActiveFrame.frame_id_;
@@ -538,7 +552,7 @@ bool MarkerManager::sendStepGoal()
       continue;
     free_gait_msgs::Step preStep;
     free_gait_msgs::BaseAuto baseMotion;
-    baseMotion.height = 0.42;
+    baseMotion.height = 0.35;
     preStep.base_auto.push_back(baseMotion);
     goal.steps.push_back(preStep);
 
@@ -547,9 +561,12 @@ bool MarkerManager::sendStepGoal()
     footstep.name = foothold.legName;
     footstep.target.header.frame_id = footholdFrameId_;
     footstep.target.point = marker.pose.position;
+//    footstep.ignore_for_pose_adaptation = true;
 //    swingData.profile.type = "square";
     step.footstep.push_back(footstep);
     goal.steps.push_back(step);
+    ROS_INFO("send %s footstep target of (%f, %f, %f)",foothold.legName.c_str(), marker.pose.position.x,
+             marker.pose.position.y, marker.pose.position.z);
   }
 
   stepActionClient_->sendGoal(goal);
@@ -569,13 +586,32 @@ void MarkerManager::publishKnots()
 //        visualization_msgs::MarkerArrayConstPtr(msgPtr));
 //  }
 
-  for (auto& msg : trajectories_) {
-    trajectory_msgs::MultiDOFJointTrajectoryPtr msgPtr(
-        new trajectory_msgs::MultiDOFJointTrajectory(msg));
-    trajectoriesPublisher_.publish(
-        trajectory_msgs::MultiDOFJointTrajectoryConstPtr(msgPtr));
-  }
+//  for (auto& msg : trajectories_) {
+//    trajectory_msgs::MultiDOFJointTrajectoryPtr msgPtr(
+//        new trajectory_msgs::MultiDOFJointTrajectory(msg));
+//    trajectoriesPublisher_.publish(
+//        trajectory_msgs::MultiDOFJointTrajectoryConstPtr(msgPtr));
+//  }
 
+    trajectory_msgs::MultiDOFJointTrajectoryPtr lf_msgPtr(
+        new trajectory_msgs::MultiDOFJointTrajectory(trajectories_.at(LEFT_FORE_ID)));
+    lf_trajectoriesPublisher_.publish(
+        trajectory_msgs::MultiDOFJointTrajectoryConstPtr(lf_msgPtr));
+
+    trajectory_msgs::MultiDOFJointTrajectoryPtr rf_msgPtr(
+        new trajectory_msgs::MultiDOFJointTrajectory(trajectories_.at(RIGHT_FORE_ID)));
+    rf_trajectoriesPublisher_.publish(
+        trajectory_msgs::MultiDOFJointTrajectoryConstPtr(lf_msgPtr));
+
+    trajectory_msgs::MultiDOFJointTrajectoryPtr rh_msgPtr(
+        new trajectory_msgs::MultiDOFJointTrajectory(trajectories_.at(RIGHT_HIND_ID)));
+    rh_trajectoriesPublisher_.publish(
+        trajectory_msgs::MultiDOFJointTrajectoryConstPtr(rh_msgPtr));
+
+    trajectory_msgs::MultiDOFJointTrajectoryPtr lh_msgPtr(
+        new trajectory_msgs::MultiDOFJointTrajectory(trajectories_.at(LEFT_HIND_ID)));
+    lh_trajectoriesPublisher_.publish(
+        trajectory_msgs::MultiDOFJointTrajectoryConstPtr(lh_msgPtr));
 }
 
 void MarkerManager::updateKnots() {
@@ -588,8 +624,8 @@ void MarkerManager::updateKnots() {
   if (showTrajectory_[LEFT_HIND_ID]) {
     updateTrajectory(LEFT_HIND_ID, LEFT_HIND_NAME);
   }
-  if (showTrajectory_[RH_LEG_ID]) {
-    updateTrajectory(RH_LEG_ID, RH_LEG_NAME);
+  if (showTrajectory_[RIGHT_HIND_ID]) {
+    updateTrajectory(RIGHT_HIND_ID, RIGHT_HIND_NAME);
   }
 }
 

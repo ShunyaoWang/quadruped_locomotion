@@ -332,17 +332,20 @@ bool BaseAuto::generateFootholdLists(const State& state, const Step& step, const
   if (!step.hasLegMotion() && queue.size() > 1) {
     if (queue.getNextStep().hasLegMotion()) prepareForNextStep = true;
   }
-
+  //! WSHY: if there are next step,
   if (prepareForNextStep) {
     // Auto motion for preparation of next step.
     for (const auto& limb : adapter.getLimbs()) {
       if (!state.isIgnoreContact(limb) && !queue.getNextStep().hasLegMotion(limb)) {
+          //! WSHY:set support footholds as the foot without motion at next step
         footholdsInSupport_[limb] = adapter.getPositionWorldToFootInWorldFrame(limb);
       } else {
+          //! WSHY:set leg for next motion
         footholdsOfNextLegMotion_[limb] = adapter.getPositionWorldToFootInWorldFrame(limb);
       }
     }
-  } else {
+  } else {//! WSHY: if there is NO next step
+
     // Auto motion for current step.
     for (const auto& limb : adapter.getLimbs()) {
       if (!step.hasLegMotion(limb) && !state.isIgnoreContact(limb)) {

@@ -5,7 +5,22 @@
  *      Author: Péter Fankhauser
  *   Institute: ETH Zurich
  */
-
+/********************************************
+*  __    __    __     ______            /  *
+*         /   / /   /                  /   *
+*        / / / /    |               __/    *
+*        /    /      ______          /     *
+*       /    /                      /      *
+*                           |      /       *
+*                    ______/      /        *
+*********************************************
+*  filename.cpp
+*  Descriotion:
+*
+*  Created on: Aug 31, 2017
+*  Author: Shunyao Wang
+*  Institute: Harbin Institute of Technology, Shenzhen
+*************************************/
 #include "free_gait_ros/AdapterDummy.hpp"
 
 namespace free_gait {
@@ -40,10 +55,21 @@ bool AdapterDummy::resetExtrasWithRobot(const StepQueue& stepQueue, State& state
 {
   return true;
 }
-
+/**
+ * @brief AdapterDummy::updateExtrasBefore, update state before excutor
+ * @param stepQueue
+ * @param state
+ * @return
+ */
 bool AdapterDummy::updateExtrasBefore(const StepQueue& stepQueue, State& state)
 {
-  state.setCurrentLimbJoints(getAllJointPositions());
+//  state.setCurrentLimbJoints(getAllJointPositions());
+//  if(!stepQueue.getCurrentStep().getTotalPhase()<0.99)
+
+    state.setCurrentLimbJoints(state_->getJointPositionsToReach());
+  //! set target pose to actual pose, to simulate robot has moved
+  state.setPoseBaseToWorld(Pose(state.getTargetPositionWorldToBaseInWorldFrame(),
+                                state.getTargetOrientationBaseToWorld()));
   return true;
 }
 
@@ -110,6 +136,7 @@ bool AdapterDummy::updateExtrasAfter(const StepQueue& stepQueue, State& state)
     }
   }
 //  stepQueue.getCurrentStep().getLegMotion(LimbEnum::LF_LEG
+state.setCurrentLimbJoints(getAllJointPositions());
   return true;
 }
 
@@ -139,9 +166,9 @@ LimbEnum AdapterDummy::getLimbEnumFromLimbString(const std::string& limb) const
     return static_cast<LimbEnum>(0);
   if(limb == "RF_LEG")
     return static_cast<LimbEnum>(1);
-  if(limb == "LH_LEG")
-    return static_cast<LimbEnum>(2);
   if(limb == "RH_LEG")
+    return static_cast<LimbEnum>(2);
+  if(limb == "LH_LEG")
     return static_cast<LimbEnum>(3);
 
 //  throw std::runtime_error("AdapterDummy::getLimbEnumFromLimbString() is not implemented.");
@@ -183,7 +210,7 @@ bool AdapterDummy::getLimbJointPositionsFromPositionBaseToFootInBaseFrame(
   // TODO(Shunyao): solve the single limb IK
 //  QuadrupedKinematics::FowardKinematicsSolve()
 //  state_->FowardKinematicsSolve()
-  std::cout<<"start"<<std::endl;
+//  std::cout<<"start"<<std::endl;
   if(state_->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(positionBaseToFootInBaseFrame,
                                                             limb,jointPositions))
   {
@@ -233,6 +260,23 @@ bool AdapterDummy::isLegGrounded(const LimbEnum& limb) const
 
 JointPositionsLeg AdapterDummy::getJointPositionsForLimb(const LimbEnum& limb) const
 {
+  //! WSHY: update measurement
+  JointPositions all_joints_position = state_->getJointPositionsToReach();
+
+  switch (limb) {
+    case LimbEnum::LF_LEG :
+      return JointPositionsLeg(all_joints_position(0),all_joints_position(1),all_joints_position(2));
+      break;
+    case LimbEnum::RF_LEG :
+      return JointPositionsLeg(all_joints_position(3),all_joints_position(4),all_joints_position(5));
+      break;
+    case LimbEnum::RH_LEG :
+      return JointPositionsLeg(all_joints_position(6),all_joints_position(7),all_joints_position(8));
+      break;
+    case LimbEnum::LH_LEG :
+      return JointPositionsLeg(all_joints_position(9),all_joints_position(10),all_joints_position(11));
+      break;
+    }
   return state_->getJointPositionsForLimb(limb);
 }
 
@@ -274,6 +318,10 @@ JointEfforts AdapterDummy::getAllJointEfforts() const
 Position AdapterDummy::getPositionWorldToBaseInWorldFrame() const
 {
 //  return Position(0,0,0);
+/****************
+* TODO(Shunyao) : look up tf
+*  from /odom to base and update to state do it int the updateExtras function
+****************/
   return state_->getPositionWorldToBaseInWorldFrame();
 }
 

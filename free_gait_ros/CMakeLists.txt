@@ -82,6 +82,8 @@ add_library(${PROJECT_NAME}
 add_library(${PROJECT_NAME}_plugin
   src/AdapterRosInterfaceDummy.cpp
   src/AdapterDummy.cpp
+  src/AdapterRosInterfaceGazebo.cpp
+  src/AdapterGazebo.cpp
   )
 target_link_libraries(${PROJECT_NAME}_plugin
   ${catkin_LIBRARIES}
@@ -94,6 +96,16 @@ target_link_libraries(steps_test ${PROJECT_NAME}
   ${catkin_LIBRARIES})
 add_executable(action_server_test_node test/action_server_test.cpp)
 target_link_libraries(action_server_test_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES})
+
+add_executable(action_client_test_node test/action_client_test.cpp)
+target_link_libraries(action_client_test_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES})
+
+add_executable(robot_state_pub_node test/robotStatePublisher.cpp)
+target_link_libraries(robot_state_pub_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES})
 #############

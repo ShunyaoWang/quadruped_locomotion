@@ -168,7 +168,7 @@ class MarkerManager
   ros::Publisher knotsPublisher_;
 
   //! Trajectory publisher.
-  ros::Publisher trajectoriesPublisher_;
+  ros::Publisher lf_trajectoriesPublisher_, rf_trajectoriesPublisher_, rh_trajectoriesPublisher_, lh_trajectoriesPublisher_;
 
   void clearTrajectory(int legId);
   void updateTrajectory(int legId, const std::string& markerName);

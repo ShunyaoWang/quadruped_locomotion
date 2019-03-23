@@ -77,6 +77,8 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
 //  std::cout<<"Current Step Time : "<<queue_.getCurrentStep().getTime()<<std::endl;
   if (!queue_.advance(dt)) return false;//Update a step cycle time
   if (!adapter_.updateExtrasBefore(queue_, state_)) return false;
+    std::cout<<"just go out updateExtrasBefore()"<<state_.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
+    state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
 
   // For a new switch in step, do some work on step for the transition.
   while (queue_.hasSwitchedStep()) {
@@ -109,7 +111,9 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
     stream << "Switched step to:" << std::endl << queue_.getCurrentStep();
     addToFeedback(stream.str());
   }
-//  std::cout<<"===========================Executor update dt started========================"<<std::endl;
+  std::cout<<"===========================Executor update dt started========================"<<std::endl;
+  state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
+
   if (!writeIgnoreContact()) return false;
   if (!writeIgnoreForPoseAdaptation()) return false;
   if (!writeSupportLegs()) return false;
@@ -117,6 +121,8 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   if (!writeLegMotion()) return false;
   if (!writeTorsoMotion()) return false;
   if (!writeStepId()) return false;
+  std::cout<<"before into updateExtrasAfter()"<<std::endl;
+//  state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
   if (!adapter_.updateExtrasAfter(queue_, state_)) return false;// TODO(Shunyao): update state to ex robot or sim
 //  std::cout << state_ << std::endl;
 //  std::cout<<"===========================Executor update dt finished======================="<<std::endl;
@@ -364,6 +370,8 @@ bool Executor::writeLegMotion()
             return false;
           }
           Position positionInBaseFrame = adapter_.transformPosition(frameId, adapter_.getBaseFrameId(), endEffectorMotion.evaluatePosition(time));
+          std::cout<<"IN Write leg motion, leg position in base is : "<<positionInBaseFrame<<std::endl;
+          std::cout<<"foot step motion frame_id is : "<<frameId<<std::endl;
           JointPositionsLeg jointPositions;
           if (!adapter_.getLimbJointPositionsFromPositionBaseToFootInBaseFrame(positionInBaseFrame, limb, jointPositions)) {
             std::cerr << "Failed to compute joint positions from end effector position for " <<limb << "." << std::endl;
@@ -437,7 +445,7 @@ bool Executor::writeTorsoMotion()
                                                     baseMotion.evaluatePose(time));
     state_.setPositionWorldToBaseInWorldFrame(poseInWorldFrame.getPosition());
     state_.setOrientationBaseToWorld(poseInWorldFrame.getRotation());
-//    std::cout<<"pose in world frame : "<<poseInWorldFrame.getPosition()<<std::endl;
+    std::cout<<"pose TARGET in world frame : "<<poseInWorldFrame.getPosition()<<std::endl;
   }
   if (controlSetup[ControlLevel::Velocity]) {
     const std::string& frameId = baseMotion.getFrameId(ControlLevel::Velocity);

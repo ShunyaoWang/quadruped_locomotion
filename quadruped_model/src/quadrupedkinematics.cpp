@@ -1,3 +1,11 @@
+/*
+ *  quadrupedkinematics.cpp
+ *  Descriotion:
+ *
+ *  Created on: Mar 18, 2019
+ *  Author: Shunyao Wang
+ *  Institute: Harbin Institute of Technology, Shenzhen
+ */
 #include "quadruped_model/quadrupedkinematics.h"
 namespace quadruped_model {
 using namespace std;
@@ -105,7 +113,7 @@ bool QuadrupedKinematics::setHipPoseInBase(const KDL::Chain& kdl_chain, const Li
                                  cartisian_frame(2,0), cartisian_frame(2,1), cartisian_frame(2,2));
 //  cout<<"set hip pose in Base"<<endl;
   hip_pose_in_base_[limb] = Pose(translation, RotationQuaternion(rotation_matrix));
-
+//  cout<<"hip pose in base : "<<hip_pose_in_base_[limb]<<endl;
   return true;
 
 }
@@ -141,6 +149,7 @@ bool QuadrupedKinematics::FowardKinematicsSolve(const JointPositionsLimb& joint_
 //    cout<<"the "<<i<<"th joint: "<<joints(i)<<endl;
   }
 //  cout<<LF_Chain.getNrOfSegments()<<endl;
+//  cout<<joints.data<<endl;
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
@@ -211,10 +220,12 @@ bool QuadrupedKinematics::AnalysticJacobian(const JointPositionsLimb& joint_posi
 //    cout<<"the "<<i<<"th joint: "<<joints(i)<<endl;
   }
 //  cout<<LF_Chain.getNrOfJoints()<<" joint rows"<<joints.rows()<<" joint columns"<<joints.columns()<<endl;
+//  cout<<joints.data<<endl;
   int error_code = 0;
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
+
         KDL::ChainJntToJacSolver jacobian_solver(LF_Chain);
         error_code = jacobian_solver.JntToJac(joints, J);
         if(error_code != 0)
@@ -258,7 +269,8 @@ bool QuadrupedKinematics::AnalysticJacobian(const JointPositionsLimb& joint_posi
   }
 
   jacobian = J.data;
-  cout<<jacobian<<endl;
+//  cout<<jacobian<<endl;
+//  cout<<"size of jacobian is (rows, cols) : "<<jacobian.rows()<<","<<jacobian.cols()<<endl;
 //  for(int i = 0;)
   return true;
 }
@@ -294,23 +306,28 @@ bool QuadrupedKinematics::AnalysticJacobian(const JointPositionsLimb& joint_posi
 
 bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, const LimbEnum& limb,
                                                  const JointPositionsLimb& joint_positions_last,
-                                                 JointPositionsLimb& joint_positions)
+                                                 JointPositionsLimb& joint_positions,
+                                                 const std::string LimbType)
 {
   double d,l1,l2,px,py,pz,alpha,beta1,beta2;
   d=0.1;
   l1=0.25;
   l2=0.25;
-//  cout<<"px in base = "<<foot_position(0)<<endl
-//      <<"py in base = "<<foot_position(1)<<endl
-//      <<"pz in base = "<<foot_position(2)<<endl;
+  cout<<"px in base = "<<foot_position(0)<<endl
+      <<"py in base = "<<foot_position(1)<<endl
+      <<"pz in base = "<<foot_position(2)<<endl;
   Position foot_position_in_hip = getPositionFootToHipInHipFrame(limb, foot_position);
   px=foot_position_in_hip(0);
   py=foot_position_in_hip(1);
   pz=foot_position_in_hip(2);
-//  cout<<"px = "<<px<<endl
-//      <<"py = "<<py<<endl
-//      <<"pz = "<<pz<<endl;
+  cout<<"px in hip = "<<px<<endl
+      <<"py in hip = "<<py<<endl
+      <<"pz in hip = "<<pz<<endl;
   double cos_theta3 = (l2*l2 + l1*l1 - ((px*px + py*py + pz*pz) - d*d))/2/l1/l2;
+  if(cos_theta3<-1)
+    cos_theta3 = -1;
+  if(cos_theta3>1)
+    cos_theta3 = 1;
   Eigen::VectorXd theta3(4);
   Eigen::MatrixXd results(4,3);
 
@@ -356,8 +373,12 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
 //  v<< 1,2,3;
 //  w<< 1,1,1;
 //  cout<<v.norm()<<endl;
-  Eigen::VectorXd joint_last_vector(1,3);
+
+  /*Eigen::VectorXd joint_last_vector;
+  joint_last_vector.resize(3);
   joint_last_vector << joint_positions_last(0),joint_positions_last(1),joint_positions_last(2);
+
+
   for(int j = 0;j<4;j++)
   {
     Eigen::VectorXd da = joint_last_vector - results.row(j);
@@ -368,10 +389,27 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
     }
 //    cout<<da.normalized()<<endl;
     //    if(da.normalized())
-  }
+  }*/
+
+  if(LimbType == "IN_LEFT")
+    min_index = 2;
+  if(LimbType == "IN_RIGHT")
+    min_index = 1;
+  if(LimbType == "OUT_LEFT")
+    min_index = 0;
+  if(LimbType == "OUT_RIGHT")
+    min_index = 3;
+
   joint_positions << results(min_index,0),results(min_index,1),results(min_index,2);
-//  cout<<results<<endl;
-  return true;
+  cout<<results<<endl;
+
+  if(!isnan(joint_positions(0))&&!isnan(joint_positions(1))&&!isnan(joint_positions(2))){
+      return true;
+    }else{
+      ROS_WARN("Failed to Sovle Inverse Kinematics!");
+      return false;
+    }
+
 }
 
 double QuadrupedKinematics::MapToPI(double q)

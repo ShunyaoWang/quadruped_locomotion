@@ -38,8 +38,10 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
 
     if (outputFrameId == getBaseFrameId()) {
       transformedPosition = position;
+      std::cout<<"Transfer from base to base"<<std::endl;
     } else if (outputFrameId == getWorldFrameId()) {//odom
       transformedPosition = getPositionWorldToBaseInWorldFrame() + getOrientationBaseToWorld().rotate(position);
+      std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
     } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {
       const Position positionInOdom = transformPosition(inputFrameId, getWorldFrameId(), position);
       transformedPosition = transformPosition(getWorldFrameId(), outputFrameId, positionInOdom);
@@ -51,6 +53,7 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
 
     if (outputFrameId == getBaseFrameId()) {
       transformedPosition = getOrientationBaseToWorld().inverseRotate(position - getPositionWorldToBaseInWorldFrame());
+      std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
     } else if (outputFrameId == getWorldFrameId()) {
       transformedPosition = position;
     } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {//TODO(Shunyao): How to implenment getFrameTransform
@@ -108,6 +111,9 @@ RotationQuaternion AdapterBase::transformOrientation(const std::string& inputFra
       frameError = true;
     }
 
+  } else if (inputFrameId == getBaseFrameId()) {
+      //! if base target is given in the base frame, the orientation is same as in world frame
+      transformedOrientation = orientation;
   } else {
     frameError = true;
   }

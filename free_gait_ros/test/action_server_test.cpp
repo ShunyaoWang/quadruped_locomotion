@@ -12,6 +12,11 @@
 #include "boost/bind.hpp"
 #include "boost/thread.hpp"
 
+#include "sensor_msgs/JointState.h"
+#include "std_srvs/Trigger.h"
+#include "std_srvs/SetBool.h"
+#include "ros/advertise_service_options.h"
+
 using namespace free_gait;
 using namespace std;
 class ActionServerTest
@@ -19,16 +24,37 @@ class ActionServerTest
 public:
   ActionServerTest(ros::NodeHandle& nodehandle)
     : nodeHandle_(nodehandle),
-      adapter_loader("free_gait_ros", "free_gait::AdapterBase")
+      adapter_loader("free_gait_ros", "free_gait::AdapterBase"),
+      use_gazebo(true),
+      is_pause(false),
+      is_stop(false),
+      AdapterRos_(nodehandle, free_gait::AdapterRos::AdapterType::Gazebo)
   {
-    adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
+    nodeHandle_.getParam("/use_gazebo", use_gazebo);
+    nodeHandle_.getParam("/free_gait/stop_execution_service", stop_service_name_);
+    nodeHandle_.getParam("/free_gait/pause_execution_service", pause_service_name_);
+    if(use_gazebo){
+      adapter.reset(AdapterRos_.getAdapterPtr());
+      AdapterRos_.subscribeToRobotState();
+    } else {
+      adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
+    };
     state.reset(new State());
     parameters.reset(new StepParameters());
     completer.reset(new StepCompleter(*parameters, *adapter));
     computer.reset(new StepComputer());
+    AdapterRos_.updateAdapterWithState();
     executor.reset(new Executor(*completer, *computer, *adapter, *state));
     rosPublisher.reset(new StateRosPublisher(nodeHandle_, *adapter));
+    rosPublisher->setTfPrefix("/free_gait_action");
     executor->initialize();
+
+    AdapterRos_.updateAdapterWithState();
+//    AdvertiseServiceOptions pause_service_option = Advertise("a", boost::bind(&ActionServerTest::PauseServiceCallback, this, _1, _2), ros::VoidConstPtr())
+    pause_service_server_ = nodeHandle_.advertiseService(pause_service_name_, &ActionServerTest::PauseServiceCallback, this);
+    stop_service_server_ = nodeHandle_.advertiseService(stop_service_name_, &ActionServerTest::StopServiceCallback, this);
+    joint_state_pub_ = nodeHandle_.advertise<sensor_msgs::JointState>("all_joint_position", 1);
+    allJointStates_.position.resize(12);
 
     server_.reset(new FreeGaitActionServer(nodeHandle_, "/free_gait/action_server", *executor, *adapter));
     server_->initialize();
@@ -42,34 +68,92 @@ public:
   void ActionServerThread()//(const FreeGaitActionServer& server)
   {
       ROS_INFO("In action server thread");
-      double dt = 0.001;
+      double dt = 0.01;// change dt cause problem?
       double time = 0.0;
       ros::Rate rate(100);
+      ros::Duration(0.5).sleep();
+      cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
+      AdapterRos_.updateAdapterWithState();
+      cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
+
+      for(int i=0;i<12;i++){
+          allJointStates_.position[i] = adapter->getState().getJointPositionsToReach()(i);
+        }
+      joint_state_pub_.publish(allJointStates_);
+
       while (ros::ok()) {
           server_->update();
+//          AdapterRos_.updateAdapterWithState();
+//          cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
+
 //          TODO(Shunyao): How to Update?
-          if (!executor->getQueue().empty()) {
+//          cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
+//          cout<<"joint position: "<<AdapterRos_.getAdapter().getAllJointPositions()<<endl;
+          if (!executor->getQueue().empty()&&!is_pause&&!is_stop) {
+            AdapterRos_.updateAdapterWithState();
             executor->advance(dt, true);
             time = time + dt;
-            rosPublisher->publish(adapter->getState());
+            for(int i=0;i<12;i++){
+                allJointStates_.position[i] = adapter->getState().getJointPositions()(i);
+              }
+            joint_state_pub_.publish(allJointStates_);
+            cout<<"*************************************send joint command : "<<endl<<adapter->getState().getJointPositions()<<endl;
+            if(!use_gazebo)
+              rosPublisher->publish(adapter->getState());
           }
           rate.sleep();
         }
 
+  }
+  bool StopServiceCallback(std_srvs::Trigger::Request& request,
+                              std_srvs::Trigger::Response& response)
+  {
+    ROS_INFO("STOP Trigger");
+    server_->setPreempted();
+    is_stop = true;
+    response.success = true;
+    return true;
+  }
+
+  bool PauseServiceCallback(std_srvs::SetBool::Request& request,
+                           std_srvs::SetBool::Response& response)
+  {
+    if(request.data == false){
+        is_pause = false;
+        is_stop = false;
+        ROS_INFO("Start....");
+      }
+    if(request.data == true){
+      is_pause = true;
+      ROS_INFO("STOP....");
+      }
+    response.success = true;
+    return true;
   }
 private:
 //  FreeGaitActionServer server_;
   std::unique_ptr<FreeGaitActionServer> server_;
   boost::thread action_server_thread_;
   ros::NodeHandle nodeHandle_;
+
+  free_gait::AdapterRos AdapterRos_;
+
   std::unique_ptr<AdapterBase> adapter;
   pluginlib::ClassLoader<AdapterBase> adapter_loader;
+
+
   std::unique_ptr<State> state;
   std::unique_ptr<StepParameters> parameters;
   std::unique_ptr<StepCompleter> completer;
   std::unique_ptr<StepComputer> computer;
   std::unique_ptr<Executor> executor;
   std::unique_ptr<StateRosPublisher> rosPublisher;
+
+  sensor_msgs::JointState allJointStates_;
+  ros::Publisher joint_state_pub_;
+  ros::ServiceServer pause_service_server_, stop_service_server_;
+  std::string pause_service_name_, stop_service_name_;
+  bool use_gazebo, is_pause, is_stop;
 };
 
 
@@ -78,7 +162,10 @@ int main(int argc, char *argv[])
 {
     ros::init(argc, argv, "action_server_test");
     ros::NodeHandle nh("~");
+    ros::ServiceServer pause_service_server, stop_service_server;
     ActionServerTest ac_test(nh);
+//    pause_service_server = nh.advertiseService("/free_gait/pause_execution_service", &ActionServerTest::PauseServiceCallback, &ac_test);
+
     ros::spin();
 //    pluginlib::ClassLoader<AdapterBase> adapter_loader("free_gait_ros", "free_gait::AdapterBase");
 //    std::unique_ptr<AdapterBase> adapter;

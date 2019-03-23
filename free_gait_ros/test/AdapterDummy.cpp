@@ -139,9 +139,9 @@ LimbEnum AdapterDummy::getLimbEnumFromLimbString(const std::string& limb) const
     return static_cast<LimbEnum>(0);
   if(limb == "RF_LEG")
     return static_cast<LimbEnum>(1);
-  if(limb == "LH_LEG")
-    return static_cast<LimbEnum>(2);
   if(limb == "RH_LEG")
+    return static_cast<LimbEnum>(2);
+  if(limb == "LH_LEG")
     return static_cast<LimbEnum>(3);
 
 //  throw std::runtime_error("AdapterDummy::getLimbEnumFromLimbString() is not implemented.");
@@ -182,7 +182,7 @@ bool AdapterDummy::getLimbJointPositionsFromPositionBaseToFootInBaseFrame(
   // TODO(Shunyao): solve the single limb IK
 //  QuadrupedKinematics::FowardKinematicsSolve()
 //  state_->FowardKinematicsSolve()
-  std::cout<<"start"<<std::endl;
+//  std::cout<<"start"<<std::endl;
   if(state_->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(positionBaseToFootInBaseFrame,
                                                             limb,jointPositions))
   {

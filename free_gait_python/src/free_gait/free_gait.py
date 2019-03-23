@@ -79,7 +79,6 @@ def parse_action(yaml_object, source_frame_id='', target_frame_id='', position=[
         step = free_gait_msgs.msg.Step()
         if not step_parameter:
             continue
-
         for motion_parameter in step_parameter:
             if 'footstep' in motion_parameter:
                 step.footstep.append(parse_footstep(motion_parameter['footstep']))

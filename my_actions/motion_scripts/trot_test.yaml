@@ -1,0 +1,40 @@
+adapt_coordinates:
+ - transform:
+    source_frame: base_link
+    target_frame: odom
+
+steps:
+  - step:
+    - footstep:
+        name: LF_LEG
+        profile_type: triangle
+        profile_height: 0.10
+        average_velocity: 1
+        target:
+          frame: base_link
+          position: [0.4, 0.25, -0.4]
+    - footstep:
+        name: RH_LEG
+        profile_type: triangle
+        profile_height: 0.10
+        average_velocity: 1
+        target:
+          frame: base_link
+          position: [-0.4, -0.25, -0.4]
+  - step:
+    - footstep:
+        name: RF_LEG
+        profile_type: triangle
+        profile_height: 0.10
+        average_velocity: 1
+        target:
+          frame: base_link
+          position: [0.4, -0.25, -0.4]
+    - footstep:
+        name: LH_LEG
+        profile_type: triangle
+        profile_height: 0.10
+        average_velocity: 1
+        target:
+          frame: base_link
+          position: [-0.4, 0.25, -0.4]

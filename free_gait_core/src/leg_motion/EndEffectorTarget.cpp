@@ -23,7 +23,9 @@ EndEffectorTarget::EndEffectorTarget(LimbEnum limb)
       ignoreForPoseAdaptation_(false),
       isComputed_(false),
       controlSetup_ { {ControlLevel::Position, false}, {ControlLevel::Velocity, false},
-                            {ControlLevel::Acceleration, false}, {ControlLevel::Effort, false} }
+                            {ControlLevel::Acceleration, false}, {ControlLevel::Effort, false} },
+      frameIds_{{ControlLevel::Position, "unspecified"}, {ControlLevel::Velocity, "unspecified"},
+                {ControlLevel::Acceleration, "unspecified"}, {ControlLevel::Effort, "unspecified"}}
 {
 }
 
@@ -172,10 +174,11 @@ bool EndEffectorTarget::computeTrajectory()
 
   if (controlSetup_[ControlLevel::Position]) {
     // Curves implementation provides velocities and accelerations.
-    controlSetup_[ControlLevel::Velocity] = true;
-    frameIds_[ControlLevel::Velocity] = frameIds_[ControlLevel::Position];
-    controlSetup_[ControlLevel::Acceleration] = true;
-    frameIds_[ControlLevel::Acceleration] = frameIds_[ControlLevel::Position];
+      //TODO(shunyao) : When fix the velocity and acceleration, uncomment the following
+//    controlSetup_[ControlLevel::Velocity] = true;
+//    frameIds_[ControlLevel::Velocity] = frameIds_[ControlLevel::Position];
+//    controlSetup_[ControlLevel::Acceleration] = true;
+//    frameIds_[ControlLevel::Acceleration] = frameIds_[ControlLevel::Position];
   }
 
   trajectory_.fitCurveWithDerivatives(times, values, startVelocity_.vector(), targetVelocity_.vector());

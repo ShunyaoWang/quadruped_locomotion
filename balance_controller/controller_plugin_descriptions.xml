@@ -1,0 +1,7 @@
+<library path="lib/libros_balance_controller">
+  <class name="balance_controller/RosBalanceController"
+         type="balance_controller::RosBalanceController"
+         base_class_type="controller_interface::ControllerBase">
+    <description>A gazebo interface with robot state .</description>
+  </class>
+</library>

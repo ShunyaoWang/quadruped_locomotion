@@ -38,6 +38,7 @@ void MarkerKnot::loadParameters(
   markerColor_.b = (float) color;
   nodeHandle.param("knot/color/a", color, 1.0);
   markerColor_.a = (float) color;
+  nodeHandle.param("knot/frame_id", knotFrameId_, std::string("map"));
 }
 
 // Setup the marker.
@@ -46,11 +47,11 @@ void MarkerKnot::setupMarker(const unsigned int markerNumber,
   controls.clear();
   menu_entries.clear();
 
-  header.frame_id = "map";
+  header.frame_id = knotFrameId_;//"map";
   name = markerName;
   description = "Knot: " + std::to_string(markerNumber) + " " + markerName;
   scale = markerScale_;
-
+  ROS_INFO("Knot frame : %s", knotFrameId_.c_str());
   // Add a control which contains the sphere and the menu.
   visualization_msgs::InteractiveMarkerControl sphereControl;
   sphereControl.name = name + "_menu";

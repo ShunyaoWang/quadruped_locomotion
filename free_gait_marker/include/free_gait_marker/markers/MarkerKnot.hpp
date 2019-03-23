@@ -31,6 +31,9 @@ class MarkerKnot : public visualization_msgs::InteractiveMarker
   //! Foothold marker scale.
   double markerScale_;
 
+  //!
+  std::string knotFrameId_;
+
   //! Foothold marker radius.
   double markerRadius_;
 

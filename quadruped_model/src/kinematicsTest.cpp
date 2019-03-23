@@ -1,3 +1,11 @@
+/*
+ *  kinematicsTest.cpp
+ *  Descriotion:
+ *
+ *  Created on: date, 2019
+ *  Author: Shunyao Wang
+ *  Institute: Harbin Institute of Technology, Shenzhen
+ */
 #include <ros/ros.h>
 #include "quadruped_model/quadrupedkinematics.h"
 //#include "geometry_msgs/Twist.h"

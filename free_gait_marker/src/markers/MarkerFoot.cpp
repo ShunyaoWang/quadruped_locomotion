@@ -37,6 +37,7 @@ void MarkerFoot::loadParameters(
   footholdColor_.b = (float) color;
   nodeHandle.param("foothold/color/a", color, 1.0);
   footholdColor_.a = (float) color;
+  nodeHandle.param("foothold/frame_id", footholdFrameId_, std::string("map"));
 }
 
 
@@ -47,6 +48,7 @@ void MarkerFoot::setupFootholdMarker(const unsigned int stepNumber,
   menu_entries.clear();
 
   header.frame_id = footholdFrameId_;
+  ROS_INFO("Foot hold frame %s", footholdFrameId_.c_str());
 //  name = "foothold_" + std::to_string(stepNumber) + "_" + legName;
   name = legName;
   description = "Foothold " + std::to_string(stepNumber) + " " + legName;

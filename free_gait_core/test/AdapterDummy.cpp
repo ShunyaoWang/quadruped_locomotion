@@ -136,6 +136,24 @@ bool AdapterDummy::isLegGrounded(const LimbEnum& limb) const
 
 JointPositionsLeg AdapterDummy::getJointPositionsForLimb(const LimbEnum& limb) const
 {
+  //! WSHY: update measurement
+  JointPositions all_joints_position = state_->getJointPositionsToReach();
+
+  switch (limb) {
+    case LimbEnum::LF_LEG :
+      return JointPositionsLeg(all_joints_position(0),all_joints_position(1),all_joints_position(2));
+      break;
+    case LimbEnum::RF_LEG :
+      return JointPositionsLeg(all_joints_position(3),all_joints_position(4),all_joints_position(5));
+      break;
+    case LimbEnum::RH_LEG :
+      return JointPositionsLeg(all_joints_position(6),all_joints_position(7),all_joints_position(8));
+      break;
+    case LimbEnum::LH_LEG :
+      return JointPositionsLeg(all_joints_position(9),all_joints_position(10),all_joints_position(11));
+      break;
+    }
+  state_->getJointPositionsToReach();
   return state_->getJointPositionsForLimb(limb);
 }
 
@@ -246,6 +264,7 @@ ControlSetup AdapterDummy::getControlSetup(const LimbEnum& limb) const
 JointVelocitiesLeg AdapterDummy::getJointVelocitiesFromEndEffectorLinearVelocityInWorldFrame(
     const LimbEnum& limb, const LinearVelocity& endEffectorLinearVelocityInWorldFrame) const
 {
+  //TODO(Shunyao):dp = jaccobian * dq
   throw std::runtime_error("AdapterDummy::getJointVelocitiesFromEndEffectorLinearVelocityInWorldFrame() is not implemented.");
 }
 

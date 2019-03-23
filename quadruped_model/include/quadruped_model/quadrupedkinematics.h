@@ -61,7 +61,8 @@ public:
 //  bool InverseKinematicsSolve(Position foot_position, JointPositionsLimb& joint_positions);
   bool InverseKinematicsSolve(const Position& foot_position, const LimbEnum& limb,
                               const JointPositionsLimb& joint_positions_last,
-                              JointPositionsLimb& joint_positions);
+                              JointPositionsLimb& joint_positions,
+                              const std::string LimbType = "IN_LEFT");
   bool AnalysticJacobian(const JointPositionsLimb& joint_positions, const LimbEnum& limb, Eigen::MatrixXd& jacobian);
   double MapToPI(double q);
 
