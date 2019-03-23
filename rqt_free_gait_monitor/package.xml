@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package format="2">
+  <name>rqt_free_gait_monitor</name>
+  <version>0.3.0</version>
+  <description>A RQT plugin to monitor, pause, and stop Free Gait actions.</description>
+  <maintainer email="samuel.bachmann@gmail.com">Samuel Bachmann</maintainer>
+  <author email="samuel.bachmann@gmail.com">Samuel Bachmann</author>
+  <license>BSD</license>
+  <url type="website">https://github.com/leggedrobotics/free_gait</url>
+  <url type="bugtracker">https://github.com/leggedrobotics/free_gait/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>rqt_gui</depend>
+  <depend>rqt_gui_cpp</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>free_gait_msgs</depend>
+  <depend>boost</depend>
+
+  <export>
+    <rqt_gui plugin="${prefix}/plugin.xml"/>
+  </export>
+</package>

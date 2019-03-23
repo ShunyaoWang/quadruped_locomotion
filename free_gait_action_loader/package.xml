@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package format="2">
+  <name>free_gait_action_loader</name>
+  <version>0.3.0</version>
+  <description>Dynamic loading of Free Gait actions.</description>
+  <maintainer email="pfankhauser@anybotics.com">Peter Fankhauser</maintainer>
+  <author email="pfankhauser@anybotics.com">Peter Fankhauser</author>
+  <license>BSD</license>
+  <url type="website">https://github.com/leggedrobotics/free_gait</url>
+  <url type="bugtracker">https://github.com/leggedrobotics/free_gait/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>rospy</depend>
+  <depend>free_gait_python</depend>
+  <depend>free_gait_msgs</depend>
+
+</package>

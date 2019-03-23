@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <!-- <param name="/free_gait/adapter_plugin/preview" value="free_gait::AdapterDummy" />
+  <param name="/free_gait/adapter_ros_interface_plugin" value="free_gait::AdapterRosInterfaceDummy" />
+  <node pkg="free_gait_ros" type="steps_test" name="steps_test_node"
+        output="screen">
+  </node> -->
+  <param name="/free_gait/stop_execution_service" value="/free_gait/stop_execution_service" />
+  <param name="/free_gait/pause_execution_service" value="/free_gait/pause_execution_service" />
+  <param name="/use_gazebo" value="true" />
+  <param name="/use_preview" value="false" />
+  <param name="/free_gait/adapter_plugin/gazebo" value="free_gait_ros/AdapterGazebo" />
+  <param name="/free_gait/adapter_ros_interface_plugin/gazebo" value="free_gait_ros/AdapterRosInterfaceGazebo" />
+  <node pkg="free_gait_ros"
+    type="action_server_test_node"
+    name="action_server_test_node"
+    output="screen">
+  </node>
+
+</launch>

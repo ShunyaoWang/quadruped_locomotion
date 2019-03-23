@@ -1,0 +1,42 @@
+balance_controller:
+  virtual_model_controller:
+    heading:
+      kp: 1000
+      kd: 200
+      kff: 0.2
+    lateral:
+      kp: 1000
+      kd: 200
+      kff: 0.2
+    vertical:
+      kp: 1000
+      kd: 200
+      kff: 0.2
+    roll:
+      kp: 200
+      kd: 40
+      kff: 0.2
+    pitch:
+      kp: 200
+      kd: 40
+      kff: 0.2
+    yaw:
+      kp: 200
+      kd: 40
+      kff: 0.2
+  contact_force_distribution:
+    weights:
+      force:
+        heading: 1
+        lateral: 1
+        vertical: 1
+      torque:
+        roll: 1
+        pitch: 1
+        yaw: 1
+      regularizer:
+        value: 1
+    constraints:
+      friction_coefficient: 1
+      minimal_normal_force: 1
+  joints: [a, b, c]

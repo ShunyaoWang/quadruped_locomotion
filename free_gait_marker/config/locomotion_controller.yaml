@@ -1,0 +1,20 @@
+action_server_topic: "/free_gait/action_server"
+wait_for_action_timeout: 5
+foothold:
+  frame_id: "odom"
+  scale: 0.075
+  radius: 0.06
+  color:
+    r: 0.0
+    g: 0.0
+    b: 0.65
+    a: 1.0
+knot:
+  frame_id: "odom"
+  scale: 0.075
+  radius: 0.03
+  color:
+    r: 1.0
+    g: 0.0
+    b: 0.0
+    a: 1.0
