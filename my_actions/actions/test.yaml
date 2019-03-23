@@ -1,0 +1,67 @@
+actions:
+  - action:
+      id: "1"
+      name: sit down
+      file: motion_scripts/sitdown.yaml
+      type: yaml
+      description: robot sit down
+  - action:
+      id: "2"
+      name: stand up
+      file: motion_scripts/standup.yaml
+      type: yaml
+      description: robot stand
+  - action:
+      id: "3"
+      name: walk a cycle
+      file: motion_scripts/stational_walk.yaml
+      type: yaml
+      description: robot walk a cycle
+  - action:
+      id: "4"
+      name: base_target demo
+      file: motion_scripts/base_target_demo.yaml
+      type: yaml
+      description: robot base move a rectangle
+  - action:
+      id: "5"
+      name: end effector target demo
+      file: motion_scripts/end_effectors_target_demo.yaml
+      type: yaml
+      description: robot move leg end effector
+  - action:
+      id: "6"
+      name: base pitch rotate
+      file: motion_scripts/base_rotate_pitch.yaml
+      type: yaml
+      description: base pitch rotate 20 degree
+  - action:
+      id: "7"
+      name: base yaw rotate
+      file: motion_scripts/base_rotate_yaw.yaml
+      type: yaml
+      description: base yaw rotate 20 degree
+  - action:
+      id: "8"
+      name: base roll rotate
+      file: motion_scripts/base_rotate_roll.yaml
+      type: yaml
+      description: base roll rotate 20 degree
+  - action:
+      id: "9"
+      name: base pitch and yaw rotate
+      file: motion_scripts/base_rotate_yaw_pitch.yaml
+      type: yaml
+      description: base yaw and pitch rotate
+  - action:
+      id: "10"
+      name: pace in Gazebo
+      file: motion_scripts/pace_gazebo.yaml
+      type: yaml
+      description: a cycle of pace motion in gazebo
+  - action:
+      id: "11"
+      name: trot in Gazebo
+      file: motion_scripts/trot_test.yaml
+      type: yaml
+      description: a cycle of trot motion in gazebo

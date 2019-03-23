@@ -1,0 +1,22 @@
+<library path="lib/libfree_gait_ros_plugin">
+  <class name="free_gait_ros/AdapterRosInterfaceDummy"
+         type="free_gait::AdapterRosInterfaceDummy"
+         base_class_type="free_gait::AdapterRosInterfaceBase">
+    <description>Display to preview Free Gait actions.</description>
+  </class>
+  <class name="free_gait_ros/AdapterDummy"
+         type="free_gait::AdapterDummy"
+         base_class_type="free_gait::AdapterBase">
+    <description>Display to preview Free Gait actions.</description>
+  </class>
+  <class name="free_gait_ros/AdapterGazebo"
+         type="free_gait::AdapterGazebo"
+         base_class_type="free_gait::AdapterBase">
+    <description>Display to preview Free Gait actions.</description>
+  </class>
+  <class name="free_gait_ros/AdapterRosInterfaceGazebo"
+         type="free_gait::AdapterRosInterfaceGazebo"
+         base_class_type="free_gait::AdapterRosInterfaceBase">
+    <description>Display to preview Free Gait actions.</description>
+  </class>
+</library>

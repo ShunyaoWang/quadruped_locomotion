@@ -1,0 +1,17 @@
+<library path="lib/librqt_free_gait_monitor">
+  <class name="rqt_free_gait_monitor/FreeGaitMonitorPlugin" type="rqt_free_gait_monitor::FreeGaitMonitorPlugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      A GUI plugin to monitor free gait.
+    </description>
+    <qtgui>
+      <group>
+        <label>Robot Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to...</statustip>
+      </group>
+      <label>Free Gait Monitor</label>
+      <icon type="theme">applications-graphics</icon>
+      <statustip>A GUI plugin to monitor free gait.</statustip>
+    </qtgui>
+  </class>
+</library>

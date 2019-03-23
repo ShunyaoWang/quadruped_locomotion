@@ -1,0 +1,16 @@
+collections:
+  - collection:
+      id: "1"
+      name: collection_1
+      actions:
+        - "1"
+        - "2"
+      is_sequence: True
+  - collection:
+      id: "2"
+      name: walk_demo
+      actions:
+        - "1"
+        - "2"
+        - "3"
+      is_sequence: True

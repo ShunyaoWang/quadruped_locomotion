@@ -1,0 +1,54 @@
+adapt_coordinates:
+ - transform:
+    source_frame: base_link
+    target_frame: odom
+steps:
+  - step:
+    - base_auto:
+       height: 0.4
+       ignore_timing_of_leg_motion: false
+  - step:
+    - base_target:
+        ignore_timing_of_leg_motion: false
+        average_linear_velocity: 0.1
+        average_angular_velocity: 0.02
+        target:
+          frame: base_link
+          position: [0.1,0.1,0.0]
+          orientation: [0.0,0.0,0.0,1.0]
+  - step:
+    - base_target:
+        target:
+          frame: base_link
+          position: [0.1,-0.1,0.0]
+          orientation: [0.0,0.0,0.0,1.0]
+        ignore_timing_of_leg_motion: false
+        average_linear_velocity: 0.1
+        average_angular_velocity: 0.02
+  - step:
+    - base_target:
+        target:
+          frame: base_link
+          position: [-0.1,-0.1,0.0]
+          orientation: [0.0,0.0,0.0,1.0]
+        ignore_timing_of_leg_motion: false
+        average_linear_velocity: 0.1
+        average_angular_velocity: 0.02
+  - step:
+    - base_target:
+        target:
+          frame: base_link
+          position: [-0.1,0.1,0.0]
+          orientation: [0.0,0.0,0.0,1.0]
+        ignore_timing_of_leg_motion: false
+        average_linear_velocity: 0.1
+        average_angular_velocity: 0.02
+  - step:
+    - base_target:
+        target:
+          frame: base_link
+          position: [0.01,0.01,0.0]
+          orientation: [0.0,0.0,0.0,1.0]
+        ignore_timing_of_leg_motion: false
+        average_linear_velocity: 0.1
+        average_angular_velocity: 0.02

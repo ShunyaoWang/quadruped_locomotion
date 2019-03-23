@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package format="2">
+  <name>free_gait_marker</name>
+  <version>0.3.0</version>
+  <description>Interactive Rviz markers for </description>
+  <maintainer email="pfankhauser@anybotics.com">Peter Fankhauser</maintainer>
+  <author email="pfankhauser@anybotics.com">Peter Fankhauser</author>
+  <license>BSD</license>
+  <url type="website">https://github.com/leggedrobotics/free_gait</url>
+  <url type="bugtracker">https://github.com/leggedrobotics/free_gait/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>interactive_markers</depend>
+  <depend>visualization_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>free_gait_msgs</depend>
+  <depend>curves</depend>
+  <depend>eigen</depend>
+  <depend>multi_dof_joint_trajectory_rviz_plugins</depend>
+</package>
