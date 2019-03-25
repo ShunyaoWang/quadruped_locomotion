@@ -1,28 +1,28 @@
 balance_controller:
   virtual_model_controller:
     heading:
-      kp: 1000
-      kd: 200
+      kp: 200
+      kd: 5000
       kff: 0.2
     lateral:
-      kp: 1000
-      kd: 200
+      kp: 200
+      kd: 5000
       kff: 0.2
     vertical:
-      kp: 1000
-      kd: 200
+      kp: 200
+      kd: 5000
       kff: 0.2
     roll:
-      kp: 200
-      kd: 40
+      kp: 400
+      kd: 1000
       kff: 0.2
     pitch:
-      kp: 200
-      kd: 40
+      kp: 400
+      kd: 1000
       kff: 0.2
     yaw:
       kp: 200
-      kd: 40
+      kd: 1000
       kff: 0.2
   contact_force_distribution:
     weights:

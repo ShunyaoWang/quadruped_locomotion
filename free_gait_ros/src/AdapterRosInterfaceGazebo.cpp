@@ -16,6 +16,7 @@ namespace free_gait {
 AdapterRosInterfaceGazebo::AdapterRosInterfaceGazebo()
 {
   leg_modes_.resize(4);
+  is_initialized_ = false;
 }
 
 AdapterRosInterfaceGazebo::~AdapterRosInterfaceGazebo()
@@ -25,6 +26,9 @@ AdapterRosInterfaceGazebo::~AdapterRosInterfaceGazebo()
 
 bool AdapterRosInterfaceGazebo::subscribeToRobotState(const std::string& robotStateTopic)
 {
+  free_gait_msgs::RobotStateConstPtr initial_state;
+  initial_state = ros::topic::waitForMessage<free_gait_msgs::RobotState>(robotStateTopic, ros::Duration(5));
+  updateRobotState(initial_state);
   joint_states_sub_ = nodeHandle_->subscribe(robotStateTopic, 1, &AdapterRosInterfaceGazebo::updateRobotState,this);
 }
 void AdapterRosInterfaceGazebo::unsubscribeFromRobotState()
@@ -41,6 +45,7 @@ const std::string AdapterRosInterfaceGazebo::getRobotStateMessageType()
 }
 bool AdapterRosInterfaceGazebo::isReady() const
 {
+  return is_initialized_;
   throw std::runtime_error("AdapterRosInterfaceGazebo::isReady() is not implemented.");
 
 }
@@ -49,6 +54,7 @@ bool AdapterRosInterfaceGazebo::isReady() const
 //! Update adapter.
 bool AdapterRosInterfaceGazebo::initializeAdapter(AdapterBase& adapter) const
 {
+//  ros::topic::waitForMessage<free_gait_msgs::RobotState>()
   std::cout<<"Initial Adapter"<<std::endl;
 //  throw std::runtime_error("AdapterRosInterfaceGazebo::initializeAdapter() is not implemented.");
 
@@ -84,14 +90,22 @@ bool AdapterRosInterfaceGazebo::updateAdapterWithRobotState(AdapterBase& adapter
         if(leg_mode.support_leg)
           {
             state_last.setSupportLeg(adapter.getLimbEnumFromLimbString(leg_mode.name),
-                                     leg_mode.support_leg);
+                                     true);
             state_last.setSurfaceNormal(adapter.getLimbEnumFromLimbString(leg_mode.name),
                                         Vector(leg_mode.surface_normal.vector.x,
                                                leg_mode.surface_normal.vector.y,
                                                leg_mode.surface_normal.vector.z));
 //            state_last.setLimbConfigure()
+            ROS_INFO("update contact");
+          } else {
+            state_last.setSupportLeg(adapter.getLimbEnumFromLimbString(leg_mode.name), false);
+            state_last.setSurfaceNormal(adapter.getLimbEnumFromLimbString(leg_mode.name),
+                                        Vector(0,0,1));
+            ROS_INFO("update no contact");
           }
+
       }
+    std::cout<<state_last<<std::endl;
 //    std::cout<<"AdapterRosInterfaceGazebo update base position : "<<pose_base_to_world.getPosition()<<std::endl;
 //    std::cout<<"AdapterRosInterfaceGazebo updatejoint position: "<<all_joint_positions_<<std::endl;
     adapter.setInternalDataFromState(state_last);
@@ -131,7 +145,14 @@ void AdapterRosInterfaceGazebo::updateRobotState(const free_gait_msgs::RobotStat
   leg_modes_[2] = robotState->rh_leg_mode;
   leg_modes_[3] = robotState->lh_leg_mode;
 
+  is_initialized_ = true;
+//  ROS_INFO("AdapterRosInterfaceGazebo subscriber callback once");
+
 }
+//bool AdapterRosInterfaceGazebo::isInitialized()
+//{
+//  return is_initialized_;
+//}
 
 }//namespace
 

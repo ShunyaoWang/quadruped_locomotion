@@ -167,14 +167,24 @@ namespace balance_controller{
     LocalAngularVelocity base_desired_angular_velocity = LocalAngularVelocity(robot_state->base_pose.twist.twist.angular.x,
                                                                               robot_state->base_pose.twist.twist.angular.y,
                                                                               robot_state->base_pose.twist.twist.angular.z);
+    ROS_INFO("Desired base pose: Position: ");
+    std::cout<<base_desired_position<<std::endl;
+    kindr::EulerAnglesZyxPD rotation(base_desired_rotation);
+    ROS_INFO("Desired base pose: Rotation: ");
+    std::cout<<rotation<<std::endl;
+
     free_gait::JointPositions all_joint_positions;
-    for(int i = 0;i<3;i++)
-    {
-      all_joint_positions(i) = robot_state->lf_leg_joints.position[i];
-      all_joint_positions(i+3) = robot_state->rf_leg_joints.position[i];
-      all_joint_positions(i+6) = robot_state->rh_leg_joints.position[i];
-      all_joint_positions(i+9) = robot_state->lh_leg_joints.position[i];
-    }
+//    for(int i = 0;i<3;i++)
+//    {
+//        /****************
+//        * TODO(Shunyao) : only for the non-support leg to follow the joint position and
+//        *velocity command
+//        ****************/
+//      all_joint_positions(i) = robot_state->lf_leg_joints.position[i];
+//      all_joint_positions(i+3) = robot_state->rf_leg_joints.position[i];
+//      all_joint_positions(i+6) = robot_state->rh_leg_joints.position[i];
+//      all_joint_positions(i+9) = robot_state->lh_leg_joints.position[i];
+//    }
 
 
     robot_state_->setPositionWorldToBaseInWorldFrame(base_desired_position);
@@ -182,46 +192,46 @@ namespace balance_controller{
     robot_state_->setLinearVelocityBaseInWorldFrame(base_desired_linear_velocity);
     robot_state_->setAngularVelocityBaseInBaseFrame(base_desired_angular_velocity);
 
-//    if(robot_state->lf_leg_mode.support_leg){
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(0), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(0),
-//                                       Vector(robot_state->lf_leg_mode.surface_normal.vector.x,
-//                                              robot_state->lf_leg_mode.surface_normal.vector.y,
-//                                              robot_state->lf_leg_mode.surface_normal.vector.z));
-//      } else {
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(0), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(0),Vector(0,0,0));
-//      };
-//    if(robot_state->rf_leg_mode.support_leg){
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(1), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(1),
-//                                       Vector(robot_state->rf_leg_mode.surface_normal.vector.x,
-//                                              robot_state->rf_leg_mode.surface_normal.vector.y,
-//                                              robot_state->rf_leg_mode.surface_normal.vector.z));
-//      } else {
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(1), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(1),Vector(0,0,0));
-//      };
-//    if(robot_state->rh_leg_mode.support_leg){
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(2), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(2),
-//                                       Vector(robot_state->rh_leg_mode.surface_normal.vector.x,
-//                                              robot_state->rh_leg_mode.surface_normal.vector.y,
-//                                              robot_state->rh_leg_mode.surface_normal.vector.z));
-//      } else {
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(2), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(2),Vector(0,0,0));
-//      };
-//    if(robot_state->lh_leg_mode.support_leg){
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(3), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(3),
-//                                       Vector(robot_state->lh_leg_mode.surface_normal.vector.x,
-//                                              robot_state->lh_leg_mode.surface_normal.vector.y,
-//                                              robot_state->lh_leg_mode.surface_normal.vector.z));
-//      } else {
-//        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(3), true);
-//        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(3),Vector(0,0,0));
-//      };
+    if(robot_state->lf_leg_mode.support_leg){
+        robot_state_->setSupportLeg(free_gait::LimbEnum::LF_LEG, true);
+        robot_state_->setSurfaceNormal(free_gait::LimbEnum::LF_LEG,
+                                       Vector(robot_state->lf_leg_mode.surface_normal.vector.x,
+                                              robot_state->lf_leg_mode.surface_normal.vector.y,
+                                              robot_state->lf_leg_mode.surface_normal.vector.z));
+      } else {
+        robot_state_->setSupportLeg(free_gait::LimbEnum::LF_LEG, true);
+        robot_state_->setSurfaceNormal(free_gait::LimbEnum::LF_LEG,Vector(0,0,0));
+      };
+    if(robot_state->rf_leg_mode.support_leg){
+        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(1), true);
+        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(1),
+                                       Vector(robot_state->rf_leg_mode.surface_normal.vector.x,
+                                              robot_state->rf_leg_mode.surface_normal.vector.y,
+                                              robot_state->rf_leg_mode.surface_normal.vector.z));
+      } else {
+        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(1), true);
+        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(1),Vector(0,0,0));
+      };
+    if(robot_state->rh_leg_mode.support_leg){
+        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(2), true);
+        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(2),
+                                       Vector(robot_state->rh_leg_mode.surface_normal.vector.x,
+                                              robot_state->rh_leg_mode.surface_normal.vector.y,
+                                              robot_state->rh_leg_mode.surface_normal.vector.z));
+      } else {
+        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(2), true);
+        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(2),Vector(0,0,0));
+      };
+    if(robot_state->lh_leg_mode.support_leg){
+        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(3), true);
+        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(3),
+                                       Vector(robot_state->lh_leg_mode.surface_normal.vector.x,
+                                              robot_state->lh_leg_mode.surface_normal.vector.y,
+                                              robot_state->lh_leg_mode.surface_normal.vector.z));
+      } else {
+        robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(3), true);
+        robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(3),Vector(0,0,0));
+      };
 
 
 
@@ -230,6 +240,9 @@ namespace balance_controller{
 
   void RosBalanceController::footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts)
   {
+    /****************
+* TODO(Shunyao) : change contact state for the early or late contact
+****************/
     unsigned int i = 0;
     for(auto contact : foot_contacts->foot_contacts)
       {

@@ -31,6 +31,7 @@ set(${PROJECT_NAME}_SRCS
   src/rqt_free_gait_action/WorkerThreadSendAction.cpp
   src/rqt_free_gait_action/WorkerThreadSendActionSequence.cpp
   src/rqt_free_gait_action/WorkerThreadUpdateTrigger.cpp
+  src/rqt_free_gait_action/WorkerThreadSwitchController.cpp
 )
 
 set(${PROJECT_NAME}_HDRS_QT
@@ -40,6 +41,7 @@ set(${PROJECT_NAME}_HDRS_QT
   include/rqt_free_gait_action/WorkerThreadSendAction.h
   include/rqt_free_gait_action/WorkerThreadSendActionSequence.h
   include/rqt_free_gait_action/WorkerThreadUpdateTrigger.h
+  include/rqt_free_gait_action/WorkerThreadSwitchController.h
 )
 set(${PROJECT_NAME}_HDRS
   include/rqt_free_gait_action/Action.h
