@@ -17,6 +17,7 @@
     name="action_server_test_node"
     output="screen">
   </node>
+  <rosparam file="$(find balance_controller)/config/controller_gains.yaml" command="load" />
   <!-- <node pkg="rqt_free_gait_action" type="rqt_free_gait_action" name="rqt_free_gait_action"/>
   <node pkg="rqt_free_gait_monitor" type="rqt_free_gait_monitor" name="rqt_free_gait_monitor"/> -->
   <!-- <include file="$(find rqt_free_gait_monitor)/launch/rqt_free_gait_monitor.launch"/> -->
