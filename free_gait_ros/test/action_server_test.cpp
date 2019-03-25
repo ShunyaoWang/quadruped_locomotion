@@ -28,9 +28,11 @@ public:
       use_gazebo(true),
       is_pause(false),
       is_stop(false),
+      is_kinematics_control(true),
       AdapterRos_(nodehandle, free_gait::AdapterRos::AdapterType::Gazebo)
   {
     nodeHandle_.getParam("/use_gazebo", use_gazebo);
+    nodeHandle_.getParam("/kinematics_control",is_kinematics_control);
     nodeHandle_.getParam("/free_gait/stop_execution_service", stop_service_name_);
     nodeHandle_.getParam("/free_gait/pause_execution_service", pause_service_name_);
     if(use_gazebo){
@@ -43,10 +45,23 @@ public:
     parameters.reset(new StepParameters());
     completer.reset(new StepCompleter(*parameters, *adapter));
     computer.reset(new StepComputer());
+
     AdapterRos_.updateAdapterWithState();
+    //! WSHY: get the initial pose and set to the fisrt pose command
+    state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());
+    state->setOrientationBaseToWorld(AdapterRos_.getAdapter().getOrientationBaseToWorld());
+    state->setLinearVelocityBaseInWorldFrame(AdapterRos_.getAdapter().getLinearVelocityBaseInWorldFrame());
+    state->setAngularVelocityBaseInBaseFrame(AdapterRos_.getAdapter().getAngularVelocityBaseInBaseFrame());
+    std::cout<<*state<<std::endl;
+
     executor.reset(new Executor(*completer, *computer, *adapter, *state));
     rosPublisher.reset(new StateRosPublisher(nodeHandle_, *adapter));
-    rosPublisher->setTfPrefix("/free_gait_action");
+    if(is_kinematics_control){
+      rosPublisher->setTfPrefix("/ideal");
+      }else if (!is_kinematics_control) {
+      rosPublisher->setTfPrefix("/desired");
+    }
+
     executor->initialize();
 
     AdapterRos_.updateAdapterWithState();
@@ -75,12 +90,19 @@ public:
       cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
       AdapterRos_.updateAdapterWithState();
       cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
+//      //! WSHY: get the initial pose and set to the fisrt pose command
+      state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());
+      state->setOrientationBaseToWorld(AdapterRos_.getAdapter().getOrientationBaseToWorld());
+      state->setLinearVelocityBaseInWorldFrame(AdapterRos_.getAdapter().getLinearVelocityBaseInWorldFrame());
+      state->setAngularVelocityBaseInBaseFrame(AdapterRos_.getAdapter().getAngularVelocityBaseInBaseFrame());
 
       for(int i=0;i<12;i++){
           allJointStates_.position[i] = adapter->getState().getJointPositionsToReach()(i);
         }
-      joint_state_pub_.publish(allJointStates_);
-
+      if(is_kinematics_control)
+        joint_state_pub_.publish(allJointStates_);
+      std::cout<<AdapterRos_.getAdapter().getState()<<std::endl;
+      rosPublisher->publish(AdapterRos_.getAdapter().getState());
       while (ros::ok()) {
           server_->update();
 //          AdapterRos_.updateAdapterWithState();
@@ -96,11 +118,30 @@ public:
             for(int i=0;i<12;i++){
                 allJointStates_.position[i] = adapter->getState().getJointPositions()(i);
               }
-            joint_state_pub_.publish(allJointStates_);
-            cout<<"*************************************send joint command : "<<endl<<adapter->getState().getJointPositions()<<endl;
-            if(!use_gazebo)
+            if(is_kinematics_control){
+                //! WSHY: directly publish joint positions
+              joint_state_pub_.publish(allJointStates_);
+              }
+//            cout<<"*************************************send joint command : "<<endl<<adapter->getState().getJointPositions()<<endl;
+            if(!use_gazebo){
+                //! WSHY: fake mode, publish fake state to rviz visualization
               rosPublisher->publish(adapter->getState());
-          }
+              }
+            if(!is_kinematics_control){
+                //! WSHY: publish robot state to balance controller
+              rosPublisher->publish(adapter->getState());
+              }
+            } else{ // directly publish current state
+//              state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());
+//              state->setOrientationBaseToWorld(AdapterRos_.getAdapter().getOrientationBaseToWorld());
+//              state->setLinearVelocityBaseInWorldFrame(AdapterRos_.getAdapter().getLinearVelocityBaseInWorldFrame());
+//              state->setAngularVelocityBaseInBaseFrame(AdapterRos_.getAdapter().getAngularVelocityBaseInBaseFrame());
+//              if(!is_kinematics_control){
+//                  //! WSHY: publish robot state to balance controller
+//                rosPublisher->publish(*state);
+//                }
+            }
+
           rate.sleep();
         }
 
@@ -153,7 +194,7 @@ private:
   ros::Publisher joint_state_pub_;
   ros::ServiceServer pause_service_server_, stop_service_server_;
   std::string pause_service_name_, stop_service_name_;
-  bool use_gazebo, is_pause, is_stop;
+  bool use_gazebo, is_pause, is_stop, is_kinematics_control;
 };
 
 

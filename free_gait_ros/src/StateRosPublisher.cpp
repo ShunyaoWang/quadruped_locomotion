@@ -73,6 +73,12 @@ bool StateRosPublisher::initializeRobotStatePublisher()
   }
 
   robotStatePublisher_.reset(new robot_state_publisher::RobotStatePublisher(tree));
+
+  robot_state_pub_ = nodeHandle_.advertise<free_gait_msgs::RobotState>("/desired_robot_state", 1);
+  robot_state_.lf_leg_joints.position.resize(3);
+  robot_state_.rf_leg_joints.position.resize(3);
+  robot_state_.rh_leg_joints.position.resize(3);
+  robot_state_.lh_leg_joints.position.resize(3);
   return true;
 }
 
@@ -94,12 +100,12 @@ bool StateRosPublisher::publish(const State& state)
   std::map<std::string, double> jointPositionsMap;
   for (size_t i = 0; i < jointNames.size(); ++i) {
     jointPositionsMap[jointNames[i]] = jointPositions(i);
-//    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
+    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
   }
 
   robotStatePublisher_->publishTransforms(jointPositionsMap, time, tfPrefix_);
   robotStatePublisher_->publishFixedTransforms(tfPrefix_);
-//ROS_INFO("In ros state publisher");
+ROS_INFO("In ros state publisher");
   // Publish base position.
   geometry_msgs::TransformStamped tfTransform;
   tfTransform.header.stamp = time;
@@ -121,7 +127,94 @@ bool StateRosPublisher::publish(const State& state)
     kindr_ros::convertToRosGeometryMsg(adapter_.getFrameTransform(frameId), tfTransform.transform);
     tfBroadcaster_.sendTransform(tfTransform);
   }
+  //! WSHY: set to publish robot state to the balance controller
+  ROS_INFO("In ros state publisher");
+  kindr_ros::convertToRosGeometryMsg(Pose(Position(state.getTargetPositionWorldToBaseInWorldFrame()),
+                                          RotationQuaternion(state.getTargetOrientationBaseToWorld())),
+                                     robot_state_.base_pose.pose.pose);
+  std::cout<<state.getTargetOrientationBaseToWorld()<<std::endl;
+  kindr_ros::convertToRosGeometryMsg(Twist(LinearVelocity(state.getTargetLinearVelocityBaseInWorldFrame()),
+                                           LocalAngularVelocity(state.getTargetAngularVelocityBaseInBaseFrame())),
+                                     robot_state_.base_pose.twist.twist);
+  ROS_INFO("In ros state publisher");
+  if(state.isSupportLeg(LimbEnum::LF_LEG))
+      {
+        robot_state_.lf_leg_mode.support_leg = true;
+        if(state.hasSurfaceNormal(LimbEnum::LF_LEG)){
+            kindr_ros::convertToRosGeometryMsg(state.getSurfaceNormal(LimbEnum::LF_LEG),
+                                               robot_state_.lf_leg_mode.surface_normal.vector);
+          } else {
+            kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
+                                               robot_state_.lf_leg_mode.surface_normal.vector);
+          }
 
+        /****************
+          * TODO(Shunyao) : Store Duration information in the state
+          ****************/
+        ROS_INFO("In ros state publisher");
+      }else {
+        robot_state_.lf_leg_mode.support_leg = false;
+        ROS_INFO("In ros state publisher");
+        std::cout<<state.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
+        robot_state_.lf_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(0);
+        robot_state_.lf_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(1);
+        robot_state_.lf_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(2);
+        /****************
+        * TODO(Shunyao) : velocities command
+        ****************/
+        ROS_INFO("In ros state publisher");
+    }
+    if(state.isSupportLeg(LimbEnum::RF_LEG))
+      {
+        robot_state_.rf_leg_mode.support_leg = true;
+        if(state.hasSurfaceNormal(LimbEnum::RF_LEG)){
+            kindr_ros::convertToRosGeometryMsg(state.getSurfaceNormal(LimbEnum::RF_LEG),
+                                               robot_state_.rf_leg_mode.surface_normal.vector);
+          } else {
+            kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
+                                               robot_state_.rf_leg_mode.surface_normal.vector);
+          }
+      }else {
+        robot_state_.rf_leg_mode.support_leg = false;
+        robot_state_.rf_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(0);
+        robot_state_.rf_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(1);
+        robot_state_.rf_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(2);
+
+    }
+    if(state.isSupportLeg(LimbEnum::RH_LEG))
+      {
+        robot_state_.rh_leg_mode.support_leg = true;
+        if(state.hasSurfaceNormal(LimbEnum::RH_LEG)){
+            kindr_ros::convertToRosGeometryMsg(state.getSurfaceNormal(LimbEnum::RH_LEG),
+                                               robot_state_.rh_leg_mode.surface_normal.vector);
+          } else {
+            kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
+                                               robot_state_.rh_leg_mode.surface_normal.vector);
+          }
+      }else {
+        robot_state_.rh_leg_mode.support_leg = false;
+        robot_state_.rh_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(0);
+        robot_state_.rh_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(1);
+        robot_state_.rh_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(2);
+    }
+    if(state.isSupportLeg(LimbEnum::LH_LEG))
+      {
+        robot_state_.lh_leg_mode.support_leg = true;
+        if(state.hasSurfaceNormal(LimbEnum::LH_LEG)){
+            kindr_ros::convertToRosGeometryMsg(state.getSurfaceNormal(LimbEnum::LH_LEG),
+                                               robot_state_.lh_leg_mode.surface_normal.vector);
+          } else {
+            kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
+                                               robot_state_.lh_leg_mode.surface_normal.vector);
+          }
+      }else {
+        robot_state_.lh_leg_mode.support_leg = false;
+        robot_state_.lh_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(0);
+        robot_state_.lh_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(1);
+        robot_state_.lh_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(2);
+    }
+  robot_state_pub_.publish(robot_state_);
+  ROS_INFO("Publised robot state once");
   return true;
 }
 
