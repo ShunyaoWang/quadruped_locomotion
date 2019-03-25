@@ -1,6 +1,6 @@
 /*
  *  test.cpp
- *  Descriotion:
+ *  Descriotion: test the VMC algorithm
  *
  *  Created on: Mar 15, 2019
  *  Author: Shunyao Wang

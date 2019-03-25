@@ -105,6 +105,8 @@ void FreeGaitActionPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   refreshCollectionsClient_ = getNodeHandle().serviceClient<
       std_srvs::Trigger>(
       "/free_gait_action_loader/update", false);
+  switchControllerClient_ = getNodeHandle().serviceClient<
+      controller_manager_msgs::SwitchController>("/controller_manager/switch_controller", false);
 
   // Connect signals to slots.
   connect(ui_.pushButtonSend, SIGNAL(clicked()),
@@ -118,6 +120,11 @@ void FreeGaitActionPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
   connect(ui_.listViewCollections,
           SIGNAL(customContextMenuRequested(const QPoint&)),
           this, SLOT(listViewCollectionsContextMenu(const QPoint&)));
+  connect(ui_.pushButtonSwitchController, SIGNAL(clicked()),
+          this, SLOT(onSwitchControllerClicked()));
+  connect(ui_.pushButtonBack, SIGNAL(clicked()),
+          this, SLOT(onSwitchBackControllerClicked()));
+
 
   // Initialize favorites info.
   updateFavoritesInfo(FAVORITE_INFO);
@@ -611,6 +618,63 @@ void FreeGaitActionPlugin::onRefreshCollectionsResult(
   ui_.pushButtonRefreshCollections->setEnabled(true);
 
   getCollections();
+}
+
+void FreeGaitActionPlugin::onSwitchControllerClicked()
+{
+  controller_manager_msgs::SwitchControllerRequest request;
+  request.start_controllers.push_back("balance_controller");
+  request.stop_controllers.push_back("all_joints_position_group_controller");
+  request.strictness = request.STRICT;
+
+
+  WorkerThreadSwitchController *workerThreadSwitchController = new WorkerThreadSwitchController;
+  connect(workerThreadSwitchController,
+          SIGNAL(results(bool, controller_manager_msgs::SwitchControllerResponse)),
+          this,
+          SLOT(onSwitchControllerResult(bool, controller_manager_msgs::SwitchControllerResponse)));
+  connect(workerThreadSwitchController, SIGNAL(finished()), workerThreadSwitchController, SLOT(deleteLater()));
+  ROS_INFO("a click to switch controller");
+  workerThreadSwitchController->setClient(switchControllerClient_);
+  workerThreadSwitchController->setRequest(request);
+  workerThreadSwitchController->start();
+  ROS_INFO("a click to switch controller");
+//  ui_.pushButtonSwitchController->setEnabled(false);
+}
+
+void FreeGaitActionPlugin::onSwitchBackControllerClicked()
+{
+  controller_manager_msgs::SwitchControllerRequest request;
+  request.start_controllers.push_back("all_joints_position_group_controller");
+  request.stop_controllers.push_back("balance_controller");
+  request.strictness = request.STRICT;
+
+
+  WorkerThreadSwitchController *workerThreadSwitchController = new WorkerThreadSwitchController;
+  connect(workerThreadSwitchController,
+          SIGNAL(results(bool, controller_manager_msgs::SwitchControllerResponse)),
+          this,
+          SLOT(onSwitchControllerResult(bool, controller_manager_msgs::SwitchControllerResponse)));
+  connect(workerThreadSwitchController, SIGNAL(finished()), workerThreadSwitchController, SLOT(deleteLater()));
+  ROS_INFO("a click to switch controller");
+  workerThreadSwitchController->setClient(switchControllerClient_);
+  workerThreadSwitchController->setRequest(request);
+  workerThreadSwitchController->start();
+  ROS_INFO("a click to switch controller");
+//  ui_.pushButtonBack->setEnabled(false);
+}
+
+void FreeGaitActionPlugin::onSwitchControllerResult(bool isOk,
+                                                    controller_manager_msgs::SwitchControllerResponse response)
+{
+  if (!isOk) {
+    emit statusMessage("Could not switch controller.",
+                       MessageType::WARNING, 2.0);
+  } else {
+    emit statusMessage("Controller switched.", MessageType::SUCCESS, 2.0);
+  }
+  ROS_INFO("response ");
+  ui_.pushButtonSwitchController->setEnabled(true);
 }
 
 void FreeGaitActionPlugin::onStatusMessage(std::string message,

@@ -56,6 +56,9 @@
 #include "rqt_free_gait_action/WorkerThreadSendAction.h"
 #include "rqt_free_gait_action/WorkerThreadSendActionSequence.h"
 #include "rqt_free_gait_action/WorkerThreadUpdateTrigger.h"
+#include "rqt_free_gait_action/WorkerThreadSwitchController.h"
+#include "controller_manager_msgs/SwitchController.h"
+
 
 namespace rqt_free_gait {
 
@@ -124,9 +127,12 @@ protected:
   ros::ServiceClient sendActionSequenceClient_;
   ros::ServiceClient refreshCollectionsClient_;
 
+  ros::ServiceClient switchControllerClient_;
+
   QString selectedAction_ = "";
   QString selectedCollection_ = "";
   QString favoriteCollectionId_ = "";
+  QString selectedController_ = "";
 
   ActionModel *currentActionModel_ = nullptr;
   CollectionModel *collectionModel_ = nullptr;
@@ -226,6 +232,12 @@ protected slots:
 
   void onRefreshCollectionsClicked();
 
+  void onSwitchControllerClicked();
+
+  void onSwitchBackControllerClicked();
+
+//  void on
+
   void onFavoriteButtonClicked(Action action);
 
   void onFavoriteButtonResult(bool isOk,
@@ -245,6 +257,9 @@ protected slots:
 
   void onRefreshCollectionsResult(bool isOk,
                                   std_srvs::TriggerResponse response);
+
+  void onSwitchControllerResult(bool isOk,
+                                controller_manager_msgs::SwitchControllerResponse response);
 
   void onStatusMessage(std::string message, MessageType type,
                        double displaySeconds);

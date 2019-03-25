@@ -157,4 +157,4 @@ class ContactForceDistributionBase
 
 };
 
-} /* namespace loco */
+} /* namespace balance_controller */

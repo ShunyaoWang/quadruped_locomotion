@@ -130,17 +130,18 @@ bool AdapterGazebo::updateExtrasAfter(const StepQueue& stepQueue, State& state)
           I_r_IF = footholdsInSupport_.at(limb);
     //      baseMotion.getDuration();
     //      std::cout<<"=========================="<<getLimbStringFromLimbEnum(limb)<<"============================"<<std::endl;
-          std::cout<<"+++++++++++++I_r_IF++++++++++++++++"<<std::endl
-                  <<I_r_IF<<std::endl<<"+++++++++++++I_r_IF+++++++++++++++++"<<std::endl;
+//          std::cout<<"+++++++++++++I_r_IF++++++++++++++++"<<std::endl
+//                  <<I_r_IF<<std::endl<<"+++++++++++++I_r_IF+++++++++++++++++"<<std::endl;
     //      I_r_IF = stepQueue.getCurrentStep().getLegMotion(limb).
           B_r_BF = I_R_B.inverseRotate(I_r_IF - I_r_IB);
-          std::cout<<"+++++++++++++I_r_IB++++++++++++++++"<<std::endl
-                  <<I_r_IB<<std::endl<<"+++++++++++++I_r_IB+++++++++++++++++"<<std::endl;
-          std::cout<<"Solving for "<<getLimbStringFromLimbEnum(limb)<<std::endl;
-          std::cout<<"========================================================"<<std::endl;
+//          std::cout<<"+++++++++++++I_r_IB++++++++++++++++"<<std::endl
+//                  <<I_r_IB<<std::endl<<"+++++++++++++I_r_IB+++++++++++++++++"<<std::endl;
+//          std::cout<<"Solving for "<<getLimbStringFromLimbEnum(limb)<<std::endl;
+//          std::cout<<"========================================================"<<std::endl;
           state_->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(B_r_BF, limb, joint_limb);
-          state_->setJointPositionsForLimb(limb, joint_limb);
-          std::cout<<"joint position : "<<joint_limb<<std::endl;
+          //! WSHY: comment to use balance_controller to control base motion
+//          state_->setJointPositionsForLimb(limb, joint_limb);
+//          std::cout<<"joint position : "<<joint_limb<<std::endl;
 
     } else {
 

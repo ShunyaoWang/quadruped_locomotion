@@ -30,7 +30,7 @@ public:
   virtual bool updateAdapterWithRobotState(AdapterBase& adapter) const;
 
   void updateRobotState(const free_gait_msgs::RobotStateConstPtr& robotState);
-
+//  bool isInitialized();
 
 private:
   ros::Subscriber joint_states_sub_;
@@ -38,6 +38,7 @@ private:
   nav_msgs::Odometry base_pose_in_world_;
   Stance foot_in_support_;
   std::vector<free_gait_msgs::LegMode> leg_modes_;
+  bool is_initialized_;
 
 };
 
