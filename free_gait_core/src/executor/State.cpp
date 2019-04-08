@@ -159,7 +159,8 @@ void State::setJointPositionsForLimb(const LimbEnum& limb, const JointPositionsL
 
 void State::setAllJointPositions(const JointPositions& jointPositions)
 {
-  quadruped_model::QuadrupedState::setJointPositions(quadruped_model::JointPositions(jointPositions.vector()));
+  setCurrentLimbJoints(jointPositions);
+//  quadruped_model::QuadrupedState::setJointPositions(quadruped_model::JointPositions(jointPositions.vector()));
 }
 
 const JointVelocitiesLeg State::getJointVelocitiesForLimb(const LimbEnum& limb) const

@@ -84,6 +84,9 @@ bool AdapterRosInterfaceGazebo::updateAdapterWithRobotState(AdapterBase& adapter
 
     state_last.setBaseStateFromFeedback(linear_velocity, angular_velocity);
     state_last.setPoseBaseToWorld(pose_base_to_world);
+    /****************
+* TODO(Shunyao) : Update joint velocity and efforts
+****************/
     state_last.setCurrentLimbJoints(all_joint_positions_);
     for(auto leg_mode : leg_modes_)
       {

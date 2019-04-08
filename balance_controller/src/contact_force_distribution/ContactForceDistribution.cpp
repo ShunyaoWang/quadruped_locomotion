@@ -220,7 +220,7 @@ bool ContactForceDistribution::addMinimalForceConstraints()
   d_.conservativeResize(rowIndex + nLegsInForceDistribution_);
   f_.conservativeResize(rowIndex + nLegsInForceDistribution_);
 
-  const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationWorldToBase();
+  const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationWorldToBase();
 
   for (auto& legInfo : legInfos_)
   {
@@ -267,8 +267,8 @@ bool ContactForceDistribution::addFrictionConstraints()
   d_.conservativeResize(rowIndex + nConstraints);
   f_.conservativeResize(rowIndex + nConstraints);
 
-  const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationWorldToBase();
-  const RotationQuaternion orientationControlToBase = robot_state_->getOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationControlToBase();
+  const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationWorldToBase();
+  const RotationQuaternion orientationControlToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
 
   for (auto& legInfo : legInfos_)
   {
@@ -419,19 +419,19 @@ bool ContactForceDistribution::solveOptimization()
 //  std::cout<<CI<<std::endl;
   auto costFunction = std::shared_ptr<qp_solver::QuadraticObjectiveFunction>(new qp_solver::QuadraticObjectiveFunction());
   auto constraints = std::shared_ptr<qp_solver::LinearFunctionConstraints>(new qp_solver::LinearFunctionConstraints());
-  ROS_INFO("Start getting QP problem coefficients");
+  ROS_DEBUG("Start getting QP problem coefficients");
   G = 2 * A_.transpose() * S_ * A_;// + W_;
   G = G + W_.toDenseMatrix();
-  std::cout<<"hessian G : "<<"size (row, col) : ("<<G.rows()<<" ,"<<G.cols()<<")"<<std::endl;
+//  std::cout<<"hessian G : "<<"size (row, col) : ("<<G.rows()<<" ,"<<G.cols()<<")"<<std::endl;
 //  std::cout<<G<<std::endl;
   g0 = -2 * b_.transpose() * S_ * A_;
-  std::cout<<"jacobian g0 : "<<"size (row, col) : ("<<g0.rows()<<" ,"<<g0.cols()<<")"<<std::endl;
+//  std::cout<<"jacobian g0 : "<<"size (row, col) : ("<<g0.rows()<<" ,"<<g0.cols()<<")"<<std::endl;
 //  std::cout<<g0<<std::endl;
   CE = C_.transpose();
-  std::cout<<"equality CE : "<<"size (row, col) : ("<<CE.rows()<<" ,"<<CE.cols()<<")"<<std::endl;
+//  std::cout<<"equality CE : "<<"size (row, col) : ("<<CE.rows()<<" ,"<<CE.cols()<<")"<<std::endl;
 //  std::cout<<CE<<std::endl;
   ce0 = -c_;
-  std::cout<<"equality ce0 : "<<"size (row, col) : ("<<ce0.rows()<<" ,"<<ce0.cols()<<")"<<std::endl;
+//  std::cout<<"equality ce0 : "<<"size (row, col) : ("<<ce0.rows()<<" ,"<<ce0.cols()<<")"<<std::endl;
 //  std::cout<<ce0<<std::endl;
 //  CI.leftCols(D_.rows()) = -D_.transpose();
 //  CI.middleCols(D_.rows(), 2*D_.rows()) = D_.transpose();
@@ -440,17 +440,16 @@ bool ContactForceDistribution::solveOptimization()
   CI.block(0,0,D_.cols(),D_.rows()) = -D_.transpose();
   CI.block(0,D_.rows(),D_.cols(),D_.rows()) = D_.transpose();
   Eigen::MatrixXd CI_T = CI.transpose();
-  std::cout<<"Inequality CI : "<<"size (row, col) : ("<<CI.rows()<<" ,"<<CI.cols()<<")"<<std::endl;
+//  std::cout<<"Inequality CI : "<<"size (row, col) : ("<<CI.rows()<<" ,"<<CI.cols()<<")"<<std::endl;
 //  std::cout<<CI<<std::endl;
 //  ci0.topRows(f_.rows()) = -f_;
 //  ci0.middleRows(f_.rows(),f_.rows()+d_.rows()) = -d_;
   ci0.block(0,0,f_.rows(),1) = -f_;
   ci0.block(f_.rows(),0,f_.rows(),1) = -d_;
-  std::cout<<"inequality ci0 : "<<"size (row, col) : ("<<ci0.rows()<<" ,"<<ci0.cols()<<")"<<std::endl;
+//  std::cout<<"inequality ci0 : "<<"size (row, col) : ("<<ci0.rows()<<" ,"<<ci0.cols()<<")"<<std::endl;
 //  std::cout<<ci0<<std::endl;
 
   costFunction->setGlobalHessian(G);
-  ROS_INFO("Got Here");
   costFunction->setLinearTerm(g0);
   constraints->setGlobalEqualityConstraintJacobian(CE);
   constraints->setEqualityConstraintMaxValues(ce0);
@@ -466,11 +465,11 @@ bool ContactForceDistribution::solveOptimization()
 //    constraints_->setInequalityConstraintMaxValues(ci0);
 
   Eigen::VectorXd params(G.cols());
-  ROS_INFO("Start QP Solver");
+  ROS_DEBUG("Start QP Solver");
   if (!solver_->minimize(*costFunction, *constraints, params)) return false;
-  ROS_INFO("QP Solver Succeed!");
+  ROS_DEBUG("QP Solver Succeed!");
 //  ROS_INFO("solve results: \n");
-  std::cout<<params<<std::endl;
+//  std::cout<<params<<std::endl;
   x_ = params;
 //  if (!ooqpei::QuadraticProblemFormulation::solve(A_, S_, b_, W_, C_, c_, D_, d_, f_, x_))
 //    return false;
@@ -513,10 +512,10 @@ bool ContactForceDistribution::computeJointTorques()
         Force contactForce = legInfo.second.desiredContactForce_;//! WSHY: TODO tranform to hip frame
         Position tranformed_vector = robot_state_->getPositionFootToHipInHipFrame(legInfo.first, Position(contactForce.toImplementation()));
 //        contactForce = Force(tranformed_vector.toImplementation());
-        ROS_INFO("leg Jacobian for %d is : \n", static_cast<int>(legInfo.first));
-        std::cout<<jacobian<<std::endl;
-        ROS_INFO("contact force for %d is : \n", static_cast<int>(legInfo.first));
-        std::cout<<contactForce.toImplementation()<<std::endl;
+        ROS_DEBUG("leg Jacobian for %d is : \n", static_cast<int>(legInfo.first));
+//        std::cout<<jacobian<<std::endl;
+        ROS_DEBUG("contact force for %d is : \n", static_cast<int>(legInfo.first));
+//        std::cout<<contactForce.toImplementation()<<std::endl;
 
 //        LegBase::JointTorques jointTorques = LegBase::JointTorques(jacobian.transpose() * contactForce.toImplementation());
         free_gait::JointEffortsLeg jointTorques = free_gait::JointEffortsLeg(jacobian.transpose() * contactForce.toImplementation());
@@ -847,6 +846,12 @@ bool ContactForceDistribution::loadParameters()
   }
   for (auto& legInfo : legInfos_) {
     legInfo.second.frictionCoefficient_ = frictionCoefficient;
+  }
+  if (node_handle_.hasParam("/balance_controller/contact_force_distribution/constraints/minimal_normal_force")) {
+    node_handle_.getParam("/balance_controller/contact_force_distribution/constraints/minimal_normal_force", minimalNormalGroundForce_);
+  } else {
+    ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/contact_force_distribution/constraints/minimal_normal_force'.");
+    return false;
   }
 
   isParametersLoaded_ = true;

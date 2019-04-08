@@ -78,6 +78,7 @@ add_library(${PROJECT_NAME}
    #src/AdapterRosInterfaceDummy.cpp
    src/StateRosPublisher.cpp
    src/RosVisualization.cpp
+   test/gait_generate_client.cpp
 )
 add_library(${PROJECT_NAME}_plugin
   src/AdapterRosInterfaceDummy.cpp
