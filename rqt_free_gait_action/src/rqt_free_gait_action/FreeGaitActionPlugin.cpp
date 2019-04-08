@@ -107,6 +107,7 @@ void FreeGaitActionPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
       "/free_gait_action_loader/update", false);
   switchControllerClient_ = getNodeHandle().serviceClient<
       controller_manager_msgs::SwitchController>("/controller_manager/switch_controller", false);
+  trotSwitchClient_ = getNodeHandle().serviceClient<std_srvs::SetBool>("/gait_generate_switch", false);
 
   // Connect signals to slots.
   connect(ui_.pushButtonSend, SIGNAL(clicked()),
@@ -124,6 +125,10 @@ void FreeGaitActionPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
           this, SLOT(onSwitchControllerClicked()));
   connect(ui_.pushButtonBack, SIGNAL(clicked()),
           this, SLOT(onSwitchBackControllerClicked()));
+  connect(ui_.pushButtonTrot, SIGNAL(clicked()),
+          this, SLOT(onTrotClicked()));
+  connect(ui_.pushButtonStopTrot, SIGNAL(clicked()),
+          this, SLOT(onStopTrotClicked()));
 
 
   // Initialize favorites info.
@@ -623,7 +628,7 @@ void FreeGaitActionPlugin::onRefreshCollectionsResult(
 void FreeGaitActionPlugin::onSwitchControllerClicked()
 {
   controller_manager_msgs::SwitchControllerRequest request;
-  request.start_controllers.push_back("balance_controller");
+  request.start_controllers.push_back("base_balance_controller");
   request.stop_controllers.push_back("all_joints_position_group_controller");
   request.strictness = request.STRICT;
 
@@ -646,7 +651,7 @@ void FreeGaitActionPlugin::onSwitchBackControllerClicked()
 {
   controller_manager_msgs::SwitchControllerRequest request;
   request.start_controllers.push_back("all_joints_position_group_controller");
-  request.stop_controllers.push_back("balance_controller");
+  request.stop_controllers.push_back("base_balance_controller");
   request.strictness = request.STRICT;
 
 
@@ -675,6 +680,60 @@ void FreeGaitActionPlugin::onSwitchControllerResult(bool isOk,
   }
   ROS_INFO("response ");
   ui_.pushButtonSwitchController->setEnabled(true);
+}
+
+void FreeGaitActionPlugin::onTrotClicked()
+{
+  std_srvs::SetBoolRequest request;
+  request.data = true;
+
+
+  WorkerThreadSetBool *workerThreadSetBool = new WorkerThreadSetBool;
+  connect(workerThreadSetBool,
+          SIGNAL(results(bool, std_srvs::SetBoolRespose)),
+          this,
+          SLOT(onTrotSwitchResult(bool, std_srvs::SetBoolResponse)));
+  connect(workerThreadSetBool, SIGNAL(finished()), workerThreadSetBool, SLOT(deleteLater()));
+  ROS_INFO("a click to switch controller");
+  workerThreadSetBool->setClient(trotSwitchClient_);
+  workerThreadSetBool->setRequest(request);
+  workerThreadSetBool->start();
+  ROS_INFO("a click to switch controller");
+//  ui_.pushButtonSwitchController->setEnabled(false);
+}
+
+void FreeGaitActionPlugin::onStopTrotClicked()
+{
+  std_srvs::SetBoolRequest request;
+  request.data = false;
+
+
+  WorkerThreadSetBool *workerThreadSetBool = new WorkerThreadSetBool;
+  connect(workerThreadSetBool,
+          SIGNAL(results(bool, std_srvs::SetBoolRespose)),
+          this,
+          SLOT(onTrotSwitchResult(bool, std_srvs::SetBoolResponse)));
+  connect(workerThreadSetBool, SIGNAL(finished()), workerThreadSetBool, SLOT(deleteLater()));
+  ROS_INFO("a click to switch controller");
+  workerThreadSetBool->setClient(trotSwitchClient_);
+  workerThreadSetBool->setRequest(request);
+  workerThreadSetBool->start();
+  ROS_INFO("a click to switch controller");
+//  ui_.pushButtonSwitchController->setEnabled(false);
+}
+
+void FreeGaitActionPlugin::onTrotSwitchResult(bool isOk,
+                                                    std_srvs::SetBoolResponse response)
+{
+  if (!isOk) {
+    emit statusMessage("Could not switch controller.",
+                       MessageType::WARNING, 2.0);
+  } else {
+    emit statusMessage("Controller switched.", MessageType::SUCCESS, 2.0);
+  }
+  ROS_INFO("response ");
+  ui_.pushButtonTrot->setEnabled(true);
+  ui_.pushButtonStopTrot->setEnabled(true);
 }
 
 void FreeGaitActionPlugin::onStatusMessage(std::string message,

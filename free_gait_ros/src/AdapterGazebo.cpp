@@ -37,14 +37,14 @@ AdapterGazebo::AdapterGazebo()
   std::cout<<"Constructing AdapterGazebo"<<std::endl;
   limbs_.push_back(LimbEnum::LF_LEG);
   limbs_.push_back(LimbEnum::RF_LEG);
-  limbs_.push_back(LimbEnum::LH_LEG);
   limbs_.push_back(LimbEnum::RH_LEG);
+  limbs_.push_back(LimbEnum::LH_LEG);
 
   branches_.push_back(BranchEnum::BASE);
   branches_.push_back(BranchEnum::LF_LEG);
   branches_.push_back(BranchEnum::RF_LEG);
-  branches_.push_back(BranchEnum::LH_LEG);
   branches_.push_back(BranchEnum::RH_LEG);
+  branches_.push_back(BranchEnum::LH_LEG);
 }
 
 AdapterGazebo::~AdapterGazebo()
@@ -65,88 +65,89 @@ bool AdapterGazebo::updateExtrasBefore(const StepQueue& stepQueue, State& state)
 {
 //  std::cout<<"Flagggggggggggggggggggggggggggggggggggggggggggggggggggggggg"<<std::endl;
 //  state_->getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
-//  std::cout<<state_->getJointPositionsToReach()<<std::endl;//getAll not get the current but get the joint position order
-  state.setCurrentLimbJoints(state_->getJointPositionsToReach());
+//  std::cout<<state_->getJointPositionFeedback()<<std::endl;//getAll not get the current but get the joint position order
 
+//  state.setCurrentLimbJoints(state_->getJointPositionFeedback());
+//  state.setPoseBaseToWorld(Pose(state_->getPositionWorldToBaseInWorldFrame(),
+//                                state_->getOrientationBaseToWorld()));
 
-//  state.setJointPositions(state_->getJointPositionsToReach());
-  state.setPoseBaseToWorld(Pose(state_->getPositionWorldToBaseInWorldFrame(),
-                                state_->getOrientationBaseToWorld()));
   return true;
 }
 
 bool AdapterGazebo::updateExtrasAfter(const StepQueue& stepQueue, State& state)
 {
   //TODO(Shunyao): This is to update to Extras after Executor, real or sim Robot
-  *state_ = state;
-  JointPositionsLeg joint_limb;
-  Position I_r_IF, B_r_BF;
-  Position I_r_IB = state_->getTargetPositionWorldToBaseInWorldFrame();//feedback, the actual base pose
-  //TODO(shunyao) : need the target base pose
-  RotationQuaternion I_R_B = state_->getTargetOrientationBaseToWorld();
-//  BaseMotionBase baseMotion = stepQueue.getCurrentStep().getBaseMotion();
-//  BaseAuto baseAuto;
-//  BaseTarget baseTarget;
-//  BaseTrajectory baseTrajectory;
-//  switch (baseMotion.getType()) {
-//    case BaseMotionBase::Type::Auto:
+//  *state_ = state;
+  State state_new = state;
+  *state_ = state_new;
+//  JointPositionsLeg joint_limb;
+//  Position I_r_IF, B_r_BF;
+//  Position I_r_IB = state_->getTargetPositionWorldToBaseInWorldFrame();//feedback, the actual base pose
+//  //TODO(shunyao) : need the target base pose
+//  RotationQuaternion I_R_B = state_->getTargetOrientationBaseToWorld();
+////  BaseMotionBase baseMotion = stepQueue.getCurrentStep().getBaseMotion();
+////  BaseAuto baseAuto;
+////  BaseTarget baseTarget;
+////  BaseTrajectory baseTrajectory;
+////  switch (baseMotion.getType()) {
+////    case BaseMotionBase::Type::Auto:
+////    {
+////      baseAuto = (dynamic_cast<BaseAuto&>(baseMotion));
+////      break;
+////    }
+////    case BaseMotionBase::Type::Target:
+////    {
+////      baseTarget = (dynamic_cast<BaseTarget&>(baseMotion));
+////      break;
+////    }
+////    case BaseMotionBase::Type::Trajectory:
+////    {
+////      baseTrajectory = (dynamic_cast<BaseTrajectory&>(baseMotion));
+////      break;
+////    }
+////    default:
+////    {
+////      baseAuto = (dynamic_cast<BaseAuto&>(baseMotion));
+////      break;
+////    }
+////  }
+//  if(stepQueue.empty()) return true;
+//  double time = stepQueue.getCurrentStep().getTime();
+////  std::cout<<"+++++++++++++TIME++++++++++++++++"<<std::endl
+////          <<stepQueue.getCurrentStep().getTime()<<std::endl<<"++++++++++++TIME++++++++++++++++++"<<std::endl;
+//  for(const auto& limb : getLimbs())
+//  {
+//    if(state_->isSupportLeg(limb)&&stepQueue.getCurrentStep().hasBaseMotion())
 //    {
-//      baseAuto = (dynamic_cast<BaseAuto&>(baseMotion));
-//      break;
-//    }
-//    case BaseMotionBase::Type::Target:
-//    {
-//      baseTarget = (dynamic_cast<BaseTarget&>(baseMotion));
-//      break;
-//    }
-//    case BaseMotionBase::Type::Trajectory:
-//    {
-//      baseTrajectory = (dynamic_cast<BaseTrajectory&>(baseMotion));
-//      break;
-//    }
-//    default:
-//    {
-//      baseAuto = (dynamic_cast<BaseAuto&>(baseMotion));
-//      break;
+//      std::cout<<"==========================================================="<<std::endl
+//              <<"base motion phase : "<<stepQueue.getCurrentStep().getBaseMotionPhase()<<std::endl;
+//      if(stepQueue.getCurrentStep().getBaseMotionPhase()>=1.0) continue;
+//      if(!(time>0.01))
+//      {
+//        footholdsInSupport_[limb] = state_->getPositionWorldToFootInWorldFrame(limb);
+//        }
+////      state.getPositionWorldToFootInWorldFrame(limb);
+//    //      I_r_IF = state_->getPositionWorldToFootInWorldFrame(limb);
+//          I_r_IF = footholdsInSupport_.at(limb);
+//    //      baseMotion.getDuration();
+//    //      std::cout<<"=========================="<<getLimbStringFromLimbEnum(limb)<<"============================"<<std::endl;
+////          std::cout<<"+++++++++++++I_r_IF++++++++++++++++"<<std::endl
+////                  <<I_r_IF<<std::endl<<"+++++++++++++I_r_IF+++++++++++++++++"<<std::endl;
+//    //      I_r_IF = stepQueue.getCurrentStep().getLegMotion(limb).
+//          B_r_BF = I_R_B.inverseRotate(I_r_IF - I_r_IB);
+////          std::cout<<"+++++++++++++I_r_IB++++++++++++++++"<<std::endl
+////                  <<I_r_IB<<std::endl<<"+++++++++++++I_r_IB+++++++++++++++++"<<std::endl;
+////          std::cout<<"Solving for "<<getLimbStringFromLimbEnum(limb)<<std::endl;
+////          std::cout<<"========================================================"<<std::endl;
+//          state_->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(B_r_BF, limb, joint_limb);
+//          //! WSHY: comment to use balance_controller to control base motion
+////          state_->setJointPositionsForLimb(limb, joint_limb);
+////          std::cout<<"joint position : "<<joint_limb<<std::endl;
+
+//    } else {
+
 //    }
 //  }
-  if(stepQueue.empty()) return true;
-  double time = stepQueue.getCurrentStep().getTime();
-//  std::cout<<"+++++++++++++TIME++++++++++++++++"<<std::endl
-//          <<stepQueue.getCurrentStep().getTime()<<std::endl<<"++++++++++++TIME++++++++++++++++++"<<std::endl;
-  for(const auto& limb : getLimbs())
-  {
-    if(state_->isSupportLeg(limb)&&stepQueue.getCurrentStep().hasBaseMotion())
-    {
-      std::cout<<"==========================================================="<<std::endl
-              <<"base motion phase : "<<stepQueue.getCurrentStep().getBaseMotionPhase()<<std::endl;
-      if(stepQueue.getCurrentStep().getBaseMotionPhase()>=1.0) continue;
-      if(!(time>0.01))
-      {
-        footholdsInSupport_[limb] = state_->getPositionWorldToFootInWorldFrame(limb);
-        }
-//      state.getPositionWorldToFootInWorldFrame(limb);
-    //      I_r_IF = state_->getPositionWorldToFootInWorldFrame(limb);
-          I_r_IF = footholdsInSupport_.at(limb);
-    //      baseMotion.getDuration();
-    //      std::cout<<"=========================="<<getLimbStringFromLimbEnum(limb)<<"============================"<<std::endl;
-//          std::cout<<"+++++++++++++I_r_IF++++++++++++++++"<<std::endl
-//                  <<I_r_IF<<std::endl<<"+++++++++++++I_r_IF+++++++++++++++++"<<std::endl;
-    //      I_r_IF = stepQueue.getCurrentStep().getLegMotion(limb).
-          B_r_BF = I_R_B.inverseRotate(I_r_IF - I_r_IB);
-//          std::cout<<"+++++++++++++I_r_IB++++++++++++++++"<<std::endl
-//                  <<I_r_IB<<std::endl<<"+++++++++++++I_r_IB+++++++++++++++++"<<std::endl;
-//          std::cout<<"Solving for "<<getLimbStringFromLimbEnum(limb)<<std::endl;
-//          std::cout<<"========================================================"<<std::endl;
-          state_->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(B_r_BF, limb, joint_limb);
-          //! WSHY: comment to use balance_controller to control base motion
-//          state_->setJointPositionsForLimb(limb, joint_limb);
-//          std::cout<<"joint position : "<<joint_limb<<std::endl;
-
-    } else {
-
-    }
-  }
 //  stepQueue.getCurrentStep().getLegMotion(LimbEnum::LF_LEG
   return true;
 }
@@ -264,8 +265,8 @@ bool AdapterGazebo::isExecutionOk() const
 
 bool AdapterGazebo::isLegGrounded(const LimbEnum& limb) const
 {
-//  return state_->isSupportLeg(limb);
-  return true;
+  return state_->isSupportLeg(limb);
+//  return true;
   throw std::runtime_error("AdapterGazebo::isLegGrounded() is not implemented.");
 }
 
@@ -273,10 +274,14 @@ JointPositionsLeg AdapterGazebo::getJointPositionsForLimb(const LimbEnum& limb) 
 {
   return state_->getJointPositionsForLimb(limb);
 }
-
+/**
+ * @brief AdapterGazebo::getAllJointPositions, joint feedback
+ * @return
+ */
 JointPositions AdapterGazebo::getAllJointPositions() const
 {
-  return state_->getJointPositions();
+//  return state_->getJointPositions();
+  return state_->getJointPositionFeedback();
 }
 
 JointVelocitiesLeg AdapterGazebo::getJointVelocitiesForLimb(const LimbEnum& limb) const
@@ -308,7 +313,10 @@ JointEfforts AdapterGazebo::getAllJointEfforts() const
 {
   return state_->getAllJointEfforts();
 }
-
+/**
+ * @brief AdapterGazebo::getPositionWorldToBaseInWorldFrame, Feedback
+ * @return
+ */
 Position AdapterGazebo::getPositionWorldToBaseInWorldFrame() const
 {
 //  return Position(0,0,0);

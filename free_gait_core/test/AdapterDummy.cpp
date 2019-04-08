@@ -137,7 +137,7 @@ bool AdapterDummy::isLegGrounded(const LimbEnum& limb) const
 JointPositionsLeg AdapterDummy::getJointPositionsForLimb(const LimbEnum& limb) const
 {
   //! WSHY: update measurement
-  JointPositions all_joints_position = state_->getJointPositionsToReach();
+  JointPositions all_joints_position = state_->getJointPositionFeedback();
 
   switch (limb) {
     case LimbEnum::LF_LEG :
@@ -153,7 +153,7 @@ JointPositionsLeg AdapterDummy::getJointPositionsForLimb(const LimbEnum& limb) c
       return JointPositionsLeg(all_joints_position(9),all_joints_position(10),all_joints_position(11));
       break;
     }
-  state_->getJointPositionsToReach();
+  state_->getJointPositionFeedback();
   return state_->getJointPositionsForLimb(limb);
 }
 

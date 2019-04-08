@@ -21,7 +21,7 @@ BaseTarget::BaseTarget()
       minimumDuration_(0.0),
       duration_(0.0),
       isComputed_(false),
-      controlSetup_ { {ControlLevel::Position, true}, {ControlLevel::Velocity, false},
+      controlSetup_ { {ControlLevel::Position, true}, {ControlLevel::Velocity, true},
                       {ControlLevel::Acceleration, false}, {ControlLevel::Effort, false} }
 {
 }

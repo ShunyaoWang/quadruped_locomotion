@@ -91,7 +91,7 @@ bool StateRosPublisher::publish(const State& state)
 
   state.getAllJointNames(jointNames);
 
-  JointPositions jointPositions = state.getJointPositionsToReach();//.getJointPositions();
+  JointPositions jointPositions = state.getJointPositionFeedback();//.getJointPositions();
 
   if (jointNames.size() != jointPositions.vector().size()) {
     ROS_ERROR("Joint name vector and joint position are not of equal size!");
@@ -105,7 +105,7 @@ bool StateRosPublisher::publish(const State& state)
 
   robotStatePublisher_->publishTransforms(jointPositionsMap, time, tfPrefix_);
   robotStatePublisher_->publishFixedTransforms(tfPrefix_);
-ROS_INFO("In ros state publisher");
+//ROS_INFO("In ros state publisher");
   // Publish base position.
   geometry_msgs::TransformStamped tfTransform;
   tfTransform.header.stamp = time;
@@ -128,7 +128,8 @@ ROS_INFO("In ros state publisher");
     tfBroadcaster_.sendTransform(tfTransform);
   }
   //! WSHY: set to publish robot state to the balance controller
-  ROS_INFO("In ros state publisher");
+  ROS_INFO("=============================In ros state publisher : \n");
+//  std::cout<<state<<std::endl;
   kindr_ros::convertToRosGeometryMsg(Pose(Position(state.getTargetPositionWorldToBaseInWorldFrame()),
                                           RotationQuaternion(state.getTargetOrientationBaseToWorld())),
                                      robot_state_.base_pose.pose.pose);
@@ -136,7 +137,7 @@ ROS_INFO("In ros state publisher");
   kindr_ros::convertToRosGeometryMsg(Twist(LinearVelocity(state.getTargetLinearVelocityBaseInWorldFrame()),
                                            LocalAngularVelocity(state.getTargetAngularVelocityBaseInBaseFrame())),
                                      robot_state_.base_pose.twist.twist);
-  ROS_INFO("In ros state publisher");
+//  ROS_INFO("In ros state publisher");
   if(state.isSupportLeg(LimbEnum::LF_LEG))
       {
         robot_state_.lf_leg_mode.support_leg = true;
@@ -151,18 +152,18 @@ ROS_INFO("In ros state publisher");
         /****************
           * TODO(Shunyao) : Store Duration information in the state
           ****************/
-        ROS_INFO("In ros state publisher");
+//        ROS_INFO("In ros state publisher");
       }else {
         robot_state_.lf_leg_mode.support_leg = false;
-        ROS_INFO("In ros state publisher");
-        std::cout<<state.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
+//        ROS_INFO("In ros state publisher");
+//        std::cout<<state.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
         robot_state_.lf_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(0);
         robot_state_.lf_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(1);
         robot_state_.lf_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(2);
         /****************
         * TODO(Shunyao) : velocities command
         ****************/
-        ROS_INFO("In ros state publisher");
+//        ROS_INFO("In ros state publisher");
     }
     if(state.isSupportLeg(LimbEnum::RF_LEG))
       {

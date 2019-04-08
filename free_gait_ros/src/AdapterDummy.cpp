@@ -66,7 +66,7 @@ bool AdapterDummy::updateExtrasBefore(const StepQueue& stepQueue, State& state)
 //  state.setCurrentLimbJoints(getAllJointPositions());
 //  if(!stepQueue.getCurrentStep().getTotalPhase()<0.99)
 
-    state.setCurrentLimbJoints(state_->getJointPositionsToReach());
+    state.setCurrentLimbJoints(state_->getJointPositionFeedback());
   //! set target pose to actual pose, to simulate robot has moved
   state.setPoseBaseToWorld(Pose(state.getTargetPositionWorldToBaseInWorldFrame(),
                                 state.getTargetOrientationBaseToWorld()));
@@ -261,7 +261,7 @@ bool AdapterDummy::isLegGrounded(const LimbEnum& limb) const
 JointPositionsLeg AdapterDummy::getJointPositionsForLimb(const LimbEnum& limb) const
 {
   //! WSHY: update measurement
-  JointPositions all_joints_position = state_->getJointPositionsToReach();
+  JointPositions all_joints_position = state_->getJointPositionFeedback();
 
   switch (limb) {
     case LimbEnum::LF_LEG :
