@@ -14,13 +14,13 @@ package for quadruped locomotion
 ## Usage
 - ### Launch simulation environment
   `roslaunch simpledog simpledog_simulation.launch`
-  `roslaunch simpledog display.launch`
 - ### Launch free_gait
   `roslaunch free_gait_ros test.launch`
 - ### Start rqt user interface
-  ` rqt --perspective-file (path to balance_controller)/config/free_gait_control.perspective `
+  ` roslaunch balance_controller rqt_interface.launch `
 After these step, there would be a gazebo simulation and a rqt interface.
   - First, move the dog model and place it in the gazebo.
   - Second, refresh the action collections, and send a sitdown action
-  - push the **switch** botton, if the robot move correctly, then it start normally; otherwise, push **Back** botton, then put the robot again, and in the controller mannager, unload and load the balance_controller. repeat the fisrt three steps.
+  - push the **switch** botton, if the robot move correctly, then it start normally; otherwise, push **Back** botton, the robot reset to the ground
+  - click **Trot** botton, the robot start torting, click **stop**, it stops troting, when torting, you can send cmd_vel msg to control the move.
 ![rqt_free_gait_interface](/assets/rqt_free_gait_interface.png)

@@ -110,12 +110,12 @@ bool VirtualModelController::computeError()
    *  Method I
    ***************************************************/
   //! WSHY: control frame set as local Map frame, which
-  const RotationQuaternion& orientationControlToBase = robot_state_->getTargetOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationControlToBase();
+  const RotationQuaternion& orientationControlToBase = robot_state_->getTargetOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
 
    positionErrorInControlFrame_ = robot_state_->getTargetPositionWorldToBaseInWorldFrame() //torso_->getDesiredState().getPositionControlToBaseInControlFrame()
        - robot_state_->getPositionWorldToBaseInWorldFrame();//torso_->getMeasuredState().getPositionControlToBaseInControlFrame();
 
-  orientationError_ = orientationControlToBase.boxMinus(robot_state_->getOrientationBaseToWorld());//torso_->getDesiredState().getOrientationControlToBase().boxMinus(
+  orientationError_ = -orientationControlToBase.boxMinus(robot_state_->getOrientationBaseToWorld().inverted());//torso_->getDesiredState().getOrientationControlToBase().boxMinus(
       //torso_->getMeasuredState().getOrientationControlToBase());
 
   /***************************************************
@@ -140,7 +140,7 @@ bool VirtualModelController::computeError()
 //  std::cout << "***///******" << std::endl << std::endl;
 
   linearVelocityErrorInControlFrame_ = robot_state_->getTargetLinearVelocityBaseInWorldFrame()
-      - orientationControlToBase.inverseRotate(robot_state_->getLinearVelocityBaseInWorldFrame());//torso_->getDesiredState().getLinearVelocityBaseInControlFrame() - orientationControlToBase.inverseRotate(torso_->getMeasuredState().getLinearVelocityBaseInBaseFrame());
+      - robot_state_->getLinearVelocityBaseInWorldFrame();//orientationControlToBase.inverseRotate(robot_state_->getLinearVelocityBaseInWorldFrame());//torso_->getDesiredState().getLinearVelocityBaseInControlFrame() - orientationControlToBase.inverseRotate(torso_->getMeasuredState().getLinearVelocityBaseInBaseFrame());
   angularVelocityErrorInControlFrame_ = robot_state_->getTargetAngularVelocityBaseInBaseFrame()
       -robot_state_->getAngularVelocityBaseInBaseFrame();//torso_->getDesiredState().getAngularVelocityBaseInControlFrame() - orientationControlToBase.inverseRotate(torso_->getMeasuredState().getAngularVelocityBaseInBaseFrame());
 
@@ -186,8 +186,8 @@ bool VirtualModelController::computeVirtualForce()
 {
 
   //! WSHY: torso_ can be replaced with adapter or state
-  const RotationQuaternion& orientationControlToBase = robot_state_->getOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationControlToBase();
-  const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationWorldToBase();
+  const RotationQuaternion& orientationControlToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
+  const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationWorldToBase();
   const RotationQuaternion& orientationWorldToControl = orientationWorldToBase*orientationControlToBase.inverted();//robot_state_->getTargetOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationWorldToControl();
 
   Vector3d feedforwardTermInControlFrame = Vector3d::Zero();
@@ -221,7 +221,7 @@ bool VirtualModelController::computeVirtualForce()
 
 bool VirtualModelController::computeVirtualTorque()
 {
-  const RotationQuaternion& orientationControlToBase = robot_state_->getOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationControlToBase();
+  const RotationQuaternion& orientationControlToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
 
   Vector3d feedforwardTermInControlFrame = Vector3d::Zero();
   feedforwardTermInControlFrame.z() += robot_state_->getTargetAngularVelocityBaseInBaseFrame().z();//torso_->getDesiredState().getAngularVelocityBaseInControlFrame().z();

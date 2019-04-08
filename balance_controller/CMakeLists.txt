@@ -159,6 +159,8 @@ add_library(${PROJECT_NAME}
    src/motion_control/VirtualModelController.cpp
    src/contact_force_distribution/ContactForceDistributionBase.cpp
    src/contact_force_distribution/ContactForceDistribution.cpp
+   src/state_switcher/StateSwitcher.cpp
+   src/state_switcher/StateSwitcherBase.cpp
 #   src/ros_controller/ros_balance_controller.cpp
 #   src/ros_controller/gazebo_state_hardware_interface.cpp
 #   include/balance_controller/contact_force_distribution/ContactForceDistributionBase.hpp

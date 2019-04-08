@@ -5,6 +5,9 @@
   <node pkg="free_gait_ros" type="steps_test" name="steps_test_node"
         output="screen">
   </node> -->
+  <param name = "/free_gait/robot_description"
+         value = "/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf"
+         />
   <param name="/free_gait/stop_execution_service" value="/free_gait/stop_execution_service" />
   <param name="/free_gait/pause_execution_service" value="/free_gait/pause_execution_service" />
   <param name="/use_gazebo" value="true" />

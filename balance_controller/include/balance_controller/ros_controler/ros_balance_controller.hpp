@@ -20,14 +20,28 @@
 #include "balance_controller/ros_controler/robot_state_interface.hpp"
 #include "balance_controller/ros_controler/gazebo_state_hardware_interface.hpp"
 
+#include <control_toolbox/pid.h>
+
 #include <pluginlib/class_list_macros.hpp>
 
 #include "free_gait_msgs/RobotState.h"
 #include "sim_assiants/FootContacts.h"
 
+#include "std_srvs/Empty.h"
+
+#include "kindr_ros/kindr_ros.hpp"
+
+#include "state_switcher/StateSwitcher.hpp"
+
+#include "std_msgs/Int8MultiArray.h"
+#include "nav_msgs/Odometry.h"
+
 namespace balance_controller {
   class RosBalanceController : public controller_interface::Controller<hardware_interface::RobotStateInterface>
   {
+  typedef std::unordered_map<free_gait::LimbEnum, std::unique_ptr<StateSwitcher>, EnumClassHash> LimbState;
+  typedef std::unordered_map<free_gait::LimbEnum, ros::Time, EnumClassHash> LimbPhase;
+  typedef std::unordered_map<free_gait::LimbEnum, bool, EnumClassHash> LimbFlag;
   public:
     RosBalanceController();
     ~RosBalanceController();
@@ -60,6 +74,7 @@ namespace balance_controller {
      * @brief commands_buffer,TODO
      */
     realtime_tools::RealtimeBuffer<std::vector<double>> commands_buffer;
+    realtime_tools::RealtimeBuffer<Pose> command_pose_buffer;
     unsigned int n_joints;
   private:
     /**
@@ -71,9 +86,18 @@ namespace balance_controller {
      * kinemaics
      */
     std::shared_ptr<free_gait::State> robot_state_;
+    std::shared_ptr<free_gait::State> robot_state;
+    Position base_desired_position;
+    RotationQuaternion base_desired_rotation;
+    LinearVelocity base_desired_linear_velocity;
+    LocalAngularVelocity base_desired_angular_velocity;
 
     std::vector<free_gait::LimbEnum> limbs_;
     std::vector<free_gait::BranchEnum> branches_;
+
+    LimbState limbs_state, limbs_desired_state;
+    LimbPhase t_sw0, t_st0;
+    LimbFlag sw_flag, st_flag;
 
     /**
      * @brief contact_distribution_ , pointer to contact force optimaziton
@@ -84,12 +108,38 @@ namespace balance_controller {
      */
 
     std::shared_ptr<VirtualModelController> virtual_model_controller_;
+
+    std::vector<control_toolbox::Pid> pid_controllers_;       /**< Internal PID controllers. */
+
+    std::vector<urdf::JointConstSharedPtr> joint_urdfs_;
     /**
      * @brief baseCommandCallback, ros subscriber callback
      * @param robot_state
      */
     void baseCommandCallback(const free_gait_msgs::RobotStateConstPtr& robot_state);
     void footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts);
+
+    void enforceJointLimits(double &command, unsigned int index);
+    double computeTorqueFromPositionCommand(double command, int i, const ros::Duration& period);
+
+    /**
+     * @brief r_mutex_
+     */
+    boost::recursive_mutex r_mutex_;
+    /**
+     * @brief joint_command_pub_, for debug to monitor
+     */
+    ros::Publisher joint_command_pub_, base_command_pub_, base_actual_pub_, joint_actual_pub_, leg_state_pub_;
+    std::vector<nav_msgs::Odometry> base_command_pose_, base_actual_pose_;
+    std::vector<sensor_msgs::JointState> joint_command_, joint_actual_;
+    std::vector<std_msgs::Int8MultiArray> leg_states_;
+    ros::ServiceServer log_data_srv_;
+
+    int log_length_, log_index_;
+    bool logDataCapture(std_srvs::Empty::Request& req,
+                        std_srvs::Empty::Response& res);
+    bool store_current_joint_state_flag_;
+    std::vector<double> stored_limb_joint_position_;
   };
 
 }

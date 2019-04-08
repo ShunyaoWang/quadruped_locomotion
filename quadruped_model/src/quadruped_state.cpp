@@ -12,6 +12,13 @@ namespace quadruped_model {
 JointPositions QuadrupedState::joint_positions_ = JointPositions().setZero();
 JointPositions QuadrupedState::joint_positions_feedback_ = JointPositions(Eigen::VectorXd::Zero(12,1));
 JointVelocities QuadrupedState::joint_velocities_ = JointVelocities(Eigen::VectorXd::Zero(12,1));
+JointPositions QuadrupedState::allJointPositionsFeedback_;
+Pose QuadrupedState::poseInWorldFrame_;
+Position QuadrupedState::positionWorldToBaseInWorldFrame_;
+RotationQuaternion QuadrupedState::orientationBaseToWorld_;
+
+LinearVelocity QuadrupedState::base_feedback_linear_velocity_, QuadrupedState::base_target_linear_velocity_;
+LocalAngularVelocity QuadrupedState::base_feedback_angular_velocity_, QuadrupedState::base_target_angular_velocity_;
 
 QuadrupedState::QuadrupedState()
   : QuadrupedKinematics(),
@@ -51,7 +58,7 @@ bool QuadrupedState::Initialize()
     setLimbConfigure("><");
     setPoseBaseToWorld(Pose(Position(0,0,0), RotationQuaternion()));
     joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
-    //allJointPositionsToReach_ = joint_positions_;
+    //allJointPositionsFeedback_ = joint_positions_;
     setCurrentLimbJoints(joint_positions_);
 }
 Position QuadrupedState::getCenterOfMassInBase()
@@ -113,11 +120,11 @@ const Position QuadrupedState::getPositionBaseToFootInBaseFrame(const LimbEnum& 
 {
 //  std::cout<<"get here"<<std::endl;
   JointPositionsLimb jointPositions = current_limb_joints_.at(limb);
-  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
+//  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
   Pose foot_pose;
   FowardKinematicsSolve(jointPositions, limb, foot_pose);
   footPoseInBaseFrame_[limb] = foot_pose;
-    std::cout<<"in getPositionBaseToFootInBaseFrame()  "<<foot_pose.getPosition()<<std::endl;
+//  std::cout<<"in getPositionBaseToFootInBaseFrame()  "<<foot_pose.getPosition()<<std::endl;
   return foot_pose.getPosition();
 }
 
@@ -125,7 +132,7 @@ Position QuadrupedState::getPositionBaseToFootInBaseFrame(const LimbEnum& limb, 
 {
   Pose pose_base_to_foot_in_base;
 //  std::cout<<hip_pose_in_base_.at(LimbEnum::LF_LEG)<<std::endl;
-  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
+//  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
   FowardKinematicsSolve(jointPositions, limb, pose_base_to_foot_in_base);
   return pose_base_to_foot_in_base.getPosition();
 }
@@ -135,9 +142,13 @@ const RotationQuaternion QuadrupedState::getOrientationBaseToWorld() const
   return  poseInWorldFrame_.getRotation();
 }
 
-const JointPositions& QuadrupedState::getJointPositionsToReach() const
+/**
+ * @brief QuadrupedState::getJointPositionFeedback, feedback
+ * @return
+ */
+const JointPositions& QuadrupedState::getJointPositionFeedback() const
 {
-    return allJointPositionsToReach_;
+    return allJointPositionsFeedback_;
 }
 
 JointPositions& QuadrupedState::getJointPositions()
@@ -207,7 +218,7 @@ bool QuadrupedState::setAngularVelocityBaseInBaseFrame(const LocalAngularVelocit
 bool QuadrupedState::setJointPositions(const JointPositions joint_positions)
 {
   joint_positions_ = joint_positions;
-//  allJointPositionsToReach_ = joint_positions_;
+//  allJointPositionsFeedback_ = joint_positions_;
   setCurrentLimbJoints(joint_positions_);
   return true;
 }
@@ -261,7 +272,7 @@ void QuadrupedState::setCurrentLimbJoints(JointPositions all_joints_position)
   /****************
 * TODO(Shunyao) : update current joint position, feedback,
 ****************/
-  allJointPositionsToReach_ = all_joints_position;
+  allJointPositionsFeedback_ = all_joints_position;
   current_limb_joints_[LimbEnum::LF_LEG] = JointPositionsLimb(all_joints_position(0),all_joints_position(1),all_joints_position(2));
   current_limb_joints_[LimbEnum::RF_LEG] = JointPositionsLimb(all_joints_position(3),all_joints_position(4),all_joints_position(5));
   current_limb_joints_[LimbEnum::RH_LEG] = JointPositionsLimb(all_joints_position(6),all_joints_position(7),all_joints_position(8));

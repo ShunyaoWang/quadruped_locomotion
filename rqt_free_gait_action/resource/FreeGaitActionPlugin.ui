@@ -22,6 +22,144 @@
    <string>Free Gait Actions</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
+   <item row="6" column="0">
+    <layout class="QHBoxLayout" name="statusBarLayout"/>
+   </item>
+   <item row="4" column="0">
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="labelActionDescription">
+     <property name="font">
+      <font>
+       <italic>true</italic>
+      </font>
+     </property>
+     <property name="text">
+      <string>... action description ...</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLabel" name="labelSwitchController">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Switch Controller&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLabel" name="labelControllerInfo">
+     <property name="text">
+      <string>Controller Info</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="labelSendAction">
+     <property name="text">
+      <string>&lt;b&gt;Send Action&lt;/b&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="pushButtonSend">
+       <property name="text">
+        <string>Send</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonPreview">
+       <property name="text">
+        <string>Preview</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="2" column="2">
+    <widget class="QListView" name="listControllers"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QWidget" name="widgetFavorites" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Favorites</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelFavoritesInfo">
+        <property name="font">
+         <font>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>Favorites Info</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayoutFavorites"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="5" column="2">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
@@ -39,13 +177,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="0" column="2">
-    <widget class="QLabel" name="labelSwitchController">
-     <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Switch Controller&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-    </widget>
    </item>
    <item row="2" column="0" colspan="2">
     <layout class="QGridLayout" name="gridLayout">
@@ -105,136 +236,23 @@
      </item>
     </layout>
    </item>
-   <item row="5" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <item row="4" column="2">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
-      <widget class="QPushButton" name="pushButtonSend">
+      <widget class="QPushButton" name="pushButtonTrot">
        <property name="text">
-        <string>Send</string>
+        <string>Tort</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButtonPreview">
+      <widget class="QPushButton" name="pushButtonStopTrot">
        <property name="text">
-        <string>Preview</string>
+        <string>Stop</string>
        </property>
       </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="labelSendAction">
-     <property name="text">
-      <string>&lt;b&gt;Send Action&lt;/b&gt;</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="labelActionDescription">
-     <property name="font">
-      <font>
-       <italic>true</italic>
-      </font>
-     </property>
-     <property name="text">
-      <string>... action description ...</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <layout class="QHBoxLayout" name="statusBarLayout"/>
-   </item>
-   <item row="1" column="0">
-    <widget class="QWidget" name="widgetFavorites" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="leftMargin">
-       <number>0</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <property name="bottomMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Favorites</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="labelFavoritesInfo">
-        <property name="font">
-         <font>
-          <italic>true</italic>
-         </font>
-        </property>
-        <property name="text">
-         <string>Favorites Info</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QGridLayout" name="gridLayoutFavorites"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <spacer name="verticalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>10</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="1" column="2">
-    <widget class="QLabel" name="labelControllerInfo">
-     <property name="text">
-      <string>Controller Info</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="2">
-    <widget class="QListView" name="listControllers"/>
    </item>
   </layout>
  </widget>

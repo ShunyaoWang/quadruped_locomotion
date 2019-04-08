@@ -233,44 +233,52 @@ bool Executor::resetStateWithRobot()
   }
 
   state_.setAllJointPositions(adapter_.getAllJointPositions());
-  state_.setAllJointVelocities(adapter_.getAllJointVelocities());
+//  state_.setAllJointVelocities(adapter_.getAllJointVelocities());// TODO
 //  state_.setAllJointAccelerations(adapter_.getAllJointAccelerations()); // TODO
-  state_.setAllJointEfforts(adapter_.getAllJointEfforts());
-  state_.setPositionWorldToBaseInWorldFrame(adapter_.getPositionWorldToBaseInWorldFrame());
-  state_.setOrientationBaseToWorld(adapter_.getOrientationBaseToWorld());
-  state_.setLinearVelocityBaseInWorldFrame(adapter_.getLinearVelocityBaseInWorldFrame());
-  state_.setAngularVelocityBaseInBaseFrame(adapter_.getAngularVelocityBaseInBaseFrame());
+//  state_.setAllJointEfforts(adapter_.getAllJointEfforts());//TODO
+
+//  state_.setPositionWorldToBaseInWorldFrame(adapter_.getPositionWorldToBaseInWorldFrame());
+//  state_.setOrientationBaseToWorld(adapter_.getOrientationBaseToWorld());
+  state_.setPoseBaseToWorld(Pose(adapter_.getPositionWorldToBaseInWorldFrame(), adapter_.getOrientationBaseToWorld()));
+
+//  state_.setLinearVelocityBaseInWorldFrame(adapter_.getLinearVelocityBaseInWorldFrame());
+//  state_.setAngularVelocityBaseInBaseFrame(adapter_.getAngularVelocityBaseInBaseFrame());
+  state_.setBaseStateFromFeedback(adapter_.getLinearVelocityBaseInWorldFrame(), adapter_.getAngularVelocityBaseInBaseFrame());
   state_.setRobotExecutionStatus(true);
   // TODO Add base velocities.
+  ROS_WARN_STREAM("Reset State :"<<state_<<std::endl);
   return true;
 }
 
 bool Executor::updateStateWithMeasurements()
 {
-  for (const auto& limb : adapter_.getLimbs()) {
-    const auto& controlSetup = state_.getControlSetup(limb);
-    if (!controlSetup.at(ControlLevel::Position)) {
-      state_.setJointPositionsForLimb(limb, adapter_.getJointPositionsForLimb(limb));
-    }
-    if (!controlSetup.at(ControlLevel::Velocity)) {
-      state_.setJointVelocitiesForLimb(limb, adapter_.getJointVelocitiesForLimb(limb));
-    }
-    if (!controlSetup.at(ControlLevel::Acceleration)) {
-//      state_.setJointAccelerations(limb, adapter_.getJointAccelerations(limb));
-    }
-    if (!controlSetup.at(ControlLevel::Effort)) {
-      state_.setJointEffortsForLimb(limb, adapter_.getJointEffortsForLimb(limb));
-    }
-  }
+//  for (const auto& limb : adapter_.getLimbs()) {
+//    const auto& controlSetup = state_.getControlSetup(limb);
+//    if (!controlSetup.at(ControlLevel::Position)) {
+//      state_.setJointPositionsForLimb(limb, adapter_.getJointPositionsForLimb(limb));
+//    }
+//    if (!controlSetup.at(ControlLevel::Velocity)) {
+//      state_.setJointVelocitiesForLimb(limb, adapter_.getJointVelocitiesForLimb(limb));
+//    }
+//    if (!controlSetup.at(ControlLevel::Acceleration)) {
+////      state_.setJointAccelerations(limb, adapter_.getJointAccelerations(limb));
+//    }
+//    if (!controlSetup.at(ControlLevel::Effort)) {
+//      state_.setJointEffortsForLimb(limb, adapter_.getJointEffortsForLimb(limb));
+//    }
+//  }
+  state_.setCurrentLimbJoints(adapter_.getAllJointPositions());
 
   const auto& controlSetup = state_.getControlSetup(BranchEnum::BASE);
-  if (!controlSetup.at(ControlLevel::Position)) {
-    state_.setPositionWorldToBaseInWorldFrame(adapter_.getPositionWorldToBaseInWorldFrame());
-    state_.setOrientationBaseToWorld(adapter_.getOrientationBaseToWorld());
+  if (controlSetup.at(ControlLevel::Position)) {
+//    state_.setPositionWorldToBaseInWorldFrame(adapter_.getPositionWorldToBaseInWorldFrame());
+//    state_.setOrientationBaseToWorld(adapter_.getOrientationBaseToWorld());
+    state_.setPoseBaseToWorld(Pose(adapter_.getPositionWorldToBaseInWorldFrame(), adapter_.getOrientationBaseToWorld()));
   }
-  if (!controlSetup.at(ControlLevel::Velocity)) {
-    state_.setLinearVelocityBaseInWorldFrame(adapter_.getLinearVelocityBaseInWorldFrame());
-    state_.setAngularVelocityBaseInBaseFrame(adapter_.getAngularVelocityBaseInBaseFrame());
+  if (controlSetup.at(ControlLevel::Velocity)) {
+//    state_.setLinearVelocityBaseInWorldFrame(adapter_.getLinearVelocityBaseInWorldFrame());
+//    state_.setAngularVelocityBaseInBaseFrame(adapter_.getAngularVelocityBaseInBaseFrame());
+    state_.setBaseStateFromFeedback(adapter_.getLinearVelocityBaseInWorldFrame(), adapter_.getAngularVelocityBaseInBaseFrame());
   }
 
   // TODO Copy also acceleraitons and torques.

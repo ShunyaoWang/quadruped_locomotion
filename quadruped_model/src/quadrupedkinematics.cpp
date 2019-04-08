@@ -427,13 +427,13 @@ Position QuadrupedKinematics::getPositionBaseToHipInBaseFrame(const LimbEnum& li
 {
   switch (limb) {
     case LimbEnum::LF_LEG:
-      return Position(0.4, 0.175, 0.0);
+      return Position(0.4, 0.275, 0.0);
     case LimbEnum::RF_LEG:
-      return Position(0.4, -0.175, 0.0);
+      return Position(0.4, -0.275, 0.0);
     case LimbEnum::LH_LEG:
-      return Position(-0.4, 0.175, 0.0);
+      return Position(-0.4, 0.275, 0.0);
     case LimbEnum::RH_LEG:
-      return Position(-0.4, -0.175, 0.0);
+      return Position(-0.4, -0.275, 0.0);
     default:
       throw std::runtime_error("QuadrupedKinematics::getPositionBaseToHipInBaseFrame something went wrong.");
   }

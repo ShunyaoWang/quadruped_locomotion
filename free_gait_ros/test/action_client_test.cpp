@@ -11,6 +11,7 @@
 #include "free_gait_msgs/RobotState.h"
 #include "free_gait_core/free_gait_core.hpp"
 #include "free_gait_msgs/Footstep.h"
+#include "pluginlib/class_loader.h"
 
 using namespace free_gait;
 
@@ -109,7 +110,7 @@ public:
 
   void feedbackCallback(const free_gait_msgs::ExecuteStepsFeedbackConstPtr& feedback)
   {
-//    ROS_INFO("step time is : %d", feedback->)
+    ROS_INFO("step time is : %f", feedback->phase);
   }
 
   void doneCallback(const actionlib::SimpleClientGoalState& state,
@@ -158,7 +159,10 @@ private:
   Position LF_nominal, RF_nominal, LH_nominal, RH_nominal;
   geometry_msgs::Vector3Stamped surface_normal;
   geometry_msgs::PointStamped lf_foot_holds, rf_foot_holds, lh_foot_holds, rh_foot_holds;
-//  free_gait::FreeGaitActionClient actionClient_;
+
+  LinearVelocity desired_linear_velocity_;
+  LocalAngularVelocity desired_angular_velocity_;
+  //  free_gait::FreeGaitActionClient actionClient_;
 };
 
 int main(int argc, char *argv[])

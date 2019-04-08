@@ -31,7 +31,7 @@ public:
 
   static JointPositions& getJointPositions();
   static JointVelocities& getJointVelocities();
-  const JointPositions& getJointPositionsToReach() const;
+  const JointPositions& getJointPositionFeedback() const;
   const LinearVelocity getLinearVelocityBaseInWorldFrame() const;
   const LocalAngularVelocity getAngularVelocityBaseInBaseFrame() const;
   const LinearVelocity getTargetLinearVelocityBaseInWorldFrame() const;
@@ -80,15 +80,15 @@ private:
   limb_configure limb_configure_;
   FootPoseInBase footPoseInBaseFrame_;
   //! feedback, current actual pose
-  Pose poseInWorldFrame_;
+  static Pose poseInWorldFrame_;
   static JointPositions joint_positions_, joint_positions_feedback_;
-  JointPositions allJointPositionsToReach_;
+  static JointPositions allJointPositionsFeedback_;
   static JointVelocities joint_velocities_;
   //! target base position and orientation
-  Position positionWorldToBaseInWorldFrame_;
-  RotationQuaternion orientationBaseToWorld_;
-  LinearVelocity base_feedback_linear_velocity_, base_target_linear_velocity_;
-  LocalAngularVelocity base_feedback_angular_velocity_, base_target_angular_velocity_;
+  static Position positionWorldToBaseInWorldFrame_;
+  static RotationQuaternion orientationBaseToWorld_;
+  static LinearVelocity base_feedback_linear_velocity_, base_target_linear_velocity_;
+  static LocalAngularVelocity base_feedback_angular_velocity_, base_target_angular_velocity_;
   double robot_mass_;
   Position CoM_in_base_;
   limb_position limb_to_CoM_;
