@@ -244,13 +244,13 @@ Position AdapterGazebo::getPositionBaseToHipInBaseFrame(const LimbEnum& limb) co
 {
   switch (limb) {
     case LimbEnum::LF_LEG:
-      return Position(0.3, 0.2, 0.0);
+      return Position(0.4, 0.175, 0.0);
     case LimbEnum::RF_LEG:
-      return Position(0.3, -0.2, 0.0);
+      return Position(0.4, -0.175, 0.0);
     case LimbEnum::LH_LEG:
-      return Position(-0.3, 0.2, 0.0);
+      return Position(-0.4, 0.175, 0.0);
     case LimbEnum::RH_LEG:
-      return Position(-0.3, -0.2, 0.0);
+      return Position(-0.4, -0.175, 0.0);
     default:
       throw std::runtime_error("AdapterGazebo::getPositionBaseToHipInBaseFrame() something went wrong.");
   }
@@ -380,6 +380,15 @@ void AdapterGazebo::getAvailableFrameTransforms(std::vector<std::string>& frameT
 Pose AdapterGazebo::getFrameTransform(const std::string& frameId) const
 {
   //TODO(Shunyao): It's seems to feedback Odom To Map, amcl?
+  if(frameId == "foot_print")
+    {
+      Position base_position = state_->getPositionWorldToBaseInWorldFrame();
+      base_position(2) = 0;
+      EulerAnglesZyx base_orientation(state_->getOrientationBaseToWorld());
+      base_orientation.setUnique();
+      return Pose(base_position, RotationQuaternion(EulerAnglesZyx(base_orientation.setUnique().vector()(0), 0.0, 0.0)));
+
+    }
   return Pose(Position(0,0,0),RotationQuaternion());//fixed odom with map temparently
   throw std::runtime_error("AdapterGazebo::getFrameTransform() is not implemented.");
 }

@@ -64,6 +64,7 @@ public:
                               JointPositionsLimb& joint_positions,
                               const std::string LimbType = "IN_LEFT");
   bool AnalysticJacobian(const JointPositionsLimb& joint_positions, const LimbEnum& limb, Eigen::MatrixXd& jacobian);
+  bool AnalysticJacobianForLink(const JointPositionsLimb& joint_positions, const LimbEnum& limb, const int& link_index, Eigen::MatrixXd& jacobian);
   double MapToPI(double q);
 
   bool setHipPoseInBase(const KDL::Chain& kdl_chain, const LimbEnum& limb);

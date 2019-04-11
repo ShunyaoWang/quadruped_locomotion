@@ -1,42 +1,42 @@
 adapt_coordinates:
  - transform:
-    source_frame: base_link
+    source_frame: foot_print
     target_frame: odom
 steps:
   - step:
     - base_auto:
        height: 0.4
-       ignore_timing_of_leg_motion: true
+       ignore_timing_of_leg_motion: false
   - step:
     - end_effector_target:
         name: LF_LEG
         ignore_contact: true
         ignore_for_pose_adaptation: true
         target_position:
-          frame: base_link
-          position: [0.4,0.25,-0.25]
+          frame: foot_print
+          position: [0.4,0.25,0.2]
   - step:
     - base_auto:
        height: 0.25
-       ignore_timing_of_leg_motion: true
+       ignore_timing_of_leg_motion: false
     - end_effector_target:
         name: LF_LEG
         ignore_contact: true
         ignore_for_pose_adaptation: true
         target_position:
-          frame: base_link
-          position: [0.4,0.25,-0.25]
+          frame: foot_print
+          position: [0.4,0.25,0.2]
   - step:
     - base_auto:
        height: 0.4
-       ignore_timing_of_leg_motion: true
+       ignore_timing_of_leg_motion: false
   - step:
     - footstep:
         name: LF_LEG
         profile_type: straight
         target:
-          frame: base_link
-          position: [0.4,0.25,-0.4]
+          frame: foot_print
+          position: [0.4,0.25,0]
   - step:
     - base_auto:
        height: 0.4

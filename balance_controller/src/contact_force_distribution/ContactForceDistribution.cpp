@@ -213,11 +213,11 @@ bool ContactForceDistribution::addMinimalForceConstraints()
    * n.f_i >= n.f_min with n.f_i the normal component of contact force.
    * inequality constraints : d <= Dx <= f
    */
-  int rowIndex = D_.rows();
+  int rowIndex = D_.rows(); // = 0
   Eigen::SparseMatrix<double, Eigen::RowMajor> D_temp(D_);  // TODO replace with conservativeResize (available in Eigen 3.2)
-  D_.resize(rowIndex + nLegsInForceDistribution_, n_);
+  D_.resize(rowIndex + nLegsInForceDistribution_, n_); //n X 3n
   D_.middleRows(0, D_temp.rows()) = D_temp;
-  d_.conservativeResize(rowIndex + nLegsInForceDistribution_);
+  d_.conservativeResize(rowIndex + nLegsInForceDistribution_);//n X 1
   f_.conservativeResize(rowIndex + nLegsInForceDistribution_);
 
   const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationWorldToBase();
@@ -226,17 +226,19 @@ bool ContactForceDistribution::addMinimalForceConstraints()
   {
     if (legInfo.second.isPartOfForceDistribution_)
     {
-      Position positionWorldToFootInWorldFrame = robot_state_->getPositionWorldToFootInWorldFrame(legInfo.first);//legInfo.first->getPositionWorldToFootInWorldFrame();
-      Vector footContactNormalInWorldFrame;
+      //Position positionWorldToFootInWorldFrame = robot_state_->getPositionWorldToFootInWorldFrame(legInfo.first);//legInfo.first->getPositionWorldToFootInWorldFrame();
+//      Vector footContactNormalInWorldFrame;
       /****************
       * TODO(Shunyao) : update suface normal
       ****************/
-      footContactNormalInWorldFrame = robot_state_->getSurfaceNormal(legInfo.first);
+      Vector footContactNormalInWorldFrame = robot_state_->getSurfaceNormal(legInfo.first);//(0,0,1) normally
+//      footContactNormalInWorldFrame = Vector(0,0,1);
 //      terrain_->getNormal(positionWorldToFootInWorldFrame, footContactNormalInWorldFrame);
       Vector footContactNormalInBaseFrame = orientationWorldToBase.rotate(footContactNormalInWorldFrame);
+//      footContactNormalInBaseFrame = Vector(0,0,1);
       //! WSHY: surface norm is the norm vector of force,
       //! dot product to calcaulate the norm of Force
-      MatrixXd D_row = MatrixXd::Zero(1, n_);
+      MatrixXd D_row = MatrixXd::Zero(1, n_);//1 X 3n
       D_row.block(0, legInfo.second.startIndexInVectorX_, 1, footDof_)
         = footContactNormalInBaseFrame.toImplementation().transpose();
       D_.middleRows(rowIndex, 1) = D_row.sparseView();
@@ -377,7 +379,6 @@ bool ContactForceDistribution::addDesiredLegLoadConstraints()
       rowIndex = rowIndex + m;
     }
   }
-
   return true;
 }
 
@@ -403,7 +404,7 @@ bool ContactForceDistribution::solveOptimization()
   //! CI^T x + ci0 >= 0
   //! G = 2*A^T*S*A+W, g0 = -2*b^T*S*A,
   //! CE = C^T, ce0 = -c
-  //! CI = [-D,D], ci0 = -[f,d]^T
+  //! CI = [-D,D], ci0 = [f,-d]^T
   Eigen::MatrixXd G,CE,CI;
   Eigen::VectorXd g0,ce0,ci0;
 
@@ -413,8 +414,12 @@ bool ContactForceDistribution::solveOptimization()
   CE.resize(C_.cols(),C_.rows());//3n X 3m
   ce0.resize(c_.rows());//3m X 1
 
-  CI.resize(D_.cols(),2*D_.rows());//3n X 10n
-  ci0.resize(f_.rows()+d_.rows());//10n X1
+//  CI.resize(D_.cols(),2*D_.rows());//3n X 10n
+//  ci0.resize(f_.rows()+d_.rows());//10n X1
+  //! WSHY: ignored the max constraints
+  CI.resize(D_.cols(),D_.rows());//3n X 5n
+  ci0.resize(d_.rows());//5n X1
+
 //  std::cout<<"Inequality CI : "<<"size (row, col) : ("<<CI.rows()<<" ,"<<CI.cols()<<")"<<std::endl;
 //  std::cout<<CI<<std::endl;
   auto costFunction = std::shared_ptr<qp_solver::QuadraticObjectiveFunction>(new qp_solver::QuadraticObjectiveFunction());
@@ -424,7 +429,10 @@ bool ContactForceDistribution::solveOptimization()
   G = G + W_.toDenseMatrix();
 //  std::cout<<"hessian G : "<<"size (row, col) : ("<<G.rows()<<" ,"<<G.cols()<<")"<<std::endl;
 //  std::cout<<G<<std::endl;
-  g0 = -2 * b_.transpose() * S_ * A_;
+
+//  g0 = -2 * b_.transpose() * S_ * A_;
+  g0 = -2 * A_.transpose() * S_ * b_;
+
 //  std::cout<<"jacobian g0 : "<<"size (row, col) : ("<<g0.rows()<<" ,"<<g0.cols()<<")"<<std::endl;
 //  std::cout<<g0<<std::endl;
   CE = C_.transpose();
@@ -437,15 +445,20 @@ bool ContactForceDistribution::solveOptimization()
 //  CI.middleCols(D_.rows(), 2*D_.rows()) = D_.transpose();
 //  CI.leftCols(D_.rows()) = -D_.transpose();
 //  CI.rightCols(D_.rows()) = D_.transpose();
-  CI.block(0,0,D_.cols(),D_.rows()) = -D_.transpose();
-  CI.block(0,D_.rows(),D_.cols(),D_.rows()) = D_.transpose();
+
+//  CI.block(0,0,D_.cols(),D_.rows()) = -D_.transpose();
+//  CI.block(0,D_.rows(),D_.cols(),D_.rows()) = D_.transpose();
+  CI = D_.transpose();
   Eigen::MatrixXd CI_T = CI.transpose();
 //  std::cout<<"Inequality CI : "<<"size (row, col) : ("<<CI.rows()<<" ,"<<CI.cols()<<")"<<std::endl;
 //  std::cout<<CI<<std::endl;
 //  ci0.topRows(f_.rows()) = -f_;
 //  ci0.middleRows(f_.rows(),f_.rows()+d_.rows()) = -d_;
-  ci0.block(0,0,f_.rows(),1) = -f_;
-  ci0.block(f_.rows(),0,f_.rows(),1) = -d_;
+
+//  ci0.block(0,0,f_.rows(),1) = f_;
+//  ci0.block(f_.rows(),0,f_.rows(),1) = -d_;
+
+  ci0 = -d_;
 //  std::cout<<"inequality ci0 : "<<"size (row, col) : ("<<ci0.rows()<<" ,"<<ci0.cols()<<")"<<std::endl;
 //  std::cout<<ci0<<std::endl;
 
@@ -470,9 +483,11 @@ bool ContactForceDistribution::solveOptimization()
   ROS_DEBUG("QP Solver Succeed!");
 //  ROS_INFO("solve results: \n");
 //  std::cout<<params<<std::endl;
-  x_ = params;
-//  if (!ooqpei::QuadraticProblemFormulation::solve(A_, S_, b_, W_, C_, c_, D_, d_, f_, x_))
-//    return false;
+
+//  x_ = params;
+
+  if (!ooqpei::QuadraticProblemFormulation::solve(A_, S_, b_, W_, C_, c_, D_, d_, f_, x_))
+    return false;
 
   for (auto& legInfo : legInfos_)
   {
@@ -482,6 +497,12 @@ bool ContactForceDistribution::solveOptimization()
       // so the stance legs should push the ground by the opposite amount.
       legInfo.second.desiredContactForce_ =
           Force(-x_.segment(legInfo.second.startIndexInVectorX_, footDof_));
+      if(legInfo.second.desiredContactForce_(2) > 0)
+      {
+        ROS_ERROR("Contact Force is Minus !!!!!!!!!!!!!!!!!!!!");
+        std::cerr<<"Nominal Force is :"<<D_*x_<<std::endl<<"constaints : "<<d_<<std::endl;
+        }
+
     }
   }
 

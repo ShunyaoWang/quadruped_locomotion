@@ -77,6 +77,7 @@
   <depend>forward_command_controller</depend>
   <depend>realtime_tools</depend>
   <depend>sim_assiants</depend>
+  <depend>ooqp_eigen_interface</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

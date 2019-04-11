@@ -50,6 +50,7 @@ public:
   Position getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb) const;
   double getLegMass(const LimbEnum& limb) const;
   Eigen::Matrix3d getTranslationJacobianFromBaseToFootInBaseFrame(const LimbEnum& limb);
+  Eigen::Matrix3d getTranslationJacobianBaseToCoMInBaseFrame(const LimbEnum& limb, const int link_index);
   //  struct getJointPositions
 //  {
 //    Eigen::VectorXd joint_position_;
