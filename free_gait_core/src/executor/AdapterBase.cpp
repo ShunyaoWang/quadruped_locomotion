@@ -24,6 +24,7 @@ bool AdapterBase::frameIdExists(const std::string& frameId) const
   if (frameId == getWorldFrameId()) return true;
   if (frameId == "map") return true;
   if (frameId == "map_ga") return true;
+  if (frameId == "foot_print") return true;
   return false;
 }
 
@@ -42,7 +43,7 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
     } else if (outputFrameId == getWorldFrameId()) {//odom
       transformedPosition = getPositionWorldToBaseInWorldFrame() + getOrientationBaseToWorld().rotate(position);
       std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
-    } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {
+    } else if (outputFrameId == "map" || outputFrameId == "map_ga" || outputFrameId == "foot_print") {
       const Position positionInOdom = transformPosition(inputFrameId, getWorldFrameId(), position);
       transformedPosition = transformPosition(getWorldFrameId(), outputFrameId, positionInOdom);
     } else {
@@ -56,13 +57,13 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
       std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
     } else if (outputFrameId == getWorldFrameId()) {
       transformedPosition = position;
-    } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {//TODO(Shunyao): How to implenment getFrameTransform
+    } else if (outputFrameId == "map" || outputFrameId == "map_ga" || outputFrameId == "foot_print") {//TODO(Shunyao): How to implenment getFrameTransform
       transformedPosition = getFrameTransform(outputFrameId).inverseTransform(position);
     } else {
       frameError = true;
     }
 
-  } else if (inputFrameId == "map" || inputFrameId == "map_ga") {
+  } else if (inputFrameId == "map" || inputFrameId == "map_ga" || inputFrameId == "foot_print") {
 
     if (outputFrameId == getBaseFrameId()) {
       const Position positionInOdom = transformPosition(inputFrameId, getWorldFrameId(), position);
@@ -95,14 +96,14 @@ RotationQuaternion AdapterBase::transformOrientation(const std::string& inputFra
 
     if (outputFrameId == getWorldFrameId()) {
       transformedOrientation = orientation;
-    } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {
+    } else if (outputFrameId == "map" || outputFrameId == "map_ga" || outputFrameId == "foot_print") {
       const Pose transform(getFrameTransform(outputFrameId));
       transformedOrientation = transform.getRotation().inverted() * orientation;
     } else {
       frameError = true;
     }
 
-  } else if (inputFrameId == "map" || inputFrameId == "map_ga") {
+  } else if (inputFrameId == "map" || inputFrameId == "map_ga" || inputFrameId == "foot_print") {
 
     if (outputFrameId == getWorldFrameId()) {
       const Pose transform(getFrameTransform(inputFrameId));
@@ -184,7 +185,7 @@ Vector AdapterBase::transformVector(const std::string& inputFrameId,
       transformedVector = vector;
     } else if (outputFrameId == getWorldFrameId()) {
       transformedVector = getOrientationBaseToWorld().rotate(vector);
-    } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {
+    } else if (outputFrameId == "map" || outputFrameId == "map_ga" || outputFrameId == "foot_print") {
       const Vector vectorInOdom = transformVector(inputFrameId, getWorldFrameId(), vector);
       transformedVector = transformVector(getWorldFrameId(), outputFrameId, vectorInOdom);
     } else {
@@ -197,13 +198,13 @@ Vector AdapterBase::transformVector(const std::string& inputFrameId,
       transformedVector = getOrientationBaseToWorld().inverseRotate(vector);
     } else if (outputFrameId == getWorldFrameId()) {
       transformedVector = vector;
-    } else if (outputFrameId == "map" || outputFrameId == "map_ga" ) {
+    } else if (outputFrameId == "map" || outputFrameId == "map_ga" || outputFrameId == "foot_print") {
       transformedVector = getFrameTransform(outputFrameId).getRotation().rotate(vector);
     } else {
       frameError = true;
     }
 
-  } else if (inputFrameId == "map" || inputFrameId == "map_ga") {
+  } else if (inputFrameId == "map" || inputFrameId == "map_ga" || inputFrameId == "foot_print") {
 
     if (outputFrameId == getBaseFrameId()) {
       const Vector vectorInOdom = transformVector(inputFrameId, getWorldFrameId(), vector);

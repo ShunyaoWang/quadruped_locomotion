@@ -4,6 +4,9 @@ package for quadruped locomotion
 - [kindr](https://github.com/ANYbotics/kindr)
 - [grid_map](https://github.com/ANYbotics/grid_map)
 - [simple_dog_simulatuion](https://github.com/HITSZ-LeggedRobotics/simple_dog_simulation)
+- [ooqp_eigen_interface](https://github.com/HITSZ-LeggedRobotics/dependencies/tree/master/ooqp_eigen_interface-master)
+- [MA27](https://github.com/HITSZ-LeggedRobotics/ma27)
+- [OOQP](https://github.com/HITSZ-LeggedRobotics/OOQP)
 - [others](https://github.com/HITSZ-LeggedRobotics/dependencies)
 
 ## Build Dependencies

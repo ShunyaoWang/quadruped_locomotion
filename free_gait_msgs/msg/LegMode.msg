@@ -10,6 +10,8 @@ bool support_leg
 # If 0, default is used.
 duration duration
 
+float64 phase
+
 # If support leg: Target foothold surface normal.
 # Leave empty if non-support leg or not known.
 geometry_msgs/Vector3Stamped surface_normal

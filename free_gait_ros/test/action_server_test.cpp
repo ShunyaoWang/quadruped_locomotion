@@ -151,7 +151,7 @@ public:
               }
             if(!is_kinematics_control){
                 //! WSHY: publish robot state to balance controller
-              rosPublisher->publish(adapter->getState());
+              rosPublisher->publish(adapter->getState(), executor->getQueue());
               }
             lock.unlock();
             } else{ // directly publish current state
