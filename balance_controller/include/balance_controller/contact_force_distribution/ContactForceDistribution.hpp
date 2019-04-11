@@ -43,6 +43,9 @@
 #include "ContactForceDistributionBase.hpp"
 //#include "loco/common/LegBase.hpp"
 //#include "loco/common/TorsoBase.hpp"
+#include "ooqp_eigen_interface/QuadraticProblemFormulation.hpp"
+#include "ooqp_eigen_interface/OoqpEigenInterface.hpp"
+
 #include <qp_solver/quadraticproblemsolver.h>
 #include "free_gait_core/pose_optimization/PoseOptimizationBase.hpp"
 #include <Eigen/SparseCore>

@@ -267,6 +267,12 @@ Eigen::Matrix3d QuadrupedState::getTranslationJacobianFromBaseToFootInBaseFrame(
   return jacobian.block(0,0,3,3);
 }
 
+Eigen::Matrix3d getTranslationJacobianBaseToCoMInBaseFrame(const LimbEnum& limb, const int link_index)
+{
+  Eigen::MatrixXd jacobian;
+}
+
+
 void QuadrupedState::setCurrentLimbJoints(JointPositions all_joints_position)
 {
   /****************

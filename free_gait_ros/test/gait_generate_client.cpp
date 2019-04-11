@@ -44,8 +44,8 @@ using namespace free_gait;
     surface_normal.vector.z = 1.0;
     height = 0.4;
     step_number = 0;
-    sigma_st_0 = 0.5;
-    sigma_st_1 = 0.5;
+    sigma_st_0 = 0.8;
+    sigma_st_1 = 0.8;
     sigma_sw_0 = 1;
     sigma_sw_1 = 1;
 
@@ -185,15 +185,18 @@ using namespace free_gait;
 //                                       + sqrt(height/9.8) * (current_vel - desired_linear_velocity_).toImplementation());
             Position hip_in_odom = robot_state_.getPositionWorldToBaseInWorldFrame() +
                 robot_state_.getOrientationBaseToWorld().rotate(robot_state_.getPositionBaseToHipInBaseFrame(limb));
-
-//            target_in_base(2) = 0.0;
             hip_in_odom(2) = 0.0; //project to floor plane
+
+            Position hip_in_footprint = robot_state_.getPositionBaseToHipInBaseFrame(limb);
+            Position target_in_footprint = hip_in_footprint + displace_in_footprint;
+            target_in_footprint(2) = 0.0;
             Position target_in_odom = hip_in_odom + displace_in_odom;
+            Position target_in_base =robot_state_.getOrientationBaseToWorld().inverseRotate(target_in_odom - robot_state_.getPositionWorldToBaseInWorldFrame());
             footstep_msg_.name = getLimbStringFromLimbEnum(limb);
-            kindr_ros::convertToRosGeometryMsg(target_in_odom,
+            kindr_ros::convertToRosGeometryMsg(target_in_footprint,
                                                footstep_msg_.target.point);
 //            footstep_msg_.target.point.z = 0;
-            footstep_msg_.target.header.frame_id = "odom";
+            footstep_msg_.target.header.frame_id = "foot_print";
             footstep_msg_.average_velocity = sqrt(displace_in_odom.norm()*displace_in_odom.norm() + 0.1*0.1)*2/0.1;
             footstep_msg_.profile_height = 0.1;
             footstep_msg_.ignore_contact = false;
@@ -220,6 +223,9 @@ using namespace free_gait;
     P_CoM_desired_.setZero();
     for(int i = 0; i<4 ;i++)
       {
+        /****************
+* TODO(Shunyao) : Adjust the sigma to change the move of CoM
+****************/
         LimbEnum limb = static_cast<LimbEnum>(i);
         double total_phase = 0;
         if(limb_phase.at(limb).swing_status)

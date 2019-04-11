@@ -54,7 +54,7 @@ bool QuadrupedKinematics::LoadRobotDescriptionFromFile(const std::string filenam
   {
     ROS_ERROR("Failed to load robot description to KDL tree");
     return false;
-  }
+  }  
 //  tree_fk_solver_ = new(KDL::TreeFkSolverPos_recursive(tree_));
 //  fk_solver_ptr = std::unique_ptr<KDL::TreeFkSolverPos_recursive>(new KDL::TreeFkSolverPos_recursive(tree_));
 //  KDL::Chain chain;
@@ -225,7 +225,6 @@ bool QuadrupedKinematics::AnalysticJacobian(const JointPositionsLimb& joint_posi
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
-
         KDL::ChainJntToJacSolver jacobian_solver(LF_Chain);
         error_code = jacobian_solver.JntToJac(joints, J);
         if(error_code != 0)
@@ -274,7 +273,75 @@ bool QuadrupedKinematics::AnalysticJacobian(const JointPositionsLimb& joint_posi
 //  for(int i = 0;)
   return true;
 }
+bool QuadrupedKinematics::AnalysticJacobianForLink(const JointPositionsLimb& joint_positions, const LimbEnum& limb, const int& link_index, Eigen::MatrixXd& jacobian)
+{
+  int number_of_joints = link_index;
+  KDL::JntArray joints = KDL::JntArray(number_of_joints);
+  KDL::Jacobian J;
+  J.resize(number_of_joints);
+  for(int i = 0; i<number_of_joints; i++)
+  {
+    joints(i) = joint_positions(i);
+  }
+  int error_code = 0;
+  switch (limb) {
+    case LimbEnum::LF_LEG:
+      {
+        KDL::Chain LF_Chain_Link;
+        LF_Chain_Link.addSegment(LF_Chain.getSegment(0));
+        cout<<LF_Chain.getSegment(0).getName()<<endl;
+        for(int i = 1; i<link_index; i++)
+          {
+            KDL::Vector com = LF_Chain.getSegment(i).getInertia().getCOG();
+            LF_Chain_Link.addSegment(KDL::Segment(LF_Chain.getSegment(i).getName(),
+                                                  LF_Chain.getSegment(i).getJoint(),
+                                                  KDL::Frame(com)));
+          }
+        KDL::ChainJntToJacSolver jacobian_solver(LF_Chain_Link);
+        error_code = jacobian_solver.JntToJac(joints, J);
+        if(error_code != 0)
+        {
+          cout<<"Failed to solve Jacobian problem"<<" error code :"<<error_code<<endl;
+          return false;
+        }
+        break;
+      }
+    case LimbEnum::RF_LEG:
+      {
+        KDL::ChainJntToJacSolver jacobian_solver(RF_Chain);
+        if(jacobian_solver.JntToJac(joints, J) != 0)
+        {
+          cout<<"Failed to solve Jacobian problem"<<endl;
+          return false;
+        }
+        break;
+      }
+    case LimbEnum::LH_LEG:
+    {
+      KDL::ChainJntToJacSolver jacobian_solver(LH_Chain);
+      if(jacobian_solver.JntToJac(joints, J) != 0)
+      {
+        cout<<"Failed to solve Jacobian problem"<<endl;
+        return false;
+      }
+      break;
+    }
+    case LimbEnum::RH_LEG:
+     {
+      KDL::ChainJntToJacSolver jacobian_solver(RH_Chain);
+      if(jacobian_solver.JntToJac(joints, J) != 0)
+      {
+        cout<<"Failed to solve Jacobian problem"<<endl;
+        return false;
+      }
+      break;
+     }
 
+  }
+
+  jacobian = J.data;
+  return true;
+}
 
 //bool QuadrupedKinematics::InverseKinematicsSolve(Position foot_position, JointPositionsLimb& joint_positions)
 //{
@@ -427,13 +494,13 @@ Position QuadrupedKinematics::getPositionBaseToHipInBaseFrame(const LimbEnum& li
 {
   switch (limb) {
     case LimbEnum::LF_LEG:
-      return Position(0.4, 0.275, 0.0);
+      return Position(0.4, 0.175, 0.0);
     case LimbEnum::RF_LEG:
-      return Position(0.4, -0.275, 0.0);
+      return Position(0.4, -0.175, 0.0);
     case LimbEnum::LH_LEG:
-      return Position(-0.4, 0.275, 0.0);
+      return Position(-0.4, 0.175, 0.0);
     case LimbEnum::RH_LEG:
-      return Position(-0.4, -0.275, 0.0);
+      return Position(-0.4, -0.175, 0.0);
     default:
       throw std::runtime_error("QuadrupedKinematics::getPositionBaseToHipInBaseFrame something went wrong.");
   }

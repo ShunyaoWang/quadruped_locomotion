@@ -26,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
   forward_command_controller
   realtime_tools
   sim_assiants
+  ooqp_eigen_interface
 )
 
 ## System dependencies are found with CMake's conventions
@@ -139,6 +140,7 @@ catkin_package(
   forward_command_controller
   realtime_tools
   sim_assiants
+  ooqp_eigen_interface
 #  DEPENDS system_lib
 )
 
