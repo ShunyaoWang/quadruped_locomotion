@@ -315,6 +315,19 @@ void State::setSupportFootStance(const Stance& footInSupport)
   footHoldInSupport_ =footInSupport;
 }
 
+const Pose State::getFootholdsPlanePoseInWorld()
+{
+//  grid_map::Polygon supportRegion;
+  std::vector<Position> footholdsOrdered;
+  getFootholdsCounterClockwiseOrdered(footHoldInSupport_, footholdsOrdered);
+//  for (auto foothold : footholdsOrdered) {
+//    supportRegion.addVertex(foothold.vector());
+////    std::cout<<"footholds ordered is "<<foothold.vector().head<2>()<<std::endl;
+//  }
+
+
+}
+
 std::ostream& operator<<(std::ostream& out, const State& state)
 {
 //  out << static_cast<const quadruped_model::QuadrupedState&>(state) << std::endl;

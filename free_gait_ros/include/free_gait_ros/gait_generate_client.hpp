@@ -62,6 +62,7 @@ public:
 
   bool updateBaseMotion(LinearVelocity& desired_linear_velocity,
                         LocalAngularVelocity& desired_angular_velocity);
+  bool optimizePose(free_gait::Pose& pose);
 
   bool sendMotionGoal();
 
@@ -85,9 +86,10 @@ private:
   Pose base_pose;
   bool is_updated, is_done, is_active;
   std::unique_ptr<free_gait::FreeGaitActionClient> action_client_ptr;
-  double height, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
+  double height_, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
   int step_number;
   Position LF_nominal, RF_nominal, LH_nominal, RH_nominal, P_CoM_desired_;
+  Position footholds_in_stance, footprint_center_in_base, footprint_center_in_world;
   geometry_msgs::Vector3Stamped surface_normal;
   geometry_msgs::PointStamped lf_foot_holds, rf_foot_holds, lh_foot_holds, rh_foot_holds;
 
@@ -99,6 +101,11 @@ private:
   std::unique_ptr<free_gait::BaseMotionBase> base_motion_;
 
   LimbPhase limb_phase;
+  free_gait::Stance foothold_in_support_;
+//  std::unique_ptr<free_gait::PoseOptimizationGeometric> poseOptimizationGeometric_;
+//  const free_gait::StepParameters& parameters_;
+  free_gait::PlanarStance nominalPlanarStanceInBaseFrame;
+  free_gait::Stance nominalStanceInBaseFrame_, stanceForOrientation_;
 
   free_gait_msgs::ExecuteStepsGoal motion_goal_;
   free_gait_msgs::Step step_msg_;

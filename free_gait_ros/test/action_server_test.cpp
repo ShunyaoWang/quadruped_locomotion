@@ -16,6 +16,7 @@
 #include "std_srvs/Trigger.h"
 #include "std_srvs/SetBool.h"
 #include "ros/advertise_service_options.h"
+#include "free_gait_msgs/SetLimbConfigure.h"
 
 #include "free_gait_ros/gait_generate_client.hpp"
 
@@ -74,6 +75,7 @@ public:
     pause_service_server_ = nodeHandle_.advertiseService(pause_service_name_, &ActionServerTest::PauseServiceCallback, this);
     stop_service_server_ = nodeHandle_.advertiseService(stop_service_name_, &ActionServerTest::StopServiceCallback, this);
     gait_start_server_ = nodeHandle_.advertiseService("/gait_generate_switch", &ActionServerTest::GaitGenerateSwitchCallback, this);
+    limb_configure_switch_server_ = nodeHandle_.advertiseService("/limb_configure", &ActionServerTest::SwitchLimbConfigureCallback, this);
 
     joint_state_pub_ = nodeHandle_.advertise<sensor_msgs::JointState>("all_joint_position", 1);
     allJointStates_.position.resize(12);
@@ -133,9 +135,8 @@ public:
                 state->setLinearVelocityBaseInWorldFrame(desired_linear_velocity_);
                 state->setAngularVelocityBaseInBaseFrame(desired_angular_velocity_);
               }
-            ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<endl);
-            ROS_WARN_STREAM("Desired in State Velocity :"<<state->getTargetLinearVelocityBaseInWorldFrame()<<endl);
-
+//            ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<endl);
+//            ROS_WARN_STREAM("Desired in State Velocity :"<<state->getTargetLinearVelocityBaseInWorldFrame()<<endl);
             time = time + dt;
             for(int i=0;i<12;i++){
                 allJointStates_.position[i] = adapter->getState().getJointPositions()(i);
@@ -235,6 +236,14 @@ public:
     response.success = true;
     return true;
   }
+
+  bool SwitchLimbConfigureCallback(free_gait_msgs::SetLimbConfigure::Request& request,
+                                   free_gait_msgs::SetLimbConfigure::Response& response)
+  {
+    response.result = state->setLimbConfigure(request.configure);
+    return true;
+  }
+
 private:
 //  FreeGaitActionServer server_;
   std::unique_ptr<FreeGaitActionServer> server_;
@@ -258,7 +267,7 @@ private:
 
   sensor_msgs::JointState allJointStates_;
   ros::Publisher joint_state_pub_;
-  ros::ServiceServer pause_service_server_, stop_service_server_, gait_start_server_;
+  ros::ServiceServer pause_service_server_, stop_service_server_, gait_start_server_, limb_configure_switch_server_;
   std::string pause_service_name_, stop_service_name_;
   bool use_gazebo, is_pause, is_stop, is_kinematics_control, is_start_gait;
   /**

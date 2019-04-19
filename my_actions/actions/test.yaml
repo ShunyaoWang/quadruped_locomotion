@@ -65,3 +65,9 @@ actions:
       file: motion_scripts/trot_test.yaml
       type: yaml
       description: a cycle of trot motion in gazebo
+  - action:
+      id: "12"
+      name: change to spot
+      file: motion_scripts/change_to_spot.yaml
+      type: yaml
+      description: change the leg configuration to a "Spot" like

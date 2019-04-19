@@ -361,6 +361,10 @@ Position AdapterGazebo::getPositionBaseToFootInBaseFrame(const LimbEnum& limb) c
 
 Position AdapterGazebo::getPositionWorldToFootInWorldFrame(const LimbEnum& limb) const
 {
+  if(state_->isSupportLeg(limb))
+    {
+      return state_->getSupportFootPosition(limb);
+    }
   return state_->getPositionWorldToFootInWorldFrame(limb);
   throw std::runtime_error("AdapterGazebo::getPositionWorldToFootInWorldFrame() is not implemented.");
 }

@@ -405,7 +405,7 @@ bool ContactForceDistribution::solveOptimization()
   //! G = 2*A^T*S*A+W, g0 = -2*b^T*S*A,
   //! CE = C^T, ce0 = -c
   //! CI = [-D,D], ci0 = [f,-d]^T
-  Eigen::MatrixXd G,CE,CI;
+  /*Eigen::MatrixXd G,CE,CI;
   Eigen::VectorXd g0,ce0,ci0;
 
   G.resize(D_.cols(),D_.cols());//3n X 3n
@@ -477,17 +477,21 @@ bool ContactForceDistribution::solveOptimization()
 //    constraints_->setGlobalInequalityConstraintJacobian(CI);
 //    constraints_->setInequalityConstraintMaxValues(ci0);
 
-  Eigen::VectorXd params(G.cols());
-  ROS_DEBUG("Start QP Solver");
-  if (!solver_->minimize(*costFunction, *constraints, params)) return false;
-  ROS_DEBUG("QP Solver Succeed!");
+//  Eigen::VectorXd params(G.cols());
+//  ROS_DEBUG("Start QP Solver");
+//  if (!solver_->minimize(*costFunction, *constraints, params)) return false;
+//  ROS_DEBUG("QP Solver Succeed!");
+
 //  ROS_INFO("solve results: \n");
 //  std::cout<<params<<std::endl;
 
-//  x_ = params;
+//  x_ = params;*/
 
   if (!ooqpei::QuadraticProblemFormulation::solve(A_, S_, b_, W_, C_, c_, D_, d_, f_, x_))
-    return false;
+    {
+      ROS_ERROR("Contact Force is Minus !!!!!!!!!!!!!!!!!!!!");
+      return false;
+    }
 
   for (auto& legInfo : legInfos_)
   {

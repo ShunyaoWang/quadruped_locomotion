@@ -100,7 +100,7 @@ bool StateRosPublisher::publish(const State& state)
   std::map<std::string, double> jointPositionsMap;
   for (size_t i = 0; i < jointNames.size(); ++i) {
     jointPositionsMap[jointNames[i]] = jointPositions(i);
-    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
+//    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
   }
 
   robotStatePublisher_->publishTransforms(jointPositionsMap, time, tfPrefix_);
@@ -128,7 +128,7 @@ bool StateRosPublisher::publish(const State& state)
     tfBroadcaster_.sendTransform(tfTransform);
   }
   //! WSHY: set to publish robot state to the balance controller
-  ROS_INFO("=============================In ros state publisher : \n");
+//  ROS_INFO("=============================In ros state publisher : \n");
 //  std::cout<<state<<std::endl;
   kindr_ros::convertToRosGeometryMsg(Pose(Position(state.getTargetPositionWorldToBaseInWorldFrame()),
                                           RotationQuaternion(state.getTargetOrientationBaseToWorld())),
@@ -214,7 +214,7 @@ bool StateRosPublisher::publish(const State& state)
         robot_state_.lh_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(2);
     }
   robot_state_pub_.publish(robot_state_);
-  ROS_INFO("Publised robot state once");
+//  ROS_INFO("Publised robot state once");
   return true;
 }
 
@@ -236,7 +236,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
   std::map<std::string, double> jointPositionsMap;
   for (size_t i = 0; i < jointNames.size(); ++i) {
     jointPositionsMap[jointNames[i]] = jointPositions(i);
-    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
+//    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
   }
 
   robotStatePublisher_->publishTransforms(jointPositionsMap, time, tfPrefix_);
@@ -264,7 +264,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
     tfBroadcaster_.sendTransform(tfTransform);
   }
   //! WSHY: set to publish robot state to the balance controller
-  ROS_INFO("=============================In ros state publisher : \n");
+//  ROS_INFO("=============================In ros state publisher : \n");
 //  std::cout<<state<<std::endl;
   kindr_ros::convertToRosGeometryMsg(Pose(Position(state.getTargetPositionWorldToBaseInWorldFrame()),
                                           RotationQuaternion(state.getTargetOrientationBaseToWorld())),
@@ -366,7 +366,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
           robot_state_.lh_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LH_LEG);
       }
   robot_state_pub_.publish(robot_state_);
-  ROS_INFO("Publised robot state once");
+//  ROS_INFO("Publised robot state once");
   return true;
 }
 //void StateRosPublisher::publishSupportRegion(const State& state)

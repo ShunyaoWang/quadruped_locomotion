@@ -323,7 +323,7 @@ bool QuadrupedState::setLimbConfigure(const std::string leg_configure)
       limb_configure_[LimbEnum::RF_LEG] = "IN_LEFT";
       limb_configure_[LimbEnum::RH_LEG] = "IN_LEFT";
     }
-
+  return true;
 }
 
 }; //namespace

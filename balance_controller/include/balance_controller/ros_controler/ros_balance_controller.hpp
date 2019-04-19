@@ -35,6 +35,8 @@
 
 #include "std_msgs/Int8MultiArray.h"
 #include "nav_msgs/Odometry.h"
+#include "Eigen/Dense"
+#include "Eigen/LU"
 
 namespace balance_controller {
   class RosBalanceController : public controller_interface::Controller<hardware_interface::RobotStateInterface>
@@ -43,6 +45,7 @@ namespace balance_controller {
   typedef std::unordered_map<free_gait::LimbEnum, ros::Time, EnumClassHash> LimbDuration;
   typedef std::unordered_map<free_gait::LimbEnum, bool, EnumClassHash> LimbFlag;
   typedef std::unordered_map<free_gait::LimbEnum, double, EnumClassHash> LimbPhase;
+    typedef std::unordered_map<free_gait::LimbEnum, free_gait::Vector, EnumClassHash> LimbVector;
   public:
     RosBalanceController();
     ~RosBalanceController();
@@ -141,7 +144,9 @@ namespace balance_controller {
     int log_length_, log_index_;
     bool logDataCapture(std_srvs::Empty::Request& req,
                         std_srvs::Empty::Response& res);
+    LimbFlag update_surface_normal_flag;
     bool store_current_joint_state_flag_;
+    LimbVector surface_normals;
     std::vector<double> stored_limb_joint_position_;
   };
 

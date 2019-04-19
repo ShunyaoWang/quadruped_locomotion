@@ -268,6 +268,8 @@ bool SimRobotStateHardwareInterface::initSim(
 
 void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration period)
 {
+  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
+  real_time_factor = 0.4;
   for(unsigned int j=0; j < n_dof_; j++)
   {
     // Gazebo has an interesting API...
@@ -298,6 +300,8 @@ void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration perio
   //! IMU data to estimate the state. in there or in controller::update?
 //  robot_state_data_.position = &base_link_ptr_->GetWorldCoGPose().pos;
 //  ROS_INFO("ReadSim: for base pose once");
+//ROS_WARN_STREAM("Real Time Factor :"<<real_time_factor<<std::endl);
+//  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
   robot_state_data_.position[0] = base_link_ptr_->GetWorldCoGPose().pos.x;
   robot_state_data_.position[1] = base_link_ptr_->GetWorldCoGPose().pos.y;
   robot_state_data_.position[2] = base_link_ptr_->GetWorldCoGPose().pos.z;
@@ -308,14 +312,14 @@ void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration perio
   robot_state_data_.orientation[2] = base_link_ptr_->GetWorldCoGPose().rot.y;
   robot_state_data_.orientation[3] = base_link_ptr_->GetWorldCoGPose().rot.z;
 
-  robot_state_data_.linear_velocity[0] = base_link_ptr_->GetWorldLinearVel().x;
-  robot_state_data_.linear_velocity[1] = base_link_ptr_->GetWorldLinearVel().y;
-  robot_state_data_.linear_velocity[2] = base_link_ptr_->GetWorldLinearVel().z;
+  robot_state_data_.linear_velocity[0] = real_time_factor * base_link_ptr_->GetWorldLinearVel().x;
+  robot_state_data_.linear_velocity[1] = real_time_factor * base_link_ptr_->GetWorldLinearVel().y;
+  robot_state_data_.linear_velocity[2] = real_time_factor * base_link_ptr_->GetWorldLinearVel().z;
 //  ROS_INFO("Base linear velocity: x=%f,y=%f,z=%f",robot_state_data_.linear_velocity[0],
 //      robot_state_data_.linear_velocity[1],robot_state_data_.linear_velocity[2]);
-  robot_state_data_.angular_velocity[0] = base_link_ptr_->GetWorldAngularVel().x;
-  robot_state_data_.angular_velocity[1] = base_link_ptr_->GetWorldAngularVel().y;
-  robot_state_data_.angular_velocity[2] = base_link_ptr_->GetWorldAngularVel().z;
+  robot_state_data_.angular_velocity[0] = real_time_factor * base_link_ptr_->GetWorldAngularVel().x;
+  robot_state_data_.angular_velocity[1] = real_time_factor * base_link_ptr_->GetWorldAngularVel().y;
+  robot_state_data_.angular_velocity[2] = real_time_factor * base_link_ptr_->GetWorldAngularVel().z;
   /****************
 * TODO(Shunyao) : update Imu data
 ****************/

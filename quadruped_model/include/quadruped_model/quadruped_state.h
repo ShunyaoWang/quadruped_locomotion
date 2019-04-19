@@ -81,7 +81,7 @@ private:
   limb_configure limb_configure_;
   FootPoseInBase footPoseInBaseFrame_;
   //! feedback, current actual pose
-  static Pose poseInWorldFrame_;
+  static Pose poseInWorldFrame_, footholds_plane_pose_;
   static JointPositions joint_positions_, joint_positions_feedback_;
   static JointPositions allJointPositionsFeedback_;
   static JointVelocities joint_velocities_;

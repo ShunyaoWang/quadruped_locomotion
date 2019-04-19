@@ -82,33 +82,37 @@ bool AdapterRosInterfaceGazebo::updateAdapterWithRobotState(AdapterBase& adapter
                                                                base_pose_in_world_.twist.twist.angular.y,
                                                                base_pose_in_world_.twist.twist.angular.z));
 
-    state_last.setBaseStateFromFeedback(linear_velocity, angular_velocity);
+    state_last.setBaseStateFromFeedback(0.4*linear_velocity, angular_velocity);
     state_last.setPoseBaseToWorld(pose_base_to_world);
     /****************
 * TODO(Shunyao) : Update joint velocity and efforts
 ****************/
     state_last.setCurrentLimbJoints(all_joint_positions_);
+    Stance footholds_in_support;
     for(auto leg_mode : leg_modes_)
       {
+        LimbEnum limb = adapter.getLimbEnumFromLimbString(leg_mode.name);
         if(leg_mode.support_leg)
           {
-            state_last.setSupportLeg(adapter.getLimbEnumFromLimbString(leg_mode.name),
+            state_last.setSupportLeg(limb,
                                      true);
-            state_last.setSurfaceNormal(adapter.getLimbEnumFromLimbString(leg_mode.name),
+            state_last.setSurfaceNormal(limb,
                                         Vector(leg_mode.surface_normal.vector.x,
                                                leg_mode.surface_normal.vector.y,
                                                leg_mode.surface_normal.vector.z));
+            footholds_in_support[limb] = state_last.getPositionWorldToFootInWorldFrame(limb);
 //            state_last.setLimbConfigure()
-            ROS_INFO("update contact");
+//            ROS_INFO("update contact");
           } else {
-            state_last.setSupportLeg(adapter.getLimbEnumFromLimbString(leg_mode.name), false);
-            state_last.setSurfaceNormal(adapter.getLimbEnumFromLimbString(leg_mode.name),
+            state_last.setSupportLeg(limb, false);
+            state_last.setSurfaceNormal(limb,
                                         Vector(0,0,1));
-            ROS_INFO("update no contact");
+//            ROS_INFO("update no contact");
           }
 
       }
-    std::cout<<state_last<<std::endl;
+    state_last.setSupportFootStance(footholds_in_support);
+//    std::cout<<state_last<<std::endl;
 //    std::cout<<"AdapterRosInterfaceGazebo update base position : "<<pose_base_to_world.getPosition()<<std::endl;
 //    std::cout<<"AdapterRosInterfaceGazebo updatejoint position: "<<all_joint_positions_<<std::endl;
     adapter.setInternalDataFromState(state_last);
