@@ -77,14 +77,14 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
 //  std::cout<<"Current Step Time : "<<queue_.getCurrentStep().getTime()<<std::endl;
   if (!queue_.advance(dt)) return false;//Update a step cycle time
   if (!adapter_.updateExtrasBefore(queue_, state_)) return false;
-    std::cout<<"just go out updateExtrasBefore()"<<state_.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
-    state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
+//    std::cout<<"just go out updateExtrasBefore()"<<state_.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
+//    state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
 
   // For a new switch in step, do some work on step for the transition.
   while (queue_.hasSwitchedStep()) {
     auto& currentStep = queue_.getCurrentStep();
-    std::cout<<"================================================"<<std::endl
-            <<currentStep<<std::endl;
+//    std::cout<<"================================================"<<std::endl
+//            <<currentStep<<std::endl;
     if (!completer_.complete(state_, queue_, currentStep)) {//set step parameters
       std::cerr << "Executor::advance: Could not complete step." << std::endl;
       return false;
@@ -111,8 +111,8 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
     stream << "Switched step to:" << std::endl << queue_.getCurrentStep();
     addToFeedback(stream.str());
   }
-  std::cout<<"===========================Executor update dt started========================"<<std::endl;
-  state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
+//  std::cout<<"===========================Executor update dt started========================"<<std::endl;
+//  state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
 
   if (!writeIgnoreContact()) return false;
   if (!writeIgnoreForPoseAdaptation()) return false;
@@ -121,7 +121,7 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   if (!writeLegMotion()) return false;
   if (!writeTorsoMotion()) return false;
   if (!writeStepId()) return false;
-  std::cout<<"before into updateExtrasAfter()"<<std::endl;
+//  std::cout<<"before into updateExtrasAfter()"<<std::endl;
 //  state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
   if (!adapter_.updateExtrasAfter(queue_, state_)) return false;// TODO(Shunyao): update state to ex robot or sim
 //  std::cout << state_ << std::endl;
@@ -371,6 +371,8 @@ bool Executor::writeLegMotion()
       case LegMotionBase::TrajectoryType::EndEffector:
       {
         const auto& endEffectorMotion = dynamic_cast<const EndEffectorMotionBase&>(legMotion);
+        //! WSHY: Directly endeffector order in cartisiane space
+
         if (controlSetup[ControlLevel::Position]) {
           const std::string& frameId = endEffectorMotion.getFrameId(ControlLevel::Position);
           if (!adapter_.frameIdExists(frameId)) {
@@ -378,15 +380,15 @@ bool Executor::writeLegMotion()
             return false;
           }
           Position positionInBaseFrame = adapter_.transformPosition(frameId, adapter_.getBaseFrameId(), endEffectorMotion.evaluatePosition(time));
-          std::cout<<"IN Write leg motion, leg position in base is : "<<positionInBaseFrame<<std::endl;
-          std::cout<<"foot step motion frame_id is : "<<frameId<<std::endl;
+//          std::cout<<"IN Write leg motion, leg position in base is : "<<positionInBaseFrame<<std::endl;
+//          std::cout<<"foot step motion frame_id is : "<<frameId<<std::endl;
           JointPositionsLeg jointPositions;
           if (!adapter_.getLimbJointPositionsFromPositionBaseToFootInBaseFrame(positionInBaseFrame, limb, jointPositions)) {
             std::cerr << "Failed to compute joint positions from end effector position for " <<limb << "." << std::endl;
             return false;
           }
           state_.setJointPositionsForLimb(limb, jointPositions);// update joint command
-
+          state_.setTargetFootPositionInBaseForLimb(positionInBaseFrame, limb);
         }
         if (controlSetup[ControlLevel::Velocity]) {
           const std::string& frameId = endEffectorMotion.getFrameId(ControlLevel::Velocity);
@@ -397,8 +399,11 @@ bool Executor::writeLegMotion()
           // TODO This is dangerous due to difference between relative velocity vs. expression in frames.
           LinearVelocity velocityInWorldFrame = adapter_.transformLinearVelocity(
               frameId, adapter_.getWorldFrameId(), endEffectorMotion.evaluateVelocity(time));
+          LinearVelocity velocityInBaseFrame = adapter_.transformLinearVelocity(
+              frameId, adapter_.getBaseFrameId(), endEffectorMotion.evaluateVelocity(time));
           const JointVelocitiesLeg jointVelocities = adapter_.getJointVelocitiesFromEndEffectorLinearVelocityInWorldFrame(limb, velocityInWorldFrame);
           state_.setJointVelocitiesForLimb(limb, jointVelocities);
+          state_.setTargetFootVelocityInBaseForLimb(velocityInBaseFrame, limb);
         }
         if (controlSetup[ControlLevel::Acceleration]) {
           const std::string& frameId = endEffectorMotion.getFrameId(ControlLevel::Acceleration);
@@ -408,8 +413,12 @@ bool Executor::writeLegMotion()
           }
           LinearAcceleration accelerationInWorldFrame = adapter_.transformLinearAcceleration(
               frameId, adapter_.getWorldFrameId(), endEffectorMotion.evaluateAcceleration(time));
+          LinearAcceleration accelerationInBaseFrame = adapter_.transformLinearAcceleration(
+              frameId, adapter_.getBaseFrameId(), endEffectorMotion.evaluateAcceleration(time));
           const JointAccelerationsLeg jointAccelerations = adapter_.getJointAccelerationsFromEndEffectorLinearAccelerationInWorldFrame(limb, accelerationInWorldFrame);
           state_.setJointAccelerationsForLimb(limb, jointAccelerations);
+
+          state_.setTargetFootAccelerationInBaseForLimb(accelerationInBaseFrame, limb);
         }
         break;
       }
@@ -453,7 +462,7 @@ bool Executor::writeTorsoMotion()
                                                     baseMotion.evaluatePose(time));
     state_.setPositionWorldToBaseInWorldFrame(poseInWorldFrame.getPosition());
     state_.setOrientationBaseToWorld(poseInWorldFrame.getRotation());
-    std::cout<<"pose TARGET in world frame : "<<poseInWorldFrame.getPosition()<<std::endl;
+//    std::cout<<"pose TARGET in world frame : "<<poseInWorldFrame.getPosition()<<std::endl;
   }
   if (controlSetup[ControlLevel::Velocity]) {
     const std::string& frameId = baseMotion.getFrameId(ControlLevel::Velocity);

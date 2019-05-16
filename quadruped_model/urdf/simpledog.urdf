@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="simpledog" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="simpledog_lh_leg" xmlns:xacro="http://ros.org/wiki/xacro">
   <link
     name="base_link">
     <inertial>
@@ -16,29 +16,6 @@
         iyz="-3.8366E-17"
         izz="2.9675" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/base_link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="1 1 1 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/base_link.STL" />
-      </geometry>
-    </collision>
   </link>
   <link
     name="front_left_1_Link">
@@ -56,29 +33,6 @@
         iyz="-7.6795E-20"
         izz="0.0021511" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_left_1_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_left_1_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="front_left_1_joint"
@@ -114,29 +68,6 @@
         iyz="1.5349E-06"
         izz="0.028484" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_left_2_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_left_2_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="front_left_2_joint"
@@ -172,29 +103,6 @@
         iyz="-8.3738E-08"
         izz="0.009338" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_left_3_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_left_3_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="front_left_3_joint"
@@ -230,29 +138,6 @@
         iyz="-3.56241096455504E-11"
         izz="1.25699738250509E-05" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/lf_foot_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/lf_foot_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="lf_foot_joint"
@@ -283,29 +168,6 @@
         iyz="-2.0543E-19"
         izz="0.0021511" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_right_1_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_right_1_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="front_right_1_joint"
@@ -341,29 +203,6 @@
         iyz="2.3399E-19"
         izz="0.028484" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_right_2_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_right_2_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="front_right_2_joint"
@@ -399,29 +238,6 @@
         iyz="1.6437E-08"
         izz="0.0093381" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_right_3_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/front_right_3_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="front_right_3_joint"
@@ -457,29 +273,6 @@
         iyz="-2.0835E-21"
         izz="1.257E-05" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rf_foot_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.29804 0.29804 0.29804 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rf_foot_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="rf_foot_joint"
@@ -510,29 +303,6 @@
         iyz="-3.3901E-19"
         izz="0.0021511" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_left_1_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_left_1_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="rear_left_1_joint"
@@ -568,29 +338,6 @@
         iyz="3.7608E-19"
         izz="0.028484" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_left_2_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_left_2_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="rear_left_2_joint"
@@ -626,29 +373,6 @@
         iyz="-5.7512E-07"
         izz="0.0093381" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_left_3_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_left_3_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="rear_left_3_joint"
@@ -669,7 +393,7 @@
       upper="3.0"/>
   </joint>
   <link
-    name="rh_foot_Link">
+    name="lh_foot_Link">
     <inertial>
       <origin
         xyz="0.017825 -1.1102E-16 5.5511E-17"
@@ -684,32 +408,9 @@
         iyz="5.4896E-20"
         izz="1.257E-05" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rh_foot_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.29804 0.29804 0.29804 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rh_foot_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
-    name="rh_foot_joint"
+    name="lh_foot_joint"
     type="fixed">
     <origin
       xyz="0.24742286767759 0.000379574544590811 -0.015"
@@ -717,7 +418,7 @@
     <parent
       link="rear_left_3_Link" />
     <child
-      link="rh_foot_Link" />
+      link="lh_foot_Link" />
     <axis
       xyz="0 0 0" />
   </joint>
@@ -737,29 +438,6 @@
         iyz="-1.2614E-19"
         izz="0.0021511" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_right_1_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_right_1_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="rear_right_1_joint"
@@ -795,29 +473,6 @@
         iyz="5.4085E-06"
         izz="0.028484" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_right_2_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_right_2_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="rear_right_2_joint"
@@ -853,29 +508,6 @@
         iyz="2.4784E-08"
         izz="0.0093381" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_right_3_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.89804 0.91765 0.92941 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/rear_right_3_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
     name="rear_right_3_joint"
@@ -896,7 +528,7 @@
       upper="3.0"/>
   </joint>
   <link
-    name="lh_foot_Link">
+    name="rh_foot_Link">
     <inertial>
       <origin
         xyz="0.017825 -1.1102E-16 0"
@@ -911,32 +543,9 @@
         iyz="6.8491E-22"
         izz="1.257E-05" />
     </inertial>
-    <visual>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/lh_foot_Link.STL" />
-      </geometry>
-      <material
-        name="">
-        <color
-          rgba="0.29804 0.29804 0.29804 1" />
-      </material>
-    </visual>
-    <collision>
-      <origin
-        xyz="0 0 0"
-        rpy="0 0 0" />
-      <geometry>
-        <mesh
-          filename="package://simpledog/meshes/lh_foot_Link.STL" />
-      </geometry>
-    </collision>
   </link>
   <joint
-    name="lh_foot_joint"
+    name="rh_foot_joint"
     type="fixed">
     <origin
       xyz="0.24968 0.00033355 -0.015"
@@ -944,7 +553,7 @@
     <parent
       link="rear_right_3_Link" />
     <child
-      link="lh_foot_Link" />
+      link="rh_foot_Link" />
     <axis
       xyz="0 0 0" />
   </joint>

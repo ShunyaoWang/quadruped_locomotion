@@ -16,15 +16,13 @@ QuadrupedKinematics::QuadrupedKinematics()
 //  joint_positons_last_.resize(6);
 //  for(unsigned int i = 0;i<6;i++)
 //    joint_positons_last_(i) = 0.0;
-  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
-
-  std::cout<<"Constructor QuadrupedKinematics"<<std::endl;
-
+  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_m.urdf");
+//  std::cout<<"Constructor QuadrupedKinematics"<<std::endl;
 }
 
 QuadrupedKinematics::~QuadrupedKinematics()
 {
-  std::cout<<"QuadrupedKinematics Destroied"<<std::endl;
+//  std::cout<<"QuadrupedKinematics Destroied"<<std::endl;
 }
 //QuadrupedKinematics& QuadrupedKinematics::operator=(const QuadrupedKinematics& other)
 //{
@@ -44,7 +42,7 @@ QuadrupedKinematics::QuadrupedKinematics(const QuadrupedKinematics& other)
     RH_Chain(other.RH_Chain),
     LH_Chain(other.LH_Chain)
 {
-  cout<<"QuadrupedKinematics Class has been Copied"<<endl;
+//  cout<<"QuadrupedKinematics Class has been Copied"<<endl;
 }
 
 
@@ -380,16 +378,16 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
   d=0.1;
   l1=0.25;
   l2=0.25;
-  cout<<"px in base = "<<foot_position(0)<<endl
-      <<"py in base = "<<foot_position(1)<<endl
-      <<"pz in base = "<<foot_position(2)<<endl;
+//  cout<<"px in base = "<<foot_position(0)<<endl
+//      <<"py in base = "<<foot_position(1)<<endl
+//      <<"pz in base = "<<foot_position(2)<<endl;
   Position foot_position_in_hip = getPositionFootToHipInHipFrame(limb, foot_position);
   px=foot_position_in_hip(0);
   py=foot_position_in_hip(1);
   pz=foot_position_in_hip(2);
-  cout<<"px in hip = "<<px<<endl
-      <<"py in hip = "<<py<<endl
-      <<"pz in hip = "<<pz<<endl;
+//  cout<<"px in hip = "<<px<<endl
+//      <<"py in hip = "<<py<<endl
+//      <<"pz in hip = "<<pz<<endl;
   double cos_theta3 = (l2*l2 + l1*l1 - ((px*px + py*py + pz*pz) - d*d))/2/l1/l2;
   if(cos_theta3<-1)
     cos_theta3 = -1;
@@ -468,7 +466,7 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
     min_index = 3;
 
   joint_positions << results(min_index,0),results(min_index,1),results(min_index,2);
-  cout<<results<<endl;
+//  cout<<results<<endl;
 
   if(!isnan(joint_positions(0))&&!isnan(joint_positions(1))&&!isnan(joint_positions(2))){
       return true;
@@ -476,6 +474,75 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
       ROS_WARN("Failed to Sovle Inverse Kinematics!");
       return false;
     }
+
+}
+
+JointTorquesLimb QuadrupedKinematics::getGravityCompensationForLimb(const LimbEnum& limb,
+                                               const JointPositionsLimb& joint_positions,
+                                               const Force& gravity_in_baseframe)
+{
+  KDL::Vector gravity_vector = KDL::Vector(gravity_in_baseframe(0),
+                                           gravity_in_baseframe(1),
+                                           gravity_in_baseframe(2));
+  int number_of_joints = 3;
+  KDL::JntArray joints = KDL::JntArray(number_of_joints);
+  KDL::JntArray gravity_matrix = KDL::JntArray(number_of_joints);
+  for(int i = 0; i<number_of_joints; i++)
+  {
+    joints(i) = joint_positions(i);
+  }
+  int error_code = 0;
+  switch (limb) {
+    case LimbEnum::LF_LEG:
+      {
+        KDL::ChainDynParam dynamic_param = KDL::ChainDynParam(LF_Chain, gravity_vector);
+        error_code = dynamic_param.JntToGravity(joints, gravity_matrix);
+        if(error_code != 0)
+        {
+          cout<<"Failed to solve Jacobian problem"<<" error code :"<<error_code<<endl;
+        }
+        break;
+      }
+    case LimbEnum::RF_LEG:
+      {
+        KDL::ChainDynParam dynamic_param = KDL::ChainDynParam(RF_Chain, gravity_vector);
+        error_code = dynamic_param.JntToGravity(joints, gravity_matrix);
+        if(error_code != 0)
+        {
+          cout<<"Failed to solve Jacobian problem"<<endl;
+        }
+        break;
+      }
+    case LimbEnum::LH_LEG:
+    {
+        KDL::ChainDynParam dynamic_param = KDL::ChainDynParam(LH_Chain, gravity_vector);
+        error_code = dynamic_param.JntToGravity(joints, gravity_matrix);
+        if(error_code != 0)
+      {
+        cout<<"Failed to solve Jacobian problem"<<endl;
+      }
+      break;
+    }
+    case LimbEnum::RH_LEG:
+     {
+        KDL::ChainDynParam dynamic_param = KDL::ChainDynParam(RH_Chain, gravity_vector);
+        error_code = dynamic_param.JntToGravity(joints, gravity_matrix);
+        if(error_code != 0)
+      {
+        cout<<"Failed to solve Jacobian problem"<<endl;
+      }
+      break;
+     }
+
+  }
+
+  JointTorquesLimb gravity_compensation_torque;
+  for(unsigned int i =0;i<number_of_joints;i++)
+    gravity_compensation_torque(i) = gravity_matrix(i);
+
+  return gravity_compensation_torque;
+
+
 
 }
 

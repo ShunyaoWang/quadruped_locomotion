@@ -123,7 +123,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  /home/hitstar/catkin_ws/src/quadruped_locomotion-dev/free_gait_core/include
+  ../free_gait_core/include
   include
   test
   ${catkin_INCLUDE_DIRS}

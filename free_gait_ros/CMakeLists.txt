@@ -79,6 +79,7 @@ add_library(${PROJECT_NAME}
    src/StateRosPublisher.cpp
    src/RosVisualization.cpp
    test/gait_generate_client.cpp
+   test/FootstepOptimization.cpp
 )
 add_library(${PROJECT_NAME}_plugin
   src/AdapterRosInterfaceDummy.cpp
@@ -109,6 +110,11 @@ add_executable(robot_state_pub_node test/robotStatePublisher.cpp)
 target_link_libraries(robot_state_pub_node
   ${PROJECT_NAME}
   ${catkin_LIBRARIES})
+
+  add_executable(foothold_optimization_test test/test_foothold_optimization.cpp)
+  target_link_libraries(foothold_optimization_test
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES})
 #############
 ## Testing ##
 #############

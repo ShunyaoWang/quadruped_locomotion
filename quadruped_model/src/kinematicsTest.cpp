@@ -11,6 +11,8 @@
 //#include "geometry_msgs/Twist.h"
 //#include "gazebo_msgs/ModelStates.h"
 #include "rbdl/Model.h"
+#include "rbdl/addons/urdfreader/urdfreader.h"
+
 using namespace std;
 using namespace quadruped_model;
 
@@ -40,6 +42,18 @@ int main(int argc, char **argv)
 
   QK.AnalysticJacobian(joints, LimbEnum::RF_LEG, jacobian);
   cout<<"jacobian : "<<endl<<jacobian<<endl;
+
+  JointPositionsLimb joint_G(0,0,0);
+  Force gravity_in_base(0,0,-9.8);
+  JointTorquesLimb gravity_compensation_torque = QK.getGravityCompensationForLimb(LimbEnum::LF_LEG, joint_G, gravity_in_base);
+  cout<<"gravity_compensation_torque :"<<endl<<gravity_compensation_torque<<endl;
+
+  RigidBodyDynamics::Model* rbdl_model = new RigidBodyDynamics::Model();
+  char* urdf_dir = (char*)"/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_m.urdf";
+  RigidBodyDynamics::Addons::URDFReadFromFile(urdf_dir,
+                                              rbdl_model,
+                                              true,
+                                              true);
 
 
   ROS_INFO("Hello world!");

@@ -13,9 +13,12 @@ JointPositions QuadrupedState::joint_positions_ = JointPositions().setZero();
 JointPositions QuadrupedState::joint_positions_feedback_ = JointPositions(Eigen::VectorXd::Zero(12,1));
 JointVelocities QuadrupedState::joint_velocities_ = JointVelocities(Eigen::VectorXd::Zero(12,1));
 JointPositions QuadrupedState::allJointPositionsFeedback_;
+JointVelocities QuadrupedState::joint_velocities_feedback_;
 Pose QuadrupedState::poseInWorldFrame_;
 Position QuadrupedState::positionWorldToBaseInWorldFrame_;
 RotationQuaternion QuadrupedState::orientationBaseToWorld_;
+
+QuadrupedState::FootVectorInBase QuadrupedState::target_foot_position_in_base_, QuadrupedState::target_foot_velocity_in_base_, QuadrupedState::target_foot_acceleration_in_base_;
 
 LinearVelocity QuadrupedState::base_feedback_linear_velocity_, QuadrupedState::base_target_linear_velocity_;
 LocalAngularVelocity QuadrupedState::base_feedback_angular_velocity_, QuadrupedState::base_target_angular_velocity_;
@@ -29,7 +32,7 @@ QuadrupedState::QuadrupedState()
 //  QK = new QuadrupedKinematics()
 //  QK.LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
 //  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
-  std::cout<<"Constructor QuadrupedState"<<std::endl;
+//  std::cout<<"Constructor QuadrupedState"<<std::endl;
   limb_mass_ = limb_mass({
                          {LimbEnum::LF_LEG, 3.5},
                          {LimbEnum::RF_LEG, 3.5},
@@ -50,7 +53,7 @@ QuadrupedState::QuadrupedState()
 
 QuadrupedState::~QuadrupedState()
 {
- std::cout<<"QuadrupedState Destroied"<<std::endl;
+// std::cout<<"QuadrupedState Destroied"<<std::endl;
 };
 bool QuadrupedState::Initialize()
 {
@@ -60,6 +63,13 @@ bool QuadrupedState::Initialize()
     joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
     //allJointPositionsFeedback_ = joint_positions_;
     setCurrentLimbJoints(joint_positions_);
+    for(auto limb : limb_configure_)
+      {
+        target_foot_position_in_base_[limb.first] = Vector(getPositionLegBaseToCoMInBaseFrame(limb.first));
+        target_foot_velocity_in_base_[limb.first] = Vector(0,0,0);
+        target_foot_acceleration_in_base_[limb.first] = Vector(0,0,0);
+      }
+    return true;
 }
 Position QuadrupedState::getCenterOfMassInBase()
 {
@@ -151,6 +161,15 @@ const JointPositions& QuadrupedState::getJointPositionFeedback() const
     return allJointPositionsFeedback_;
 }
 
+const JointPositionsLimb QuadrupedState::getJointPositionFeedbackForLimb(const LimbEnum& limb) const
+{
+//  JointPositionsLimb joint_position_limb;
+  int start, n;
+  start = QD::getLimbStartIndexInJ(limb);
+  n = QD::getNumDofLimb();
+  return JointPositionsLimb(getJointPositionFeedback().vector().segment(start, n));
+}
+
 JointPositions& QuadrupedState::getJointPositions()
 {
   //TODO(shunyao): `joint_position_` was declared as a static member, which means
@@ -204,6 +223,38 @@ const RotationQuaternion QuadrupedState::getTargetOrientationBaseToWorld() const
   return orientationBaseToWorld_;
 }
 
+const Position QuadrupedState::getTargetFootPositionInBaseForLimb(const LimbEnum& limb) const
+{
+  return Position(target_foot_position_in_base_.at(limb));
+}
+
+bool QuadrupedState::setTargetFootPositionInBaseForLimb(const Position& foot_position, const LimbEnum& limb)
+{
+  target_foot_position_in_base_.at(limb) = Vector(foot_position.toImplementation());
+  return true;
+}
+
+const LinearVelocity QuadrupedState::getTargetFootVelocityInBaseForLimb(const LimbEnum& limb) const
+{
+  return LinearVelocity(target_foot_velocity_in_base_.at(limb));
+}
+bool QuadrupedState::setTargetFootVelocityInBaseForLimb(const LinearVelocity& foot_velocity, const LimbEnum& limb)
+{
+  target_foot_velocity_in_base_.at(limb) = Vector(foot_velocity.toImplementation());
+  return true;
+}
+
+const LinearAcceleration QuadrupedState::getTargetFootAccelerationInBaseForLimb(const LimbEnum& limb) const
+{
+  return LinearAcceleration(target_foot_acceleration_in_base_.at(limb));
+}
+
+bool QuadrupedState::setTargetFootAccelerationInBaseForLimb(const LinearAcceleration& foot_acceleration, const LimbEnum& limb)
+{
+  target_foot_acceleration_in_base_.at(limb) = Vector(foot_acceleration.toImplementation());
+  return true;
+}
+
 bool QuadrupedState::setLinearVelocityBaseInWorldFrame(const LinearVelocity linear_velocity)
 {
   base_target_linear_velocity_ = linear_velocity;
@@ -224,6 +275,7 @@ bool QuadrupedState::setJointPositions(const JointPositions joint_positions)
 }
 bool QuadrupedState::setJointVelocities(const JointVelocities joint_velocoties)
 {
+
   return true;
 }
 
@@ -258,6 +310,12 @@ LinearVelocity QuadrupedState::getEndEffectorLinearVelocityFromJointVelocities(c
   Eigen::VectorXd pose_diff = jacobian * joint_diff;
   return LinearVelocity(pose_diff(0), pose_diff(1), pose_diff(2));
 
+}
+
+LinearVelocity QuadrupedState::getEndEffectorVelocityInBaseForLimb(const LimbEnum& limb)
+{
+  Eigen::Vector3d vel = getTranslationJacobianFromBaseToFootInBaseFrame(limb) * current_limb_joint_velocities_.at(limb).vector();
+  return LinearVelocity(vel);
 }
 
 Eigen::Matrix3d QuadrupedState::getTranslationJacobianFromBaseToFootInBaseFrame(const LimbEnum& limb)
@@ -295,6 +353,19 @@ void QuadrupedState::setCurrentLimbJoints(JointPositions all_joints_position)
 
 }
 
+void QuadrupedState::setCurrentLimbJointVelocities(JointVelocities all_joints_velocities)
+{
+  /****************
+* TODO(Shunyao) : update current joint position, feedback,
+****************/
+  joint_velocities_feedback_ = all_joints_velocities;
+  current_limb_joint_velocities_[LimbEnum::LF_LEG] = JointPositionsLimb(all_joints_velocities(0),all_joints_velocities(1),all_joints_velocities(2));
+  current_limb_joint_velocities_[LimbEnum::RF_LEG] = JointPositionsLimb(all_joints_velocities(3),all_joints_velocities(4),all_joints_velocities(5));
+  current_limb_joint_velocities_[LimbEnum::RH_LEG] = JointPositionsLimb(all_joints_velocities(6),all_joints_velocities(7),all_joints_velocities(8));
+  current_limb_joint_velocities_[LimbEnum::LH_LEG] = JointPositionsLimb(all_joints_velocities(9),all_joints_velocities(10),all_joints_velocities(11));
+
+}
+
 bool QuadrupedState::setLimbConfigure(const std::string leg_configure)
 {
   // Notes: bend to the positive direction of base coordinate X is IN, leg In the positive
@@ -323,7 +394,7 @@ bool QuadrupedState::setLimbConfigure(const std::string leg_configure)
       limb_configure_[LimbEnum::RF_LEG] = "IN_LEFT";
       limb_configure_[LimbEnum::RH_LEG] = "IN_LEFT";
     }
-
+  return true;
 }
 
 }; //namespace

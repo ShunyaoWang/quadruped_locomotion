@@ -107,9 +107,9 @@ bool StepCompleter::complete(const State& state, const Step& step, EndEffectorMo
     }
     Position startPositionInBaseFrame = adapter_.getPositionBaseToFootInBaseFrame(
         endEffectorMotion.getLimb());//, state.getJointPositionsForLimb(endEffectorMotion.getLimb()));
-    std::cout<<"Step completer, foot_pose_in_base is : "<<startPositionInBaseFrame<<std::endl;
+//    std::cout<<"Step completer, foot_pose_in_base is : "<<startPositionInBaseFrame<<std::endl;
     Position startPosition = adapter_.transformPosition("base_link", frameId, startPositionInBaseFrame);
-    std::cout<<"Step completer, foot_pose_in_world is : "<<startPosition<<std::endl;
+//    std::cout<<"Step completer, foot_pose_in_world is : "<<startPosition<<std::endl;
 
     endEffectorMotion.updateStartPosition(startPosition);
   }
@@ -166,7 +166,8 @@ bool StepCompleter::complete(const State& state, const Step& step, JointMotionBa
 
     // Standard transitions.
     if (positionOut) {
-      JointPositionsLeg startPosition = state.getJointPositionsForLimb(jointMotion.getLimb());
+//      JointPositionsLeg startPosition = state.getJointPositionsForLimb(jointMotion.getLimb());
+      JointPositionsLeg startPosition = state.getJointPositionFeedbackForLimb(jointMotion.getLimb());
       jointMotion.updateStartPosition(startPosition);
     }
     if (velocityOut) {
@@ -197,7 +198,7 @@ bool StepCompleter::complete(const State& state, const Step& step, const StepQue
 {
   if (baseMotion.getControlSetup().at(ControlLevel::Position)) {
     const std::string& frameId = baseMotion.getFrameId(ControlLevel::Position);
-    std::cout<<"+++++++++++++++++++++++++++"<<frameId<<std::endl;
+//    std::cout<<"+++++++++++++++++++++++++++"<<frameId<<std::endl;
     if (!adapter_.frameIdExists(frameId)) {
       std::cerr << "Could not find frame '" << frameId << "' for free gait base motion!" << std::endl;
       return false;

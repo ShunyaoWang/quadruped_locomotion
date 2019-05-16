@@ -42,6 +42,30 @@ const visualization_msgs::Marker RosVisualization::getStanceMarker(const Stance&
   return marker;
 }
 
+const visualization_msgs::MarkerArray RosVisualization::getFootholdsMarker(const Stance& footholds, const std::string& frameId,
+                                                                  const std_msgs::ColorRGBA& color, const double size)
+{
+  visualization_msgs::MarkerArray markers;
+  visualization_msgs::Marker marker;
+  for(auto& foot : footholds)
+    {
+      marker.ns = getFootName(foot.first);
+      marker.header.frame_id = frameId;
+      marker.lifetime = ros::Duration(10);
+      marker.type = visualization_msgs::Marker::SPHERE;
+      marker.action = visualization_msgs::Marker::ADD;
+      marker.color = color;
+      marker.scale.x = size;
+      marker.scale.y = size;
+      marker.scale.z = size;
+      Pose pose;
+      pose.getPosition() = foot.second;
+      kindr_ros::convertToRosGeometryMsg(pose, marker.pose);
+      markers.markers.push_back(marker);
+    }
+  return markers;
+}
+
 const visualization_msgs::Marker RosVisualization::getComMarker(const Position& comPosition, const std::string& frameId,
                                                                 const std_msgs::ColorRGBA& color,
                                                                 const double size)
@@ -89,6 +113,18 @@ const visualization_msgs::MarkerArray RosVisualization::getComWithProjectionMark
   markerArray.markers.push_back(marker);
 
   return markerArray;
+}
+
+const std::string RosVisualization::getFootName(const LimbEnum& limb)
+{
+  if(limb == LimbEnum::LF_LEG)
+    return "LF_LEG";
+  if(limb == LimbEnum::RF_LEG)
+    return "RF_LEG";
+  if(limb == LimbEnum::LH_LEG)
+    return "LH_LEG";
+  if(limb == LimbEnum::RH_LEG)
+    return "RH_LEG";
 }
 
 }

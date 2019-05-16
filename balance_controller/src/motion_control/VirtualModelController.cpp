@@ -109,9 +109,15 @@ bool VirtualModelController::computeError()
   /***************************************************
    *  Method I
    ***************************************************/
-  //! WSHY: control frame set as local Map frame, which
-  const RotationQuaternion& orientationControlToBase = robot_state_->getTargetOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
+  //! WSHY: control frame set as local Map frame, which yaw angel align with base
+//  EulerAnglesZyx orinetationWorldToBase(robot_state_->getTargetOrientationBaseToWorld().inverted());
 
+//  const RotationQuaternion& orientationControlToBase = RotationQuaternion(EulerAnglesZyx(0.0,
+//                                                                                         orinetationWorldToBase.setUnique().vector()(1),
+//                                                                                         orinetationWorldToBase.setUnique().vector()(2)));
+//  const RotationQuaternion& orientationWorldToControl = RotationQuaternion(orinetationWorldToBase) * orientationControlToBase.inverted();
+
+   const RotationQuaternion& orientationControlToBase = robot_state_->getTargetOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
    positionErrorInControlFrame_ = robot_state_->getTargetPositionWorldToBaseInWorldFrame() //torso_->getDesiredState().getPositionControlToBaseInControlFrame()
        - robot_state_->getPositionWorldToBaseInWorldFrame();//torso_->getMeasuredState().getPositionControlToBaseInControlFrame();
 
@@ -186,6 +192,15 @@ bool VirtualModelController::computeVirtualForce()
 {
 
   //! WSHY: torso_ can be replaced with adapter or state
+  //!
+//  EulerAnglesZyx EulerZYXWorldToBase(robot_state_->getTargetOrientationBaseToWorld().inverted());
+
+//  const RotationQuaternion& orientationControlToBase = RotationQuaternion(EulerAnglesZyx(0.0,
+//                                                                                         EulerZYXWorldToBase.setUnique().vector()(1),
+//                                                                                         EulerZYXWorldToBase.setUnique().vector()(2)));
+//  const RotationQuaternion& orientationWorldToBase = RotationQuaternion(EulerZYXWorldToBase);
+//  const RotationQuaternion& orientationWorldToControl = orientationWorldToBase * orientationControlToBase.inverted();
+
   const RotationQuaternion& orientationControlToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
   const RotationQuaternion& orientationWorldToBase = robot_state_->getOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationWorldToBase();
   const RotationQuaternion& orientationWorldToControl = orientationWorldToBase*orientationControlToBase.inverted();//robot_state_->getTargetOrientationBaseToWorld();//torso_->getMeasuredState().getOrientationWorldToControl();
@@ -203,12 +218,17 @@ bool VirtualModelController::computeVirtualForce()
   Force gravityCompensationFeedbackInBaseFrame = orientationWorldToBase.rotate(gravityCompensationFeedbackInWorldFrame);
   Force gravityDampingCompensationFeedbackInBaseFrame = orientationWorldToBase.rotate(gravityDampingCompensationFeedbackInWorldFrame);
 
-  virtualForceInBaseFrame_ = orientationControlToBase.rotate(Force(proportionalGainTranslation_.cwiseProduct(positionErrorInControlFrame_.toImplementation())))
-                       + orientationControlToBase.rotate(Force(derivativeGainTranslation_.cwiseProduct(linearVelocityErrorInControlFrame_.toImplementation())))
-                       + orientationControlToBase.rotate(Force(feedforwardGainTranslation_.cwiseProduct(feedforwardTermInControlFrame)))
-                       + gravityCompensationForceInBaseFrame_;
-//                       + gravityCompensationFeedbackInBaseFrame
-//                       + gravityDampingCompensationFeedbackInBaseFrame;
+//  virtualForceInBaseFrame_ = orientationControlToBase.rotate(Force(proportionalGainTranslation_.cwiseProduct(positionErrorInControlFrame_.toImplementation())))
+//                       + orientationControlToBase.rotate(Force(derivativeGainTranslation_.cwiseProduct(linearVelocityErrorInControlFrame_.toImplementation())))
+//                       + orientationControlToBase.rotate(Force(feedforwardGainTranslation_.cwiseProduct(feedforwardTermInControlFrame)))
+//                       + gravityCompensationForceInBaseFrame_;
+  //! WSHY:
+  virtualForceInBaseFrame_ = Force(proportionalGainTranslation_.cwiseProduct(orientationControlToBase.rotate(positionErrorInControlFrame_).toImplementation()))
+                       + Force(derivativeGainTranslation_.cwiseProduct(orientationControlToBase.rotate(linearVelocityErrorInControlFrame_).toImplementation()))
+                       + Force(feedforwardGainTranslation_.cwiseProduct(orientationControlToBase.rotate(feedforwardTermInControlFrame)))
+                       + gravityCompensationForceInBaseFrame_
+                       + gravityCompensationFeedbackInBaseFrame
+                       + gravityDampingCompensationFeedbackInBaseFrame;
 
 //  std::cout << "proportional: " << orientationControlToBase.rotate(Force(proportionalGainTranslation_.cwiseProduct(positionErrorInControlFrame_.toImplementation()))) << std::endl;
 //  std::cout << "derivative: " << orientationControlToBase.rotate(Force(derivativeGainTranslation_.cwiseProduct(linearVelocityErrorInControlFrame_.toImplementation()))) << std::endl;
@@ -227,6 +247,11 @@ bool VirtualModelController::computeVirtualTorque()
   feedforwardTermInControlFrame.z() += robot_state_->getTargetAngularVelocityBaseInBaseFrame().z();//torso_->getDesiredState().getAngularVelocityBaseInControlFrame().z();
 
 //  std::cout << "proportionalGainRotation: " << proportionalGainRotation_.transpose() << std::endl;
+
+//  virtualTorqueInBaseFrame_ = Torque(proportionalGainRotation_.cwiseProduct(orientationError_))
+//                       + orientationControlToBase.rotate(Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation())))
+//                       + orientationControlToBase.rotate(Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame)))
+//                       + gravityCompensationTorqueInBaseFrame_;
 
   virtualTorqueInBaseFrame_ = Torque(proportionalGainRotation_.cwiseProduct(orientationError_))
                        + orientationControlToBase.rotate(Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation())))

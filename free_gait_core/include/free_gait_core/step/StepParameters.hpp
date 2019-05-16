@@ -28,7 +28,7 @@ class StepParameters
     double averageVelocity = 0.65;
     double liftOffSpeed = 0.2;
     double touchdownSpeed = 0.05;
-    double minimumDuration_ = 0.45; // TODO: 0.3 for trot.
+    double minimumDuration_ = 0.3; // TODO: 0.3 for trot.
   } footstepParameters;
 
   struct EndEffectorTargetParameters
@@ -67,7 +67,7 @@ class StepParameters
   {
     double averageLinearVelocity = 0.05;
     double averageAngularVelocity = 0.1;
-    double minimumDuration = 0.45;
+    double minimumDuration = 0.3;
   } baseTargetParameters;
 
   struct BaseTrajectoryParameters

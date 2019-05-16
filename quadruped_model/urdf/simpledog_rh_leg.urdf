@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<robot name="simpledog_rh_leg" xmlns:xacro="http://ros.org/wiki/xacro">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="2.919E-17 -4.8141E-17 9.4163E-19"
+        rpy="0 0 0" />
+      <mass
+        value="15.238" />
+      <inertia
+        ixx="0.74932"
+        ixy="-1.2062E-17"
+        ixz="-2.0602E-16"
+        iyy="2.3017"
+        iyz="-3.8366E-17"
+        izz="2.9675" />
+    </inertial>
+  </link>
+  <link
+    name="rear_right_1_Link">
+    <inertial>
+      <origin
+        xyz="-6.2968E-06 0.012793 0.0003022"
+        rpy="0 0 0" />
+      <mass
+        value="1.1709" />
+      <inertia
+        ixx="0.001719"
+        ixy="1.9803E-07"
+        ixz="-1.4315E-19"
+        iyy="0.0013167"
+        iyz="-1.2614E-19"
+        izz="0.0021511" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_right_1_joint"
+    type="revolute">
+    <origin
+      xyz="-0.4 -0.175 0"
+      rpy="1.5708 1.5708 -1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="rear_right_1_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="100"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_right_2_Link">
+    <inertial>
+      <origin
+        xyz="0.11443 -8.407E-05 0.05942"
+        rpy="0 0 0" />
+      <mass
+        value="1.3902" />
+      <inertia
+        ixx="0.0030209"
+        ixy="-4.1489E-12"
+        ixz="-1.2337E-09"
+        iyy="0.026876"
+        iyz="5.4085E-06"
+        izz="0.028484" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_right_2_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="rear_right_1_Link" />
+    <child
+      link="rear_right_2_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="100"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_right_3_Link">
+    <inertial>
+      <origin
+        xyz="0.087821 6.0067E-06 -0.016729"
+        rpy="0 0 0" />
+      <mass
+        value="1.3523" />
+      <inertia
+        ixx="0.00053022"
+        ixy="-9.6687E-07"
+        ixz="-0.00020532"
+        iyy="0.0091429"
+        iyz="2.4784E-08"
+        izz="0.0093381" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_right_3_joint"
+    type="revolute">
+    <origin
+      xyz="0.25010358767993 0.0001008844556592 0.114420076111023"
+      rpy="0 0 0" />
+    <parent
+      link="rear_right_2_Link" />
+    <child
+      link="rear_right_3_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="100"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rh_foot_Link">
+    <inertial>
+      <origin
+        xyz="0.017825 -1.1102E-16 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.055619" />
+      <inertia
+        ixx="1.655E-05"
+        ixy="2.3509E-21"
+        ixz="-1.4161E-21"
+        iyy="1.2322E-05"
+        iyz="6.8491E-22"
+        izz="1.257E-05" />
+    </inertial>
+  </link>
+  <joint
+    name="rh_foot_joint"
+    type="fixed">
+    <origin
+      xyz="0.24968 0.00033355 -0.015"
+      rpy="0 0 0" />
+    <parent
+      link="rear_right_3_Link" />
+    <child
+      link="rh_foot_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+
+</robot>

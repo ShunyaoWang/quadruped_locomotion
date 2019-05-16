@@ -41,6 +41,7 @@ add_service_files(
   GetCollections.srv
   SendAction.srv
   SendActionSequence.srv
+  SetLimbConfigure.srv
 )
 
 ## Generate actions in the 'action' folder
