@@ -67,9 +67,10 @@ namespace balance_controller{
                              ros::NodeHandle& node_handle)
   {
     ROS_INFO("Initializing RosBalanceController");
+    //! WSHY: base balance QP controller
     contact_distribution_.reset(new ContactForceDistribution(node_handle, robot_state));
     virtual_model_controller_.reset(new VirtualModelController(node_handle, robot_state, contact_distribution_));
-
+    //! WSHY: single leg controller
     single_leg_solver_.reset(new MyRobotSolver(node_handle, robot_state));
     single_leg_solver_->model_initialization();
     if(!single_leg_solver_->loadLimbModelFromURDF())
@@ -174,6 +175,7 @@ namespace balance_controller{
     //! use subscribe, for real hardware interface, there should no problem fro this.
     contact_sub_ = node_handle.subscribe<sim_assiants::FootContacts>("/bumper_sensor_filter_node/foot_contacts", 1, &RosBalanceController::footContactsCallback, this);
 
+    //! WSHY: Logged data publisher
 //    joint_command_pub_ = node_handle.advertise<sensor_msgs::JointState>("/balance_controller/joint_command", 1);
 //    base_command_pub_ = node_handle.advertise<nav_msgs::Odometry>("/log/base_command", log_length_);
 //    base_actual_pub_ = node_handle.advertise<nav_msgs::Odometry>("/log/base_actual", log_length_);
@@ -209,6 +211,7 @@ namespace balance_controller{
       }
 
     boost::recursive_mutex::scoped_lock lock(r_mutex_);
+    //! WSHY: read joint position command
     std::vector<double> & commands = *commands_buffer.readFromRT();
 //    LimbVector & foot_posiion_commands = *command_foot_buffer.readFromRT();
 //    LimbVector & foot_velocity_commands = *command_foot_vel_buffer.readFromRT();
@@ -222,9 +225,13 @@ namespace balance_controller{
          robot_state_handle.getOrientation()[2],
          robot_state_handle.getOrientation()[3]);
 //    Vector surface_normal = base_orinetation.rotate(Vector(0,0,1));
+    /****************
+* TODO(Shunyao) : Rotate surface normals with base orinetation
+****************/
     for(unsigned int i=0;i<4;i++)
       {
         free_gait::LimbEnum limb = static_cast<free_gait::LimbEnum>(i);
+        //! WSHY: set foot cartesian motion for single leg controller
         robot_state->setTargetFootPositionInBaseForLimb(Position(foot_positions.at(limb).vector()), limb);
         robot_state->setTargetFootVelocityInBaseForLimb(LinearVelocity(foot_velocities.at(limb).vector()), limb);
         single_leg_solver_->setvecQAct(all_joint_positions.vector().segment(3*i, 3), limb);
@@ -288,8 +295,9 @@ namespace balance_controller{
             {
               robot_state->setSupportLeg(limb, false);
               robot_state->setSurfaceNormal(limb, surface_normals.at(limb));
-              foot_positions.at(limb)(0) -= 0.01;
-              foot_positions.at(limb)(2) += 0.01;
+              //! WSHY: move back(-x) and upward(+z)
+              foot_positions.at(limb)(0) -= 0.001;
+              foot_positions.at(limb)(2) += 0.02;
               robot_state->setTargetFootPositionInBaseForLimb(Position(foot_positions.at(limb).vector()), limb);
 
               break;
@@ -302,6 +310,7 @@ namespace balance_controller{
               robot_state->setSupportLeg(limb, false);
               //            surface_normals.at(limb) = base_orinetation.rotate(Vector(0,0,1));
               robot_state->setSurfaceNormal(limb, surface_normals.at(limb));
+              //! WSHY: directly move down to ground
               foot_positions.at(limb)(2) -= 0.01;
               robot_state->setTargetFootPositionInBaseForLimb(Position(foot_positions.at(limb).vector()), limb);
               //            robot_state->setSurfaceNormal(limb, robot_state_->getSurfaceNormal(limb));
@@ -375,20 +384,10 @@ namespace balance_controller{
 
 
 
-//    ROS_INFO("Set current joint positions : \n");
-//    ROS_INFO("Desired base pose: Position: ");
-//    std::cout<<base_desired_position<<std::endl;
-//    kindr::EulerAnglesZyxPD rotation(base_desired_rotation);
-//    ROS_INFO("Desired base pose: Rotation: ");
-//    std::cout<<rotation<<std::endl;
-//    std::cout<<"==================================="<<*robot_state<<std::endl;
-//    ROS_INFO("Get base position X : %f Y :%f Z : %f",robot_state_handle.getPosition()[0],robot_state_handle.getPosition()[1],robot_state_handle.getPosition()[2]);
-
-//    boost::recursive_mutex::scoped_lock lock(r_mutex_);
+    //! WSHY: update current base state from robot state handle
     robot_state->setCurrentLimbJoints(all_joint_positions);
     robot_state->setCurrentLimbJointVelocities(all_joint_velocities);
 
-    //! WSHY: update current base state from robot state handle
     Pose current_base_pose = Pose(Position(robot_state_handle.getPosition()[0],
                                   robot_state_handle.getPosition()[1],
                                   robot_state_handle.getPosition()[2]),
@@ -404,16 +403,7 @@ namespace balance_controller{
                                            LocalAngularVelocity(robot_state_handle.getAngularVelocity()[0],
                                                                 robot_state_handle.getAngularVelocity()[1],
                                                                 robot_state_handle.getAngularVelocity()[2]));
-//    ROS_INFO("Desired base pose: Position: ");
-//    std::cout<<base_desired_position<<std::endl;
-//    kindr::EulerAnglesZyxPD rotation_desired(base_desired_rotation);
-//    ROS_INFO("Desired base pose: Rotation: ");
-//    std::cout<<rotation_desired<<std::endl;
-//    ROS_INFO("Current base pose: Position: ");
-//    std::cout<<current_base_pose.getPosition()<<std::endl;
-//    kindr::EulerAnglesZyxPD rotation_current(current_base_pose.getRotation());
-//    ROS_INFO("Current base pose: Rotation: ");
-//    std::cout<<rotation_current<<std::endl;
+
 
     /****************
 * TODO(Shunyao) : set support leg and surface normal, update from robot state handle
@@ -432,7 +422,8 @@ namespace balance_controller{
 //    ROS_WARN_STREAM("Second : "<<contact_distribution_->getSecondDirectionOfFrictionPyramidInWorldFrame(free_gait::LimbEnum::LF_LEG).toImplementation()<<std::endl);
 
 
-    ROS_DEBUG_STREAM(*virtual_model_controller_);
+//    ROS_DEBUG_STREAM(*virtual_model_controller_);
+    //! WSHY: for logging data
     sensor_msgs::JointState joint_command, joint_actual;
     joint_command.effort.resize(12);
     joint_command.position.resize(12);
@@ -441,6 +432,7 @@ namespace balance_controller{
     joint_actual.position.resize(12);
     joint_actual.velocity.resize(12);
     joint_actual.effort.resize(12);
+
     for(unsigned int i = 0; i<12; i++)
       {
         /****************
@@ -474,6 +466,7 @@ namespace balance_controller{
     free_gait::Force gravity_in_base = base_orinetation.rotate(free_gait::Force(0,0,-9.8));
     if(!robot_state->isSupportLeg(free_gait::LimbEnum::LF_LEG))
       {
+        //! WSHY: compute gravity compensation
         free_gait::JointPositionsLeg joint_position_leg = free_gait::JointPositionsLeg(all_joint_positions.vector().segment(0,3));
         free_gait::JointEffortsLeg gravity_compensation_torque = robot_state->getGravityCompensationForLimb(free_gait::LimbEnum::LF_LEG,
                                                                                 joint_position_leg,
@@ -489,13 +482,14 @@ namespace balance_controller{
             else
               effort_command += gravity_compensation_torque(i);
             joints[i].setCommand(effort_command);
+            //! WSHY: data logging
             joint_command.effort[i] = effort_command;
             joint_actual.position[i] = single_leg_solver_->getQAcutal().row(1)[i];
             joint_actual.velocity[i] = single_leg_solver_->getQDotAcutal().row(1)[i];
             joint_actual.effort[i] = single_leg_solver_->getQDDotAcutal().row(1)[i];
           }
         //        ROS_INFO("LF_LEG is NOT Contacted");
-      }else{
+      }else{ // for stance leg
         for(unsigned int i=0;i<3;i++)
           {
             joints[i].setCommand(joint_command.effort[i]);
@@ -595,6 +589,7 @@ namespace balance_controller{
           }
       }
 //    lock.unlock();
+    //! WSHY: data logging
     if(base_actual_pose_.size()<log_length_)
       {
         free_gait_msgs::RobotState desired_robot_state, actual_robot_state;
@@ -766,13 +761,13 @@ namespace balance_controller{
                                                                               robot_state_msg->base_pose.twist.twist.angular.y,
                                                                               robot_state_msg->base_pose.twist.twist.angular.z);
 
-    Pose current_base_pose = Pose(Position(robot_state_handle.getPosition()[0],
-                                  robot_state_handle.getPosition()[1],
-                                  robot_state_handle.getPosition()[2]),
-                         RotationQuaternion(robot_state_handle.getOrientation()[0],
-                                            robot_state_handle.getOrientation()[1],
-                                            robot_state_handle.getOrientation()[2],
-                                            robot_state_handle.getOrientation()[3]));
+//    Pose current_base_pose = Pose(Position(robot_state_handle.getPosition()[0],
+//                                  robot_state_handle.getPosition()[1],
+//                                  robot_state_handle.getPosition()[2]),
+//                         RotationQuaternion(robot_state_handle.getOrientation()[0],
+//                                            robot_state_handle.getOrientation()[1],
+//                                            robot_state_handle.getOrientation()[2],
+//                                            robot_state_handle.getOrientation()[3]));
 //    ROS_INFO("Desired base pose: Position: ");
 //    std::cout<<base_desired_position<<std::endl;
 //    kindr::EulerAnglesZyxPD rotation_desired(base_desired_rotation);
@@ -803,6 +798,7 @@ namespace balance_controller{
     commands_buffer.writeFromNonRT(joint_commands);
 
 //    LimbVector foot_positions, foot_velocities, foot_accelerations;
+    //! WSHY: update cartesian foot motion command
     Position foot_position, foot_velocity, foot_acceleration;
 
     kindr_ros::convertFromRosGeometryMsg(robot_state_msg->lf_target.target_position[0].point,
