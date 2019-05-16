@@ -25,8 +25,7 @@ package for quadruped locomotion
     cd usr/local/lib/cmake
     sudo mkdir rbdl
     sudo cp RBDLConfig.cmake /usr/local/lib/cmake/rbdl
-    ```
-  - **Attention:** before make, change the directory in 'quadruped_model/src/quadrupedkinematics,cpp' line 19 with your own directory.
+    ```  
   - git clone other ROS dependence package AND run `catkin_make`
 
 ## Install

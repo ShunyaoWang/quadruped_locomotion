@@ -7,6 +7,7 @@
  *  Institute: Harbin Institute of Technology, Shenzhen
  */
 #include "quadruped_model/quadrupedkinematics.h"
+#include <ros/package.h>
 namespace quadruped_model {
 using namespace std;
 QuadrupedKinematics::QuadrupedKinematics()
@@ -16,7 +17,10 @@ QuadrupedKinematics::QuadrupedKinematics()
 //  joint_positons_last_.resize(6);
 //  for(unsigned int i = 0;i<6;i++)
 //    joint_positons_last_(i) = 0.0;
-  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_m.urdf");
+  string urdf_dir = ros::package::getPath("quadruped_model") + "/urdf/simpledog_m.urdf";
+  LoadRobotDescriptionFromFile(urdf_dir);
+  std::cout<<urdf_dir<<std::endl;
+  //  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_m.urdf");
 //  std::cout<<"Constructor QuadrupedKinematics"<<std::endl;
 }
 
