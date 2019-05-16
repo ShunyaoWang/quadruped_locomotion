@@ -33,6 +33,9 @@ class RosVisualization
                                                                           const double comMarkerSize,
                                                                           const double projectionLenght,
                                                                           const double projectionDiameter);
+  static const visualization_msgs::MarkerArray getFootholdsMarker(const Stance& footholds, const std::string& frameId,
+                                                                  const std_msgs::ColorRGBA& color, const double size);
+  static const std::string getFootName(const LimbEnum& limb);
 };
 
 }

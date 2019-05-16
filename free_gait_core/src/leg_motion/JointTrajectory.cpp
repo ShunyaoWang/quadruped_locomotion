@@ -53,8 +53,23 @@ const ControlSetup JointTrajectory::getControlSetup() const
 void JointTrajectory::updateStartPosition(const JointPositionsLeg& startPosition)
 {
   isComputed_ = false;
+  JointPositionsLeg delta_positions;
+  for(unsigned int i = 0;i<3;i++)
+    {
+      if(fabs(startPosition(i))>2*3.14)
+        delta_positions(i) = startPosition(i) - fmod(startPosition(i), 2*M_PI);
+//      if(startPosition(i)<-2*3.14)
+//        delta_positions(i) = startPosition(i) + fmod(startPosition(i), 2*M_PI);
+    }
+
   auto& values = values_.at(ControlLevel::Position);
   auto& times = times_.at(ControlLevel::Position);
+  for (size_t j = 0; j < values[0].size(); ++j) {
+      for (size_t i = 0; i < values.size(); ++i) {
+        values[i][j] += delta_positions(i);
+      }
+    }
+
   if (times[0] == 0.0) {
     for (size_t i = 0; i < values.size(); ++i) {
       values[i][0] = startPosition(i);
@@ -65,6 +80,8 @@ void JointTrajectory::updateStartPosition(const JointPositionsLeg& startPosition
       values[i].insert(values[i].begin(), startPosition(i));
     }
   }
+
+
 }
 
 void JointTrajectory::updateStartVelocity(const JointVelocitiesLeg& startVelocity)
@@ -101,6 +118,7 @@ bool JointTrajectory::prepareComputation(const State& state, const Step& step, c
   for (const auto& times : times_) {
     if (times.second.back() > duration_) duration_ = times.second.back();
   }
+//  compute();
   return true;
 }
 
@@ -201,7 +219,7 @@ bool JointTrajectory::isIgnoreContact() const
 
 std::ostream& operator<<(std::ostream& out, const JointTrajectory& jointTrajectory)
 {
-  if (!jointTrajectory.isComputed()) throw std::runtime_error("JointTrajectory::operator<< cannot be called if trajectory is not computed.");
+//  if (!jointTrajectory.isComputed()) throw std::runtime_error("JointTrajectory::operator<< cannot be called if trajectory is not computed.");
   out << "Joint nodes (" << jointTrajectory.jointNodeEnums_.size() << ")";
 //  for (const auto& jointNode : jointTrajectory.jointNodeEnums_) {
 //    out << jointNode << ", ";

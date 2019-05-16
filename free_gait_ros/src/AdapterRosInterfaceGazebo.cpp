@@ -82,12 +82,13 @@ bool AdapterRosInterfaceGazebo::updateAdapterWithRobotState(AdapterBase& adapter
                                                                base_pose_in_world_.twist.twist.angular.y,
                                                                base_pose_in_world_.twist.twist.angular.z));
 
-    state_last.setBaseStateFromFeedback(0.4*linear_velocity, angular_velocity);
+    state_last.setBaseStateFromFeedback(0.55*linear_velocity, angular_velocity);
     state_last.setPoseBaseToWorld(pose_base_to_world);
     /****************
 * TODO(Shunyao) : Update joint velocity and efforts
 ****************/
     state_last.setCurrentLimbJoints(all_joint_positions_);
+    state_last.setCurrentLimbJointVelocities(all_joint_velocities_);
     Stance footholds_in_support;
     for(auto leg_mode : leg_modes_)
       {
@@ -128,18 +129,22 @@ void AdapterRosInterfaceGazebo::updateRobotState(const free_gait_msgs::RobotStat
   for(int i = 0;i<3;i++)
   {
     all_joint_positions_(i) = robotState->lf_leg_joints.position[i];
+    all_joint_velocities_(i) = robotState->lf_leg_joints.velocity[i];
   }
   for(int i = 0;i<3;i++)
   {
     all_joint_positions_(i+3) = robotState->rf_leg_joints.position[i];
+    all_joint_velocities_(i+3) = robotState->rf_leg_joints.velocity[i];
   }
   for(int i = 0;i<3;i++)
   {
     all_joint_positions_(i+6) = robotState->rh_leg_joints.position[i];
+    all_joint_velocities_(i+6) = robotState->rh_leg_joints.position[i];
   }
   for(int i = 0;i<3;i++)
   {
     all_joint_positions_(i+9) = robotState->lh_leg_joints.position[i];
+    all_joint_velocities_(i+9) = robotState->lh_leg_joints.velocity[i];
   }
 
   base_pose_in_world_.header = robotState->base_pose.header;

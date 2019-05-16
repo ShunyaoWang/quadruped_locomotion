@@ -207,6 +207,33 @@ std::string AdapterGazebo::getBaseString() const
 
 JointNodeEnum AdapterGazebo::getJointNodeEnumFromJointNodeString(const std::string& jointNode) const
 {
+  if(jointNode == "LF_LEG_HAA")
+    return JointNodeEnum::LF_LEG_HAA;
+  if(jointNode == "LF_LEG_HFE")
+    return JointNodeEnum::LF_LEG_HFE;
+  if(jointNode == "LF_LEG_KFE")
+    return JointNodeEnum::LF_LEG_KFE;
+
+  if(jointNode == "RF_LEG_HAA")
+    return JointNodeEnum::RF_LEG_HAA;
+  if(jointNode == "RF_LEG_HFE")
+    return JointNodeEnum::RF_LEG_HFE;
+  if(jointNode == "RF_LEG_KFE")
+    return JointNodeEnum::RF_LEG_KFE;
+
+  if(jointNode == "RH_LEG_HAA")
+    return JointNodeEnum::RH_LEG_HAA;
+  if(jointNode == "RH_LEG_HFE")
+    return JointNodeEnum::RH_LEG_HFE;
+  if(jointNode == "RH_LEG_KFE")
+    return JointNodeEnum::RH_LEG_KFE;
+
+  if(jointNode == "LH_LEG_HAA")
+    return JointNodeEnum::LH_LEG_HAA;
+  if(jointNode == "LH_LEG_HFE")
+    return JointNodeEnum::LH_LEG_HFE;
+  if(jointNode == "LH_LEG_KFE")
+    return JointNodeEnum::LH_LEG_KFE;
   throw std::runtime_error("AdapterGazebo::getJointNodeEnumFromJointNodeString() is not implemented.");
 }
 
@@ -420,6 +447,10 @@ ControlSetup AdapterGazebo::getControlSetup(const LimbEnum& limb) const
 JointVelocitiesLeg AdapterGazebo::getJointVelocitiesFromEndEffectorLinearVelocityInWorldFrame(
     const LimbEnum& limb, const LinearVelocity& endEffectorLinearVelocityInWorldFrame) const
 {
+  /****************
+* TODO(Shunyao) : TODO
+****************/
+  return JointVelocitiesLeg(0,0,0);
   throw std::runtime_error("AdapterGazebo::getJointVelocitiesFromEndEffectorLinearVelocityInWorldFrame() is not implemented.");
 }
 
@@ -435,10 +466,19 @@ LinearVelocity AdapterGazebo::getEndEffectorLinearVelocityFromJointVelocities(co
   return state_->getEndEffectorLinearVelocityFromJointVelocities(limb, jointVelocities);
   throw std::runtime_error("AdapterGazebo::getEndEffectorLinearVelocityFromJointVelocities() is not implemented.");
 }
-
+/**
+ * @brief AdapterGazebo::getJointAccelerationsFromEndEffectorLinearAccelerationInWorldFrame
+ * @param limb
+ * @param endEffectorLinearAccelerationInWorldFrame
+ * @return
+ */
 JointAccelerationsLeg AdapterGazebo::getJointAccelerationsFromEndEffectorLinearAccelerationInWorldFrame(
     const LimbEnum& limb, const LinearAcceleration& endEffectorLinearAccelerationInWorldFrame) const
 {
+  /****************
+* TODO(Shunyao) : TODO
+****************/
+  return  JointAccelerationsLeg(0,0,0);
   throw std::runtime_error("AdapterGazebo::getJointAccelerationsFromEndEffectorLinearAccelerationInWorldFrame() is not implemented.");
 }
 

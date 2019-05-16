@@ -95,6 +95,8 @@ public:
   void ActionServerThread()//(const FreeGaitActionServer& server)
   {
       ROS_INFO("In action server thread");
+      parameters->footstepParameters.minimumDuration_ = 0.45;
+      parameters->baseTargetParameters.minimumDuration = 0.45;
       double dt = 0.01;// change dt cause problem?
       double time = 0.0;
       ros::Rate rate(100);
@@ -177,6 +179,7 @@ public:
     ros::Rate rate(100);
     double dt = 0.01;
     gait_generate_client_.initializeTrot(0.45, 0.45);
+//    gait_generate_client_.initializePace(0.45, 3*0.5);
     while (ros::ok()) {
 //        ROS_INFO("Gait Generate updated Once");
         if(is_start_gait){
@@ -184,7 +187,7 @@ public:
             AdapterRos_.updateAdapterWithState();
             gait_generate_client_.copyRobotState(AdapterRos_.getAdapter().getState());
             gait_generate_client_.advance(dt);
-            gait_generate_client_.generateFootHolds();
+            gait_generate_client_.generateFootHolds("foot_print");
             gait_generate_client_.updateBaseMotion(desired_linear_velocity_, desired_angular_velocity_);
 //            ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<endl);
             lock.unlock();
@@ -231,6 +234,7 @@ public:
     if(request.data == true){
         is_start_gait = true;
         gait_generate_client_.initializeTrot(0.45,0.45);
+//        gait_generate_client_.initializePace(0.45, 3*0.5);
       ROS_INFO("START GAIT....");
       }
     response.success = true;

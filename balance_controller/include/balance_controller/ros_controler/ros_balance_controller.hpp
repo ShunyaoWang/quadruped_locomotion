@@ -20,6 +20,8 @@
 #include "balance_controller/ros_controler/robot_state_interface.hpp"
 #include "balance_controller/ros_controler/gazebo_state_hardware_interface.hpp"
 
+#include "single_leg_test/model_test_header.hpp"
+
 #include <control_toolbox/pid.h>
 
 #include <pluginlib/class_list_macros.hpp>
@@ -34,6 +36,7 @@
 #include "state_switcher/StateSwitcher.hpp"
 
 #include "std_msgs/Int8MultiArray.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "nav_msgs/Odometry.h"
 #include "Eigen/Dense"
 #include "Eigen/LU"
@@ -45,7 +48,8 @@ namespace balance_controller {
   typedef std::unordered_map<free_gait::LimbEnum, ros::Time, EnumClassHash> LimbDuration;
   typedef std::unordered_map<free_gait::LimbEnum, bool, EnumClassHash> LimbFlag;
   typedef std::unordered_map<free_gait::LimbEnum, double, EnumClassHash> LimbPhase;
-    typedef std::unordered_map<free_gait::LimbEnum, free_gait::Vector, EnumClassHash> LimbVector;
+  typedef std::unordered_map<free_gait::LimbEnum, free_gait::Vector, EnumClassHash> LimbVector;
+
   public:
     RosBalanceController();
     ~RosBalanceController();
@@ -79,6 +83,7 @@ namespace balance_controller {
      */
     realtime_tools::RealtimeBuffer<std::vector<double>> commands_buffer;
     realtime_tools::RealtimeBuffer<Pose> command_pose_buffer;
+    realtime_tools::RealtimeBuffer<LimbVector> command_foot_buffer, command_foot_vel_buffer;
     unsigned int n_joints;
   private:
     /**
@@ -100,10 +105,11 @@ namespace balance_controller {
     std::vector<free_gait::BranchEnum> branches_;
 
     LimbState limbs_state, limbs_desired_state;
+    LimbFlag real_contact_, is_cartisian_motion_;
     LimbDuration t_sw0, t_st0;
     LimbFlag sw_flag, st_flag;
     LimbPhase sw_phase, st_phase;
-
+    LimbVector foot_positions, foot_velocities, foot_accelerations;
     /**
      * @brief contact_distribution_ , pointer to contact force optimaziton
      */
@@ -114,6 +120,8 @@ namespace balance_controller {
 
     std::shared_ptr<VirtualModelController> virtual_model_controller_;
 
+    std::shared_ptr<MyRobotSolver> single_leg_solver_;
+
     std::vector<control_toolbox::Pid> pid_controllers_;       /**< Internal PID controllers. */
 
     std::vector<urdf::JointConstSharedPtr> joint_urdfs_;
@@ -121,7 +129,7 @@ namespace balance_controller {
      * @brief baseCommandCallback, ros subscriber callback
      * @param robot_state
      */
-    void baseCommandCallback(const free_gait_msgs::RobotStateConstPtr& robot_state);
+    void baseCommandCallback(const free_gait_msgs::RobotStateConstPtr& robot_state_msg);
     void footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts);
 
     void enforceJointLimits(double &command, unsigned int index);
@@ -134,20 +142,24 @@ namespace balance_controller {
     /**
      * @brief joint_command_pub_, for debug to monitor
      */
-    ros::Publisher joint_command_pub_, base_command_pub_, base_actual_pub_, joint_actual_pub_, leg_state_pub_, contact_desired_pub_;
+    ros::Publisher joint_command_pub_, base_command_pub_, base_actual_pub_, joint_actual_pub_,
+    leg_state_pub_, contact_desired_pub_, leg_phase_pub_, desired_robot_state_pub_, actual_robot_state_pub_;
     std::vector<nav_msgs::Odometry> base_command_pose_, base_actual_pose_;
     std::vector<sensor_msgs::JointState> joint_command_, joint_actual_;
     std::vector<std_msgs::Int8MultiArray> leg_states_;
     std::vector<sim_assiants::FootContacts> foot_desired_contact_;
+    std::vector<std_msgs::Float64MultiArray> leg_phases_;
+    std::vector<free_gait_msgs::RobotState> desired_robot_state_, actual_robot_state_;
     ros::ServiceServer log_data_srv_;
 
     int log_length_, log_index_;
     bool logDataCapture(std_srvs::Empty::Request& req,
                         std_srvs::Empty::Response& res);
-    LimbFlag update_surface_normal_flag;
-    bool store_current_joint_state_flag_;
+    LimbFlag update_surface_normal_flag, store_current_joint_state_flag_;
+//    bool store_current_joint_state_flag_;
     LimbVector surface_normals;
-    std::vector<double> stored_limb_joint_position_;
+//    std::vector<double> stored_limb_joint_position_;
+    free_gait::JointPositions stored_limb_joint_position_;
   };
 
 }

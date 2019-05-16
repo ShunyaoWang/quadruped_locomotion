@@ -3,13 +3,13 @@ balance_controller:
     heading:
       kp: 5000
       kd: 5000
-      kff: 1000
+      kff: 10
     lateral:
       kp: 5000
       kd: 4000
-      kff: 1000
+      kff: 10
     vertical:
-      kp: 5000
+      kp: 10000
       kd: 5000
       kff: 100
     roll:
@@ -28,7 +28,7 @@ balance_controller:
     weights:
       force:
         heading: 1
-        lateral: 1
+        lateral: 5
         vertical: 1
       torque:
         roll: 10
@@ -39,3 +39,13 @@ balance_controller:
     constraints:
       friction_coefficient: 0.6
       minimal_normal_force: 10
+single_leg_controller:
+  x_direction:
+    kp: 5000
+    kd: 200
+  y_direction:
+    kp: 5000
+    kd: 200
+  z_direction:
+    kp: 5000
+    kd: 200

@@ -185,7 +185,8 @@ void State::setJointVelocitiesForLimb(const LimbEnum& limb, const JointVelocitie
 
 void State::setAllJointVelocities(const JointVelocities& jointVelocities)
 {
-  quadruped_model::QuadrupedState::setJointVelocities(quadruped_model::JointVelocities(jointVelocities.vector()));
+  setCurrentLimbJointVelocities(jointVelocities);
+//  quadruped_model::QuadrupedState::setJointVelocities(quadruped_model::JointVelocities(jointVelocities.vector()));
 }
 
 const JointAccelerationsLeg State::getJointAccelerationsForLimb(const LimbEnum& limb) const

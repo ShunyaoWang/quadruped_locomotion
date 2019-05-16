@@ -42,7 +42,7 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
       std::cout<<"Transfer from base to base"<<std::endl;
     } else if (outputFrameId == getWorldFrameId()) {//odom
       transformedPosition = getPositionWorldToBaseInWorldFrame() + getOrientationBaseToWorld().rotate(position);
-      std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
+//      std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
     } else if (outputFrameId == "map" || outputFrameId == "map_ga" || outputFrameId == "foot_print") {
       const Position positionInOdom = transformPosition(inputFrameId, getWorldFrameId(), position);
       transformedPosition = transformPosition(getWorldFrameId(), outputFrameId, positionInOdom);
@@ -54,7 +54,7 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
 
     if (outputFrameId == getBaseFrameId()) {
       transformedPosition = getOrientationBaseToWorld().inverseRotate(position - getPositionWorldToBaseInWorldFrame());
-      std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
+//      std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;
     } else if (outputFrameId == getWorldFrameId()) {
       transformedPosition = position;
     } else if (outputFrameId == "map" || outputFrameId == "map_ga" || outputFrameId == "foot_print") {//TODO(Shunyao): How to implenment getFrameTransform

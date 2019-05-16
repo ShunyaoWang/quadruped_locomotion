@@ -17,6 +17,9 @@
 #include "pluginlib/class_loader.h"
 #include "kindr_ros/kindr_ros.hpp"
 
+#include "free_gait_ros/FootstepOptimization.hpp"
+#include "free_gait_ros/RosVisualization.hpp"
+
 class GaitGenerateClient
 {
 public:
@@ -58,7 +61,7 @@ public:
 
   bool copyRobotState(const free_gait::State& state);
 
-  bool generateFootHolds();
+  bool generateFootHolds(const std::string frame);
 
   bool updateBaseMotion(LinearVelocity& desired_linear_velocity,
                         LocalAngularVelocity& desired_angular_velocity);
@@ -82,6 +85,8 @@ private:
   ros::NodeHandle nodeHandle_;
   ros::Subscriber velocity_command_sub_;
   ros::ServiceServer gaitSwitchServer_;
+  ros::Publisher foot_marker_pub_;
+
   free_gait::State robot_state_;
   Pose base_pose;
   bool is_updated, is_done, is_active;
@@ -112,13 +117,14 @@ private:
   free_gait_msgs::BaseAuto base_auto_msg_;
   free_gait_msgs::BaseTarget base_target_msg_;
   free_gait_msgs::Footstep footstep_msg_;
+  bool base_auto_flag, base_target_flag, pace_flag, trot_flag;
 
   void feedbackCallback(const free_gait_msgs::ExecuteStepsFeedbackConstPtr& feedback);
 
   void doneCallback(const actionlib::SimpleClientGoalState& state,
                     const free_gait_msgs::ExecuteStepsResult& result);
 
-
+  std::unique_ptr<FootstepOptimization> footstepOptimization;
 
 
 

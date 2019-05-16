@@ -14,6 +14,7 @@
 #include "kdl/frames_io.hpp"
 #include "kdl/tree.hpp"
 //#include "kdl/chainiksolvervel_wdls.hpp"
+#include "kdl/chaindynparam.hpp"
 
 
 #include "kindr/Core"
@@ -70,6 +71,11 @@ public:
   bool setHipPoseInBase(const KDL::Chain& kdl_chain, const LimbEnum& limb);
   Position getPositionFootToHipInHipFrame(const LimbEnum& limb, const Position& foot_position_in_base) const;
   Position getPositionBaseToHipInBaseFrame(const LimbEnum& limb) const;
+
+  JointTorquesLimb getGravityCompensationForLimb(const LimbEnum& limb,
+                                                 const JointPositionsLimb& joint_positions,
+                                                 const Force& gravity_in_baseframe);
+//  Eigen::MatrixXd getJointSpaceInertiaMatrixForLimb(const LimbEnum& limb);
 
   KDL::Chain LF_Chain, RF_Chain,RH_Chain,LH_Chain;
   HipPoseInBase hip_pose_in_base_;

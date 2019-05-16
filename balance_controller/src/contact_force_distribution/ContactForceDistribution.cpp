@@ -518,7 +518,6 @@ bool ContactForceDistribution::computeJointTorques()
   const LinearAcceleration gravitationalAccelerationInWorldFrame = LinearAcceleration(0.0,0.0,-9.8);//torso_->getProperties().getGravity();
   const LinearAcceleration gravitationalAccelerationInBaseFrame = robot_state_->getOrientationBaseToWorld().inverseRotate(gravitationalAccelerationInWorldFrame);//torso_->getMeasuredState().getOrientationWorldToBase().rotate(gravitationalAccelerationInWorldFrame);
 
-
 //  const int nDofPerLeg = 3; // TODO move to robot commons
 //  const int nDofPerContactPoint = 3; // TODO move to robot commons
 
@@ -552,6 +551,9 @@ bool ContactForceDistribution::computeJointTorques()
 //        for (auto link : *legInfo.first->getLinks()) {
 //          jointTorques -= LegBase::JointTorques( link->getTranslationJacobianBaseToCoMInBaseFrame().transpose() * Force(link->getMass() * gravitationalAccelerationInBaseFrame).toImplementation());
 //        }
+
+        free_gait::JointPositionsLeg joint_position_leg = robot_state_->getJointPositionFeedbackForLimb(legInfo.first);
+        jointTorques += robot_state_->getGravityCompensationForLimb(legInfo.first, joint_position_leg, free_gait::Force(gravitationalAccelerationInBaseFrame.toImplementation()));
 
 //        legInfo.first->setDesiredJointTorques(jointTorques);
         robot_state_->setJointEffortsForLimb(legInfo.first, jointTorques);

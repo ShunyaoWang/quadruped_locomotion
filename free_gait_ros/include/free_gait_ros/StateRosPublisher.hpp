@@ -11,6 +11,7 @@
 // Free Gait
 #include <free_gait_core/free_gait_core.hpp>
 #include <free_gait_msgs/RobotState.h>
+#include <free_gait_ros/RosVisualization.hpp>
 
 // ROS
 #include <robot_state_publisher/robot_state_publisher.h>
@@ -40,7 +41,7 @@ class StateRosPublisher
   std::unique_ptr<robot_state_publisher::RobotStatePublisher> robotStatePublisher_;
   AdapterBase& adapter_;
   tf2_ros::TransformBroadcaster tfBroadcaster_;
-  ros::Publisher robot_state_pub_;
+  ros::Publisher robot_state_pub_, stance_marker_pub_;
   free_gait_msgs::RobotState robot_state_;
 };
 

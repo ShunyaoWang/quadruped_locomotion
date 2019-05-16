@@ -75,10 +75,29 @@ bool StateRosPublisher::initializeRobotStatePublisher()
   robotStatePublisher_.reset(new robot_state_publisher::RobotStatePublisher(tree));
 
   robot_state_pub_ = nodeHandle_.advertise<free_gait_msgs::RobotState>("/desired_robot_state", 1);
+  stance_marker_pub_ = nodeHandle_.advertise<visualization_msgs::MarkerArray>("optimized_footholds",1);
+
   robot_state_.lf_leg_joints.position.resize(3);
   robot_state_.rf_leg_joints.position.resize(3);
   robot_state_.rh_leg_joints.position.resize(3);
   robot_state_.lh_leg_joints.position.resize(3);
+
+  robot_state_.lf_target.target_position.resize(1);
+  robot_state_.lf_target.target_velocity.resize(1);
+  robot_state_.lf_target.target_acceleration.resize(1);
+
+  robot_state_.rf_target.target_position.resize(1);
+  robot_state_.rf_target.target_velocity.resize(1);
+  robot_state_.rf_target.target_acceleration.resize(1);
+
+  robot_state_.rh_target.target_position.resize(1);
+  robot_state_.rh_target.target_velocity.resize(1);
+  robot_state_.rh_target.target_acceleration.resize(1);
+
+  robot_state_.lh_target.target_position.resize(1);
+  robot_state_.lh_target.target_velocity.resize(1);
+  robot_state_.lh_target.target_acceleration.resize(1);
+
   return true;
 }
 
@@ -263,17 +282,54 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
     kindr_ros::convertToRosGeometryMsg(adapter_.getFrameTransform(frameId), tfTransform.transform);
     tfBroadcaster_.sendTransform(tfTransform);
   }
+
+  Stance stance_to_reach;
+  std::string foot_frame;
+  if(!step_queue.empty())
+    {
+      for(auto& leg_motion : step_queue.getCurrentStep().getLegMotions())
+        {
+          switch (leg_motion.second->getType()) {
+            case free_gait::LegMotionBase::Type::Footstep:
+              {
+                Footstep foot_step = dynamic_cast<Footstep&>(*leg_motion.second);
+                stance_to_reach[leg_motion.first] = foot_step.getTargetPosition();
+                foot_frame = foot_step.getFrameId(free_gait::ControlLevel::Position);
+                break;
+              }
+              switch (leg_motion.second->getType()) {
+                case free_gait::LegMotionBase::Type::EndEffectorTarget:
+                  {
+                    EndEffectorTarget end_target = dynamic_cast<EndEffectorTarget&>(*leg_motion.second);
+                    stance_to_reach[leg_motion.first] = end_target.getTargetPosition();
+                    break;
+                  }
+                default:
+                  break;
+
+                }
+            }
+        }
+    }
+//  ROS_WARN_STREAM("Footholds To Reach is : "<<stance_to_reach<<std::endl);
+  std_msgs::ColorRGBA color;
+  color.a = 1;
+  color.r = 1;
+  visualization_msgs::MarkerArray foot_markers = free_gait::RosVisualization::getFootholdsMarker(stance_to_reach, foot_frame, color, 0.08);
+  stance_marker_pub_.publish(foot_markers);
+
   //! WSHY: set to publish robot state to the balance controller
 //  ROS_INFO("=============================In ros state publisher : \n");
 //  std::cout<<state<<std::endl;
   kindr_ros::convertToRosGeometryMsg(Pose(Position(state.getTargetPositionWorldToBaseInWorldFrame()),
                                           RotationQuaternion(state.getTargetOrientationBaseToWorld())),
                                      robot_state_.base_pose.pose.pose);
-  std::cout<<state.getTargetOrientationBaseToWorld()<<std::endl;
+//  std::cout<<state.getTargetOrientationBaseToWorld()<<std::endl;
   kindr_ros::convertToRosGeometryMsg(Twist(LinearVelocity(state.getTargetLinearVelocityBaseInWorldFrame()),
                                            LocalAngularVelocity(state.getTargetAngularVelocityBaseInBaseFrame())),
                                      robot_state_.base_pose.twist.twist);
 //  ROS_INFO("In ros state publisher");
+  LegMotionBase::Type leg_motion_type;
   if(state.isSupportLeg(LimbEnum::LF_LEG))
       {
         robot_state_.lf_leg_mode.support_leg = true;
@@ -284,21 +340,38 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
             kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
                                                robot_state_.lf_leg_mode.surface_normal.vector);
           }
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated())
+        robot_state_.lf_leg_mode.phase = 0;
+        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
           robot_state_.lf_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
-        /****************
-          * TODO(Shunyao) : Store Duration information in the state
-          ****************/
-//        ROS_INFO("In ros state publisher");
       }else {
-        robot_state_.lf_leg_mode.support_leg = false;
+      robot_state_.lf_leg_mode.phase = 0;
+      if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::LF_LEG))
+        {
+          robot_state_.lf_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LF_LEG);
+          leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::LF_LEG).getType();
+        }
+      robot_state_.lf_leg_mode.support_leg = false;
 //        ROS_INFO("In ros state publisher");
 //        std::cout<<state.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
-        robot_state_.lf_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(0);
-        robot_state_.lf_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(1);
-        robot_state_.lf_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(2);
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated())
-          robot_state_.lf_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LF_LEG);
+        if(leg_motion_type == LegMotionBase::Type::JointTarget || leg_motion_type == LegMotionBase::Type::JointTrajectory || leg_motion_type == LegMotionBase::Type::LegMode)
+          {
+            robot_state_.lf_leg_mode.name ="joint";
+            robot_state_.lf_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(0);
+            robot_state_.lf_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(1);
+            robot_state_.lf_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LF_LEG)(2);
+          }
+        //! WSHY: packaging the endefector command
+        if(leg_motion_type == LegMotionBase::Type::EndEffectorTarget || leg_motion_type == LegMotionBase::Type::EndEffectorTrajectory || leg_motion_type == LegMotionBase::Type::Footstep)
+          {
+            robot_state_.lf_leg_mode.name = "cartesian";
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootPositionInBaseForLimb(LimbEnum::LF_LEG),
+                                               robot_state_.lf_target.target_position[0].point);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootVelocityInBaseForLimb(LimbEnum::LF_LEG),
+                                               robot_state_.lf_target.target_velocity[0].vector);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootAccelerationInBaseForLimb(LimbEnum::LF_LEG),
+                                               robot_state_.lf_target.target_acceleration[0].vector);
+
+          }
 
         /****************
         * TODO(Shunyao) : velocities command
@@ -315,16 +388,39 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
             kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
                                                robot_state_.rf_leg_mode.surface_normal.vector);
           }
-        if(!step_queue.empty() && step_queue.getCurrentStep().isUpdated())
+        robot_state_.rf_leg_mode.phase = 0;
+        if(!step_queue.empty() && step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
           robot_state_.rf_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
       }else {
+        robot_state_.rf_leg_mode.phase = 0;
+        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::RF_LEG))
+          {
+            robot_state_.rf_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::RF_LEG);
+            leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::RF_LEG).getType();
+          }
         robot_state_.rf_leg_mode.support_leg = false;
-        robot_state_.rf_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(0);
-        robot_state_.rf_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(1);
-        robot_state_.rf_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(2);
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated())
-          robot_state_.rf_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::RF_LEG);
-      }
+        if(leg_motion_type == LegMotionBase::Type::JointTarget || leg_motion_type == LegMotionBase::Type::JointTrajectory || leg_motion_type == LegMotionBase::Type::LegMode)
+          {
+            robot_state_.rf_leg_mode.name = "joint";
+            robot_state_.rf_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(0);
+            robot_state_.rf_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(1);
+            robot_state_.rf_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::RF_LEG)(2);
+          }
+
+        //! WSHY: packaging the endefector command
+        if(leg_motion_type == LegMotionBase::Type::EndEffectorTarget || leg_motion_type == LegMotionBase::Type::EndEffectorTrajectory || leg_motion_type == LegMotionBase::Type::Footstep)
+          {
+            robot_state_.rf_leg_mode.name = "cartesian";
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootPositionInBaseForLimb(LimbEnum::RF_LEG),
+                                               robot_state_.rf_target.target_position[0].point);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootVelocityInBaseForLimb(LimbEnum::RF_LEG),
+                                               robot_state_.rf_target.target_velocity[0].vector);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootAccelerationInBaseForLimb(LimbEnum::RF_LEG),
+                                               robot_state_.rf_target.target_acceleration[0].vector);
+          }
+
+
+              }
     if(state.isSupportLeg(LimbEnum::RH_LEG))
       {
         robot_state_.rh_leg_mode.support_leg = true;
@@ -335,16 +431,38 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
             kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
                                                robot_state_.rh_leg_mode.surface_normal.vector);
           }
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated())
+        robot_state_.rh_leg_mode.phase = 0;
+        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
           robot_state_.rh_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
       }else {
+        robot_state_.rh_leg_mode.phase = 0;
+        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::RH_LEG))
+          {
+            robot_state_.rh_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::RH_LEG);
+            leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::RH_LEG).getType();
+          }
         robot_state_.rh_leg_mode.support_leg = false;
-        robot_state_.rh_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(0);
-        robot_state_.rh_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(1);
-        robot_state_.rh_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(2);
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated())
-          robot_state_.rh_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::RH_LEG);
-      }
+        if(leg_motion_type == LegMotionBase::Type::JointTarget || leg_motion_type == LegMotionBase::Type::JointTrajectory || leg_motion_type == LegMotionBase::Type::LegMode)
+          {
+            robot_state_.rh_leg_mode.name = "joint";
+            robot_state_.rh_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(0);
+            robot_state_.rh_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(1);
+            robot_state_.rh_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::RH_LEG)(2);
+          }
+
+        //! WSHY: packaging the endefector command
+        if(leg_motion_type == LegMotionBase::Type::EndEffectorTarget || leg_motion_type == LegMotionBase::Type::EndEffectorTrajectory || leg_motion_type == LegMotionBase::Type::Footstep)
+          {
+            robot_state_.rh_leg_mode.name = "cartesian";
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootPositionInBaseForLimb(LimbEnum::RH_LEG),
+                                               robot_state_.rh_target.target_position[0].point);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootVelocityInBaseForLimb(LimbEnum::RH_LEG),
+                                               robot_state_.rh_target.target_velocity[0].vector);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootAccelerationInBaseForLimb(LimbEnum::RH_LEG),
+                                               robot_state_.rh_target.target_acceleration[0].vector);
+          }
+
+              }
     if(state.isSupportLeg(LimbEnum::LH_LEG))
       {
         robot_state_.lh_leg_mode.support_leg = true;
@@ -355,16 +473,38 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
             kindr_ros::convertToRosGeometryMsg(Vector(0,0,1),
                                                robot_state_.lh_leg_mode.surface_normal.vector);
           }
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated())
+        robot_state_.lh_leg_mode.phase = 0;
+        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
           robot_state_.lh_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
       }else {
+        robot_state_.lh_leg_mode.phase = 0;
+        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::LH_LEG))
+          {
+            robot_state_.lh_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LH_LEG);
+            leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::LH_LEG).getType();
+          }
         robot_state_.lh_leg_mode.support_leg = false;
-        robot_state_.lh_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(0);
-        robot_state_.lh_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(1);
-        robot_state_.lh_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(2);
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated())
-          robot_state_.lh_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LH_LEG);
-      }
+        if(leg_motion_type == LegMotionBase::Type::JointTarget || leg_motion_type == LegMotionBase::Type::JointTrajectory || leg_motion_type == LegMotionBase::Type::LegMode)
+          {
+            robot_state_.lh_leg_mode.name = "joint";
+            robot_state_.lh_leg_joints.position[0] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(0);
+            robot_state_.lh_leg_joints.position[1] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(1);
+            robot_state_.lh_leg_joints.position[2] = state.getJointPositionsForLimb(LimbEnum::LH_LEG)(2);
+          }
+
+        //! WSHY: packaging the endefector command
+        if(leg_motion_type == LegMotionBase::Type::EndEffectorTarget || leg_motion_type == LegMotionBase::Type::EndEffectorTrajectory || leg_motion_type == LegMotionBase::Type::Footstep)
+          {
+            robot_state_.lh_leg_mode.name = "cartesian";
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootPositionInBaseForLimb(LimbEnum::LH_LEG),
+                                               robot_state_.lh_target.target_position[0].point);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootVelocityInBaseForLimb(LimbEnum::LH_LEG),
+                                               robot_state_.lh_target.target_velocity[0].vector);
+            kindr_ros::convertToRosGeometryMsg(state.getTargetFootAccelerationInBaseForLimb(LimbEnum::LH_LEG),
+                                               robot_state_.lh_target.target_acceleration[0].vector);
+          }
+
+              }
   robot_state_pub_.publish(robot_state_);
 //  ROS_INFO("Publised robot state once");
   return true;

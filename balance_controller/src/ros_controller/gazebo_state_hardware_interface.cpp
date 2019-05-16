@@ -269,7 +269,7 @@ bool SimRobotStateHardwareInterface::initSim(
 void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration period)
 {
   double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
-  real_time_factor = 0.4;
+  real_time_factor = 0.55;
   for(unsigned int j=0; j < n_dof_; j++)
   {
     // Gazebo has an interesting API...
