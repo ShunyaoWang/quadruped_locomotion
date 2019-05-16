@@ -7,10 +7,27 @@ package for quadruped locomotion
 - [ooqp_eigen_interface](https://github.com/HITSZ-LeggedRobotics/dependencies/tree/master/ooqp_eigen_interface-master)
 - [MA27](https://github.com/HITSZ-LeggedRobotics/ma27)
 - [OOQP](https://github.com/HITSZ-LeggedRobotics/OOQP)
+- [RBDL](https://github.com/HITSZ-LeggedRobotics/rbdl)
 - [others](https://github.com/HITSZ-LeggedRobotics/dependencies)
 
 ## Build Dependencies
-  - first install **kindr** and git clone other ROS dependence package AND run `catkin_make`
+  - first build and install **kindr**
+  - build and install **RBDL** follow instructions:
+
+    ```
+    mkdir build
+    cd build
+    cmake -D CMAKE_BUILD_TYPE=Release RBDL_BUILD_ADDON_URDFREADER=TRUE ../
+    make install
+    ```
+    then and .cmake file for cmake to find RBDL
+    ```
+    cd usr/local/lib/cmake
+    sudo mkdir rbdl
+    sudo cp RBDLConfig.cmake /usr/local/lib/cmake/rbdl
+    ```
+  - **Attention:** before make, change the directory in 'quadruped_model/src/quadrupedkinematics,cpp' line 19 with your own directory.
+  - git clone other ROS dependence package AND run `catkin_make`
 
 ## Install
 

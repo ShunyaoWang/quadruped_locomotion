@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Eigen3 REQUIRED)
 find_package(RBDL REQUIRED)
+FIND_PACKAGE (RBDL COMPONENTS URDFReader REQUIRED)
 
 # Attempt to find catkinized kindr
 find_package(kindr QUIET)
@@ -169,7 +170,11 @@ include_directories(
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_executable(kinematics_test_node src/kinematicsTest.cpp)
-target_link_libraries(kinematics_test_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(kinematics_test_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  ${RBDL_LIBRARY}
+  ${RBDL_URDFReader_LIBRARY})
 #############
 ## Install ##
 #############

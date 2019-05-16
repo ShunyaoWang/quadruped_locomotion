@@ -185,7 +185,8 @@ void State::setJointVelocitiesForLimb(const LimbEnum& limb, const JointVelocitie
 
 void State::setAllJointVelocities(const JointVelocities& jointVelocities)
 {
-  quadruped_model::QuadrupedState::setJointVelocities(quadruped_model::JointVelocities(jointVelocities.vector()));
+  setCurrentLimbJointVelocities(jointVelocities);
+//  quadruped_model::QuadrupedState::setJointVelocities(quadruped_model::JointVelocities(jointVelocities.vector()));
 }
 
 const JointAccelerationsLeg State::getJointAccelerationsForLimb(const LimbEnum& limb) const
@@ -313,6 +314,19 @@ Position State::getSupportFootPosition(const LimbEnum& limb)
 void State::setSupportFootStance(const Stance& footInSupport)
 {
   footHoldInSupport_ =footInSupport;
+}
+
+const Pose State::getFootholdsPlanePoseInWorld()
+{
+//  grid_map::Polygon supportRegion;
+  std::vector<Position> footholdsOrdered;
+  getFootholdsCounterClockwiseOrdered(footHoldInSupport_, footholdsOrdered);
+//  for (auto foothold : footholdsOrdered) {
+//    supportRegion.addVertex(foothold.vector());
+////    std::cout<<"footholds ordered is "<<foothold.vector().head<2>()<<std::endl;
+//  }
+
+
 }
 
 std::ostream& operator<<(std::ostream& out, const State& state)

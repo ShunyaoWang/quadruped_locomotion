@@ -16,6 +16,7 @@ class QuadrupedState : public QuadrupedKinematics
 {
 public:
   typedef std::unordered_map<LimbEnum, Pose, EnumClassHash> FootPoseInBase;
+  typedef std::unordered_map<LimbEnum, Vector, EnumClassHash> FootVectorInBase;
   typedef std::unordered_map<LimbEnum, JointPositionsLimb, EnumClassHash> limb_joints;
   typedef std::unordered_map<LimbEnum, std::string, EnumClassHash> limb_configure;
   typedef std::unordered_map<LimbEnum, Position, EnumClassHash> limb_position;
@@ -29,9 +30,14 @@ public:
   const Position getTargetPositionWorldToBaseInWorldFrame() const;
   const RotationQuaternion getTargetOrientationBaseToWorld() const;
 
+  const Position getTargetFootPositionInBaseForLimb(const LimbEnum& limb) const;
+  const LinearVelocity getTargetFootVelocityInBaseForLimb(const LimbEnum& limb) const;
+  const LinearAcceleration getTargetFootAccelerationInBaseForLimb(const LimbEnum& limb) const;
+
   static JointPositions& getJointPositions();
   static JointVelocities& getJointVelocities();
   const JointPositions& getJointPositionFeedback() const;
+  const JointPositionsLimb getJointPositionFeedbackForLimb(const LimbEnum& limb) const;
   const LinearVelocity getLinearVelocityBaseInWorldFrame() const;
   const LocalAngularVelocity getAngularVelocityBaseInBaseFrame() const;
   const LinearVelocity getTargetLinearVelocityBaseInWorldFrame() const;
@@ -45,6 +51,8 @@ public:
                                                               const LimbEnum& limb,
                                                               JointPositionsLimb& jointPositions);
   LinearVelocity getEndEffectorLinearVelocityFromJointVelocities(const LimbEnum& limb, const JointVelocitiesLimb& jointVelocities);
+  LinearVelocity getEndEffectorVelocityInBaseForLimb(const LimbEnum& limb);
+
   double getRobotMass();
   Position getCenterOfMassInBase();
   Position getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb) const;
@@ -64,8 +72,11 @@ public:
 //      joint_position_.segment(start, n) = joint_position_limb.vector();
 //    }
 //  };
+  //! WSHY: feedback
   void setCurrentLimbJoints(JointPositions all_joints_position);
+  void setCurrentLimbJointVelocities(JointVelocities all_joints_velocities);
   bool setPoseBaseToWorld(const Pose pose);
+  //! WSHY: Target
   bool setPositionWorldToBaseInWorldFrame(const Position position);
   bool setOrientationBaseToWorld(const RotationQuaternion rotation);
   bool setLinearVelocityBaseInWorldFrame(const LinearVelocity linear_velocity);
@@ -75,16 +86,22 @@ public:
   bool setLimbConfigure(const std::string leg_configure = "<<");
   bool setBaseStateFromFeedback(const LinearVelocity& base_linear_velocity,
                                 const LocalAngularVelocity& base_angular_velocity);
+  bool setTargetFootPositionInBaseForLimb(const Position& foot_position, const LimbEnum& limb);
+  bool setTargetFootVelocityInBaseForLimb(const LinearVelocity& foot_velocity, const LimbEnum& limb);
+  bool setTargetFootAccelerationInBaseForLimb(const LinearAcceleration& foot_acceleration, const LimbEnum& limb);
 private:
 //  QuadrupedKinematics QK;
-  limb_joints current_limb_joints_;
+  limb_joints current_limb_joints_, current_limb_joint_velocities_;
   limb_configure limb_configure_;
   FootPoseInBase footPoseInBaseFrame_;
+
   //! feedback, current actual pose
-  static Pose poseInWorldFrame_;
+  static FootVectorInBase target_foot_position_in_base_, target_foot_velocity_in_base_,
+                          target_foot_acceleration_in_base_;
+  static Pose poseInWorldFrame_, footholds_plane_pose_;
   static JointPositions joint_positions_, joint_positions_feedback_;
   static JointPositions allJointPositionsFeedback_;
-  static JointVelocities joint_velocities_;
+  static JointVelocities joint_velocities_, joint_velocities_feedback_;
   //! target base position and orientation
   static Position positionWorldToBaseInWorldFrame_;
   static RotationQuaternion orientationBaseToWorld_;

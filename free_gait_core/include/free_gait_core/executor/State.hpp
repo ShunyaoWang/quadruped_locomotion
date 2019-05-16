@@ -18,6 +18,9 @@
 #include <iostream>
 #include <unordered_map>
 
+#include "grid_map_core/Polygon.hpp"
+#include "grid_map_core/grid_map_core.hpp"
+
 namespace free_gait {
 //! TODO(Shunyao): add state feedback from real or simulated robot,
 //!                and build a new adapter inheritate from the base
@@ -83,6 +86,7 @@ class State : public quadruped_model::QuadrupedState
   void getAllJointNames(std::vector<std::string>& jointNames) const;
   Position getSupportFootPosition(const LimbEnum& limb);
   void setSupportFootStance(const Stance& footInSupport);
+  const Pose getFootholdsPlanePoseInWorld();
   friend std::ostream& operator << (std::ostream& out, const State& state);
 
  private:
@@ -104,6 +108,8 @@ class State : public quadruped_model::QuadrupedState
   std::string stepId_; // empty if undefined.
 
   Stance footHoldInSupport_;
+
+  Pose footholds_plane_pose_;
 };
 
 } /* namespace */

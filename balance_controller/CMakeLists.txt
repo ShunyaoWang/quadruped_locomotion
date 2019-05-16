@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   realtime_tools
   sim_assiants
   ooqp_eigen_interface
+  single_leg_test
 )
 
 ## System dependencies are found with CMake's conventions

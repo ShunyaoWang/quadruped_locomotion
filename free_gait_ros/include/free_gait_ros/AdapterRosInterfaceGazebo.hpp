@@ -35,6 +35,7 @@ public:
 private:
   ros::Subscriber joint_states_sub_;
   JointPositions all_joint_positions_;
+  JointVelocities all_joint_velocities_;
   nav_msgs::Odometry base_pose_in_world_;
   Stance foot_in_support_;
   std::vector<free_gait_msgs::LegMode> leg_modes_;

@@ -53,7 +53,7 @@ bool PoseConstraintsChecker::check(const Pose& pose)
         adapter_.transformPosition(adapter_.getWorldFrameId(), adapter_.getBaseFrameId(), foot.second));
     const double legLength = Vector(footPositionInBase - adapter_.getPositionBaseToHipInBaseFrame(foot.first)).norm();
     if (legLength < minLimbLenghts_[foot.first] - legLengthTolerance_ || legLength > maxLimbLenghts_[foot.first] + legLengthTolerance_) {
-      std::cout<<"Leg lenth is out of limits"<<std::endl;
+      std::cout<<"Leg lenth "<<legLength<<" is out of limits"<<std::endl;
       return false;
     }
   }

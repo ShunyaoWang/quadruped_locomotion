@@ -384,6 +384,7 @@ def parse_joint_trajectories(yaml_object):
         joint_trajectory.joint_names.append(joint_name)
     for knot in yaml_object['knots']:
         point = trajectory_msgs.msg.JointTrajectoryPoint()
+        print yaml_object
         point.time_from_start = rospy.Time(knot['time'])
         if 'positions' in knot:
             point.positions = knot['positions']
