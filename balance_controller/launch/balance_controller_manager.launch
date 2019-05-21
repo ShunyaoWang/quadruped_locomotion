@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="kinect_enabled" default="true"/>
+  <arg name="robot_namespace" default="/"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro '$(find simpledog)/urdf/simpledog.urdf.xacro'
+  --inorder
+  robot_namespace:=$(arg robot_namespace)
+  kinect_enabled:=$(arg kinect_enabled)"/>
+  <!--<param name="robot_description" textfile="$(find simpledog)/urdf/simpledog.urdf.xacro"/>-->
+
+  <!--<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />-->
+
+<!-- Load controller configuration -->
+<rosparam command="load" file="$(find balance_controller)/config/control.yaml" />
+<!-- <rosparam command="load" file="$(find simpledog)/config/joint_names_simpleDog.yaml" /> -->
+<!-- Spawn controllers -->
+<node name="base_controller_spawner" pkg="controller_manager" type="spawner"
+      args="simpledog_joint_publisher
+            all_joints_position_group_controller" />
+            <!-- front_left_1_joint_position_controller
+            front_left_2_joint_position_controller
+            front_left_3_joint_position_controller
+            front_right_1_joint_position_controller
+            front_right_2_joint_position_controller
+            front_right_3_joint_position_controller
+            rear_right_1_joint_position_controller
+            rear_right_2_joint_position_controller
+            rear_right_3_joint_position_controller
+            rear_left_1_joint_position_controller
+            rear_left_2_joint_position_controller
+            rear_left_3_joint_position_controller"/> -->
+<rosparam file="$(find balance_controller)/config/controller_gains.yaml" command="load" />
+<node name="base_controller_spawner_stopped" pkg="controller_manager" type="spawner"
+      args="--stopped base_balance_controller" />
+
+<node name="controller_manager" pkg="balance_controller" type="balance_controller_manager" args="" output="screen" respawn="false">
+  <param name="/ethercat_card_name" value="eno1" type="str"/>
+</node>
+<!--get joint states and pub the robot tf-->
+<node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+  <param name="publish_frequency" type="double" value="50.0" />
+  <param name="ignore_timestamp" type="bool" value="false" />
+</node>
+
+<!-- Spawn robot in gazebo (the world file has already include the robot)-->
+<!--<node name="spawn_simpledog_model" pkg="gazebo_ros" type="spawn_model"
+    args="-x $(arg x)
+    -y $(arg y)
+    -z $(arg z)
+    -Y $(arg yaw)
+    -unpause
+    -urdf
+    -param robot_description
+    -model $(arg robot_namespace)" />-->
+</launch>

@@ -79,6 +79,7 @@
   <depend>sim_assiants</depend>
   <depend>ooqp_eigen_interface</depend>
   <depend>single_leg_test</depend>
+  <depend>ros_ethercat_driver</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
