@@ -28,6 +28,7 @@ find_package(catkin REQUIRED COMPONENTS
   sim_assiants
   ooqp_eigen_interface
   single_leg_test
+  ros_ethercat_driver
 )
 
 ## System dependencies are found with CMake's conventions
@@ -200,6 +201,7 @@ target_link_libraries(robot_state_gazebo_ros_control_plugin
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/balance_controller_node.cpp)
 add_executable(balance_controller_test_node test/test.cpp)
+add_executable(balance_controller_manager src/ros_controller/balance_controller_manager.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -215,6 +217,10 @@ add_executable(balance_controller_test_node test/test.cpp)
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(balance_controller_test_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  )
+target_link_libraries(balance_controller_manager
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   )
@@ -234,18 +240,18 @@ target_link_libraries(balance_controller_test_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+ install(TARGETS ${PROJECT_NAME}
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark cpp header files for installation
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
+ install(DIRECTORY include/${PROJECT_NAME}
+   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.hpp"
 #   PATTERN ".svn" EXCLUDE
-# )
+ )
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
