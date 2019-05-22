@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Arguments -->
+  <arg name="output"                          default="screen"/>
+  <arg name="launch_prefix"                   default="'nice -n -20'"/>
+  <arg name="time_step"                       default="0.001"/>
+  <arg name="password"                        default="1"/>
+  <arg name="balance_controller_manager_node_path" default="$(find balance_controller)/../../devel/lib/balance_controller/balance_controller_manager"/>
+
+
+  <!-- Setcap and ROS Node -->
+  <node pkg="balance_controller" type="setcap.sh"
+        name="balance_controller_manager_setcap" output="$(arg output)"
+        args="$(arg output)
+              $(arg launch_prefix)
+              $(arg time_step)
+              $(arg password)
+              $(arg balance_controller_manager_node_path)"/>
+
+</launch>
