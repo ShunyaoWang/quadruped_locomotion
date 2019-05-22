@@ -14,6 +14,15 @@
 #include "ros/callback_queue.h"
 
 #include <boost/chrono.hpp>
+#include <atomic>
+#include <signal.h>
+
+std::atomic<bool> quit(false);//signal flag
+
+void got_signal(int)
+{
+ quit = true;
+}
 
 class BalanceControllerManager
 {
@@ -36,13 +45,19 @@ public:
     timer_thread_ = boost::thread(boost::bind(&BalanceControllerManager::timerThread, this));
     control_timer_.start();
   }
+  ~BalanceControllerManager()
+  {
+
+    EtherCAT_HW_->~RobotStateEtherCATHardwareInterface();
+    ROS_INFO("Deconstruct BalanceControllerManager");
+  }
 
   void controlLoop(const ros::TimerEvent&)
   {
 //    ROS_INFO("Loop once");
     ros::Time time = ros::Time::now();
     ros::Duration peroid(0.0025);
-
+    EtherCAT_HW_->eStopActive(false);
     EtherCAT_HW_->read(time, peroid);
     controller_manager_->update(time, peroid);
     EtherCAT_HW_->write(time, peroid);
@@ -103,10 +118,20 @@ int main(int argc, char *argv[])
   ros::NodeHandle nh, nh_("~");
   BalanceControllerManager balanceControllerManager(nh_);
 
+  struct sigaction sa;
+  memset(&sa, 0, sizeof (sa));
+  sa.sa_handler = got_signal;
+  sigaction(SIGINT, &sa, NULL);
+
   // Spin
   ros::AsyncSpinner spinner(1); // Use n threads
   spinner.start();
-  ros::waitForShutdown();
+//  ros::waitForShutdown();
+  while (ros::ok()) {
+      if(quit) break;
+    }
+
+  ROS_INFO("balance_controller_manager is shutdown");
 
 //  ros_ethercat_driver::RobotStateEtherCATHardwareInterface EtherCATHardWare;
 //  EtherCATHardWare.init(nh_, nh_);
