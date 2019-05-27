@@ -12,11 +12,6 @@ package for quadruped locomotion
 - [others](https://github.com/HITSZ-LeggedRobotics/dependencies)
 
 ## Build Dependencies
-   - Build a floder named libraries to store these files;	
-	
-	mkdir libraries
-	cd libraries 
-	git clone git:..........git// download form the corredponding websites
    
    - first build and install **kindr**
 
