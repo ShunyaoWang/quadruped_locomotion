@@ -98,9 +98,9 @@ std::unique_ptr<Step> Step::clone() const
   std::unique_ptr<Step> pointer(new Step(*this));
   return pointer;
 }
-/**
+/**gggggggggg
  * @brief Step::addLegMotion, add a LegMotionBase class to legMotions_ unorder map data type
- * @param legMotion
+ * @param legMotion test the stom
  */
 void Step::addLegMotion(const LegMotionBase& legMotion)
 {
