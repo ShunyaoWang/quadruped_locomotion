@@ -12,7 +12,7 @@
 
 #include <map>
 #include <string>
-#include <tuple>
+#include <tuple>//rongqi
 
 namespace free_gait {
 
@@ -22,9 +22,26 @@ class StateBatch
   StateBatch();
   virtual ~StateBatch();
 
+  /**
+   * @brief getStates
+   * @return std::map<double, State> states_;
+   *
+   */
   const std::map<double, State>& getStates() const;
+  /**
+   * @brief getEndEffectorPositions
+   * @return a series of endeffectorpositions
+   */
   std::vector<std::map<double, Position>> getEndEffectorPositions() const;
   std::vector<std::map<double, Position>> getEndEffectorTargets() const;
+  /**
+   * @brief getSurfaceNormals
+   * @return
+   * std::tuple<Position, Vector>,means that it is a position vector, but Vector(Big V) is
+   * typeless, they composed a tuple;
+   * std::map<double, std::tuple<Position, Vector>>, this tuple and the double compose a map
+   * std::vector<std::map<double, std::tuple<Position, Vector>>>
+   */
   std::vector<std::map<double, std::tuple<Position, Vector>>> getSurfaceNormals() const;
   std::map<double, Stance> getStances() const;
   bool getEndTimeOfStep(std::string& stepId, double& endTime) const;
@@ -44,7 +61,7 @@ class StateBatch
   std::vector<std::map<double, std::tuple<Position, Vector>>> surfaceNormals_;
   std::map<double, Stance> stances_;
   std::map<double, Pose> basePoses_;
-  std::map<double, std::string> stepIds_;
+  std::map<double, std::string> stepIds_;//double is the time corresponding to the specific step
 };
 
 } /* namespace free_gait */

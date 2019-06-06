@@ -88,7 +88,6 @@ bool Footstep::compute(bool isSupportLeg)
     MELO_ERROR_STREAM("Swing profile of type '" << profileType_ << "' not supported.");
     return false;
   }
-
   times_.clear();
   computeTiming(values_, averageVelocity_, minimumDuration_, times_);
   std::vector<DerivativeType> velocities, accelerations;

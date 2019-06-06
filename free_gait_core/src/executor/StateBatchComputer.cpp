@@ -20,6 +20,10 @@ StateBatchComputer::~StateBatchComputer()
 
 void StateBatchComputer::computeEndEffectorTargetsAndSurfaceNormals(StateBatch& stateBatch)
 {
+  /**
+    const std::map<double, State>& getStates() const;
+    std::map<double, State> states_;
+    */
   stateBatch.endEffectorTargets_.clear();
   stateBatch.endEffectorTargets_.resize(adapter_.getLimbs().size());
   stateBatch.surfaceNormals_.clear();

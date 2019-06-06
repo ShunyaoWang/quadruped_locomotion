@@ -14,6 +14,7 @@ namespace free_gait {
  * @brief StepCompleter::StepCompleter, set parameters for base and leg motions
  * @param parameters
  * @param adapter
+ * something is b
  */
 StepCompleter::StepCompleter(const StepParameters& parameters, const AdapterBase& adapter)
     : parameters_(parameters),
@@ -304,4 +305,3 @@ void StepCompleter::setParameters(BaseTrajectory& baseTrajectory) const
 }
 
 } /* namespace */
-

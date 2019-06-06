@@ -17,14 +17,14 @@ class StepParameters
 {
  public:
   StepParameters() {}
-  virtual ~StepParameters() {};
+  virtual ~StepParameters() {}
 
   friend class StepCompleter;
 
   struct FootstepParameters
   {
     std::string profileType = "triangle";
-    double profileHeight = 0.08;
+    double profileHeight = 0.08;//lunkuo
     double averageVelocity = 0.65;
     double liftOffSpeed = 0.2;
     double touchdownSpeed = 0.05;
@@ -49,12 +49,24 @@ class StepParameters
     double averageAngularVelocity = 0.28;
     double supportMargin = 0.04;
     double minimumDuration = 0.1;
+    /**
+     * @brief nominalPlanarStanceInBaseFrame
+     * typedef std::unordered_map<LimbEnum, Position2, EnumClassHash> PlanarStance;
+     * unorder_map
+     */
     PlanarStance nominalPlanarStanceInBaseFrame;
 
     BaseAutoParameters()
     {
+      /**
+       * @brief position2
+       * what is that?
+       */
       Position2 position;
-      position << 0.4, 0.25;
+      position << 0.4, 0.25;// the length and width of the robot
+      /**
+        map 容器的成员函数 emplace() 可以在适当的位置直接构造新元素，从而避免复制和移动操作
+        */
       nominalPlanarStanceInBaseFrame.emplace(LimbEnum::LF_LEG, position);
       nominalPlanarStanceInBaseFrame.emplace(LimbEnum::RF_LEG, Position2(Eigen::Vector2d(position(0), -position(1))));
       nominalPlanarStanceInBaseFrame.emplace(LimbEnum::LH_LEG, Position2(Eigen::Vector2d(-position(0), position(1))));

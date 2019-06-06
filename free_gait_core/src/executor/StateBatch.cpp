@@ -69,7 +69,7 @@ void StateBatch::addState(const double time, const State& state)
 
 bool StateBatch::isValidTime(const double time) const
 {
-  if (states_.empty()) return false;
+  if (states_.empty()) return false;//map.empty to judge whether is empty
   if (time < states_.begin()->first) return false;
   return true;
 }
@@ -83,7 +83,7 @@ double free_gait::StateBatch::getStartTime() const
 double free_gait::StateBatch::getEndTime() const
 {
   if (states_.empty()) throw std::out_of_range("State batch error: Batch is empty.");
-  return (--states_.end())->first;
+  return (--states_.end())->first;//two - is positive???
 }
 
 const State& StateBatch::getState(const double time) const

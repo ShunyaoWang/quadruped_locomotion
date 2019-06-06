@@ -13,7 +13,9 @@
 #include <curves/PolynomialSplineContainer.hpp>
 
 namespace free_gait {
-
+/**
+add something
+*/
 EndEffectorTarget::EndEffectorTarget(LimbEnum limb)
     : EndEffectorMotionBase(LegMotionBase::Type::EndEffectorTarget, limb),
       duration_(0.0),
