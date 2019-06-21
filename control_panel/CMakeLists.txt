@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(balance_controller)
+project(rqt_control_panel_plugin)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
  add_compile_options(-std=c++11)
@@ -8,32 +8,53 @@ project(balance_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  qp_solver
-  roscpp
-  free_gait_core
-  quadruped_model
-  free_gait_ros
-  controller_interface
-  pluginlib
-  gazebo_dev
-  control_toolbox
-  controller_manager
-  hardware_interface
-  transmission_interface
-  urdf
-  joint_limits_interface
-  gazebo_ros_control
-  forward_command_controller
-  realtime_tools
-  sim_assiants
-  ooqp_eigen_interface
-  single_leg_test
-  ros_ethercat_driver
+  rqt_gui
+  rqt_gui_cpp
+  controller_manager_msgs
+  std_srvs
+  free_gait_msgs
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+find_package(Qt5Widgets REQUIRED)
 
+
+set(rqt_control_panel_plugin_SRCS
+  src/rqt_control_panel_plugin/rqt_control_panel_plugin.cpp
+  src/rqt_control_panel_plugin/rqt_control_panel_plugin_widget.cpp
+)
+
+set(rqt_control_panel_plugin_HDRS
+  include/rqt_control_panel_plugin/rqt_control_panel_plugin.h
+  include/rqt_control_panel_plugin/rqt_control_panel_plugin_widget.h
+)
+
+set(rqt_control_panel_plugin_UIS
+  ui/rqt_control_panel_plugin/rqt_control_panel_plugin_widget.ui
+)
+
+set(rqt_control_panel_plugin_INCLUDE_DIRECTORIES
+  include
+  ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+
+catkin_package(
+  INCLUDE_DIRS ${rqt_control_panel_plugin_INCLUDE_DIRECTORIES}
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS rqt_gui rqt_gui_cpp
+)
+
+qt5_wrap_cpp(rqt_control_panel_plugin_MOCS ${rqt_control_panel_plugin_HDRS})
+qt5_wrap_ui(rqt_control_panel_plugin_UIS_H ${rqt_control_panel_plugin_UIS})
+
+include_directories(${rqt_control_panel_plugin_INCLUDE_DIRECTORIES} ${catkin_INCLUDE_DIRS})
+add_library(${PROJECT_NAME} ${rqt_control_panel_plugin_SRCS} ${rqt_control_panel_plugin_MOCS} ${rqt_control_panel_plugin_UIS_H})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets)
+find_package(class_loader)
+class_loader_hide_library_symbols(${PROJECT_NAME})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -121,28 +142,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES balance_controller gazebo_state_hardware_interface robot_state_gazebo_ros_control_plugin
-  CATKIN_DEPENDS
-  qp_solver
-  roscpp
-  free_gait_core
-  quadruped_model
-  free_gait_ros
-  controller_interface
-  pluginlib
-  gazebo_dev
-  control_toolbox
-  controller_manager
-  hardware_interface
-  transmission_interface
-  urdf
-  joint_limits_interface
-  gazebo_ros_control
-  forward_command_controller
-  realtime_tools
-  sim_assiants
-  ooqp_eigen_interface
+#  INCLUDE_DIRS include
+#  LIBRARIES rqt_control_panel_plugin
+#  CATKIN_DEPENDS rqt_gui
 #  DEPENDS system_lib
 )
 
@@ -153,45 +155,14 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include
+# include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME}
-   src/motion_control/MotionControllerBase.cpp
-   src/motion_control/VirtualModelController.cpp
-   src/contact_force_distribution/ContactForceDistributionBase.cpp
-   src/contact_force_distribution/ContactForceDistribution.cpp
-   src/state_switcher/StateSwitcher.cpp
-   src/state_switcher/StateSwitcherBase.cpp
-#   src/ros_controller/ros_balance_controller.cpp
-#   src/ros_controller/gazebo_state_hardware_interface.cpp
-#   include/balance_controller/contact_force_distribution/ContactForceDistributionBase.hpp
- )
-add_library(gazebo_state_hardware_interface
-    src/ros_controller/gazebo_state_hardware_interface.cpp
-  )
-target_link_libraries(gazebo_state_hardware_interface ${catkin_LIBRARIES})
-
-add_library(ros_balance_controller
-  src/ros_controller/ros_balance_controller.cpp
-  )
-target_link_libraries(ros_balance_controller balance_controller ${catkin_LIBRARIES})
-
-add_library(robot_state_gazebo_ros_control_plugin
-    src/ros_controller/robot_state_gazebo_ros_control_plugin.cpp
-  )
-target_link_libraries(robot_state_gazebo_ros_control_plugin
-  ${catkin_LIBRARIES}
-  gazebo_state_hardware_interface
-  )
-
-#add_library(joint_torque_controller src/ros_controller/joint_torque_controller.cpp)
-#target_link_libraries(joint_torque_controller
-#  ${catkin_LIBRARIES}
-#  )
-
+# add_library(${PROJECT_NAME}
+#   src/${PROJECT_NAME}/rqt_control_panel_plugin.cpp
+# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -201,9 +172,8 @@ target_link_libraries(robot_state_gazebo_ros_control_plugin
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/balance_controller_node.cpp)
-add_executable(balance_controller_test_node test/test.cpp)
-add_executable(balance_controller_manager src/ros_controller/balance_controller_manager.cpp)
+# add_executable(${PROJECT_NAME}_node src/rqt_control_panel_plugin_node.cpp)
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -218,14 +188,6 @@ add_executable(balance_controller_manager src/ros_controller/balance_controller_
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(balance_controller_test_node
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  )
-target_link_libraries(balance_controller_manager
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  )
 
 #############
 ## Install ##
@@ -233,47 +195,38 @@ target_link_libraries(balance_controller_manager
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+class_loader_hide_library_symbols(${PROJECT_NAME})
 
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(FILES plugin.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
-## Mark executables and/or libraries for installation
- install(TARGETS ${PROJECT_NAME}
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
- )
+install(TARGETS ${PROJECT_NAME}
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
 
-## Mark cpp header files for installation
- install(DIRECTORY include/${PROJECT_NAME}
-   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.hpp"
-#   PATTERN ".svn" EXCLUDE
- )
+install(PROGRAMS scripts/rqt_control_panel_plugin
+  DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+install(PROGRAMS scripts/rqt_control_panel_plugin
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+)
+
 
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
- catkin_add_gtest(${PROJECT_NAME}-test
-   test/test_balance_controller.cpp
-   test/virtual_model_controller_test.cpp
-   )
- if(TARGET ${PROJECT_NAME}-test)
-   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME} ${catkin_LIBRARIES})
- endif()
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_rqt_control_panel_plugin.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

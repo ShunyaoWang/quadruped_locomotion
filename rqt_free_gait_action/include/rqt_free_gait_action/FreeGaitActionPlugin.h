@@ -130,6 +130,7 @@ protected:
 
   ros::ServiceClient switchControllerClient_;
   ros::ServiceClient trotSwitchClient_;
+  ros::ServiceClient paceSwitchClient_;
 
   QString selectedAction_ = "";
   QString selectedCollection_ = "";
@@ -282,6 +283,8 @@ signals:
   void statusMessage(std::string message, MessageType type,
                      double displaySeconds);
 
+private slots:
+  void on_Pace_clicked();
 };
 
 } // namespace

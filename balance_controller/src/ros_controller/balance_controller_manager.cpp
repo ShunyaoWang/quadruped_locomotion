@@ -17,6 +17,9 @@
 #include <atomic>
 #include <signal.h>
 
+#include "std_msgs/Bool.h"
+#include "free_gait_msgs/SetLimbConfigure.h"
+
 std::atomic<bool> quit(false);//signal flag
 
 void got_signal(int)
@@ -33,6 +36,14 @@ public:
     EtherCAT_HW_.reset(new ros_ethercat_driver::RobotStateEtherCATHardwareInterface);
     EtherCAT_HW_->init(nh_, nh_);
     controller_manager_.reset(new controller_manager::ControllerManager(EtherCAT_HW_.get()));
+
+    // Initialize the emergency stop code.
+    e_stop_active_ = false;
+    last_e_stop_active_ = false;
+    const std::string e_stop_topic = "/e_stop";
+    e_stop_sub_ = nh_.subscribe(e_stop_topic, 1, &BalanceControllerManager::eStopCB, this);
+
+    control_method_server_ = nh_.advertiseService("/set_control_method", &BalanceControllerManager::setControlMethodCB, this);
 
     ros::TimerOptions control_timer_options(ros::Duration(0.0025),
                                             boost::bind(&BalanceControllerManager::controlLoop, this, _1),
@@ -57,9 +68,29 @@ public:
 //    ROS_INFO("Loop once");
     ros::Time time = ros::Time::now();
     ros::Duration peroid(0.0025);
-    EtherCAT_HW_->eStopActive(false);
+
+    EtherCAT_HW_->eStopActive(e_stop_active_);
     EtherCAT_HW_->read(time, peroid);
-    controller_manager_->update(time, peroid);
+    // Compute the controller commands
+    bool reset_ctrlrs;
+    if (e_stop_active_)
+    {
+      reset_ctrlrs = false;
+      last_e_stop_active_ = true;
+    }
+    else
+    {
+      if (last_e_stop_active_)
+      {
+        reset_ctrlrs = true;
+        last_e_stop_active_ = false;
+      }
+      else
+      {
+        reset_ctrlrs = false;
+      }
+    }
+    controller_manager_->update(time, peroid, reset_ctrlrs);
     EtherCAT_HW_->write(time, peroid);
   }
 
@@ -89,12 +120,32 @@ public:
       }
   }
 
+  // Emergency stop callback
+  void eStopCB(const std_msgs::BoolConstPtr& e_stop_active)
+  {
+    e_stop_active_ = e_stop_active->data;
+  }
+
+  bool setControlMethodCB(free_gait_msgs::SetLimbConfigure::Request& req,
+                          free_gait_msgs::SetLimbConfigure::Response& res)
+  {
+    std::string control_method;
+    control_method = req.configure;
+    res.result = EtherCAT_HW_->setControlMethod(control_method);
+    return true;
+  }
+
 private:
   ros::NodeHandle nh_;
   std::shared_ptr<controller_manager::ControllerManager> controller_manager_;
   std::shared_ptr<ros_ethercat_driver::RobotStateEtherCATHardwareInterface> EtherCAT_HW_;
   ros::CallbackQueue update_queue_;
   ros::Timer control_timer_;
+
+  ros::Subscriber e_stop_sub_;
+  bool e_stop_active_, last_e_stop_active_;
+
+  ros::ServiceServer control_method_server_;
 
   boost::thread control_loop_thread_, timer_thread_;
 
