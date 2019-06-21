@@ -1,0 +1,14 @@
+<library path="lib/librqt_control_panel_plugin">
+  <class name="control_panel_plugin" type="rqt_control_panel_plugin::control_panel_plugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>control panel for quadruped robot</description>
+    <qtgui>
+      <group>
+        <label>Robot Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to...</statustip>
+      </group>
+      <label>control_panel_plugin</label>
+      <statustip>control panel for quadruped robot</statustip>
+    </qtgui>
+  </class>
+</library>
