@@ -75,6 +75,8 @@ public:
     pause_service_server_ = nodeHandle_.advertiseService(pause_service_name_, &ActionServerTest::PauseServiceCallback, this);
     stop_service_server_ = nodeHandle_.advertiseService(stop_service_name_, &ActionServerTest::StopServiceCallback, this);
     gait_start_server_ = nodeHandle_.advertiseService("/gait_generate_switch", &ActionServerTest::GaitGenerateSwitchCallback, this);
+    pace_start_server_ = nodeHandle_.advertiseService("/pace_switch", &ActionServerTest::PaceSwitchCallback, this);
+
     limb_configure_switch_server_ = nodeHandle_.advertiseService("/limb_configure", &ActionServerTest::SwitchLimbConfigureCallback, this);
 
     joint_state_pub_ = nodeHandle_.advertise<sensor_msgs::JointState>("all_joint_position", 1);
@@ -241,6 +243,23 @@ public:
     return true;
   }
 
+  bool PaceSwitchCallback(std_srvs::SetBool::Request& request,
+                                  std_srvs::SetBool::Response& response)
+  {
+    if(request.data == false){
+        is_start_gait = false;
+        ROS_INFO("STOP GAIT....");
+      }
+    if(request.data == true){
+        is_start_gait = true;
+        gait_generate_client_.initializePace(0.5,1.5);
+//        gait_generate_client_.initializePace(0.45, 3*0.5);
+      ROS_INFO("START GAIT....");
+      }
+    response.success = true;
+    return true;
+  }
+
   bool SwitchLimbConfigureCallback(free_gait_msgs::SetLimbConfigure::Request& request,
                                    free_gait_msgs::SetLimbConfigure::Response& response)
   {
@@ -271,7 +290,8 @@ private:
 
   sensor_msgs::JointState allJointStates_;
   ros::Publisher joint_state_pub_;
-  ros::ServiceServer pause_service_server_, stop_service_server_, gait_start_server_, limb_configure_switch_server_;
+  ros::ServiceServer pause_service_server_, stop_service_server_,
+  gait_start_server_, limb_configure_switch_server_, pace_start_server_;
   std::string pause_service_name_, stop_service_name_;
   bool use_gazebo, is_pause, is_stop, is_kinematics_control, is_start_gait;
   /**

@@ -47,6 +47,7 @@
 #include <ros/ros.h>
 #include <pluginlib/class_loader.h>
 #include <std_msgs/Bool.h>
+#include <free_gait_msgs/SetLimbConfigure.h>
 
 // Gazebo
 #include <gazebo/gazebo.hh>
@@ -57,6 +58,7 @@
 #include <gazebo_ros_control/robot_hw_sim.h>
 #include <controller_manager/controller_manager.h>
 #include <transmission_interface/transmission_parser.h>
+#include <balance_controller/ros_controler/gazebo_state_hardware_interface.hpp>
 
 namespace balance_controller
 {
@@ -85,6 +87,9 @@ public:
 protected:
   void eStopCB(const std_msgs::BoolConstPtr& e_stop_active);
 
+  bool setControlMethodCB(free_gait_msgs::SetLimbConfigure::Request& req,
+                          free_gait_msgs::SetLimbConfigure::Response& res);
+
   // Node Handles
   ros::NodeHandle model_nh_; // namespaces to robot name
 
@@ -112,6 +117,7 @@ protected:
   // Robot simulator interface
   std::string robot_hw_sim_type_str_;
   boost::shared_ptr<gazebo_ros_control::RobotHWSim> robot_hw_sim_;
+  balance_controller::SimRobotStateHardwareInterfacePtr robot_hw_;
 
   // Controller manager
   boost::shared_ptr<controller_manager::ControllerManager> controller_manager_;
@@ -124,6 +130,8 @@ protected:
   // e_stop_active_ is true if the emergency stop is active.
   bool e_stop_active_, last_e_stop_active_;
   ros::Subscriber e_stop_sub_;  // Emergency stop subscriber
+
+  ros::ServiceServer control_method_server_;
 
 };
 

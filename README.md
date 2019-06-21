@@ -31,7 +31,7 @@ package for quadruped locomotion
     cd usr/local/lib/cmake
     sudo mkdir rbdl
     sudo cp RBDLConfig.cmake /usr/local/lib/cmake/rbdl
-    ```  
+    ```
   - git clone other ROS dependence package AND run `catkin_make`
 
 ## Install
@@ -39,6 +39,8 @@ package for quadruped locomotion
 ## Usage
 - ### Launch simulation environment
   `roslaunch simpledog simpledog_simulation.launch`
+- ### Launch real robot(not fully surpported but can use for motor test)
+    `roslaunch balance_controller balance_conoller_manager.launch `
 - ### Launch free_gait
   `roslaunch free_gait_ros test.launch`
 - ### Start rqt user interface
@@ -48,4 +50,9 @@ After these step, there would be a gazebo simulation and a rqt interface.
   - Second, refresh the action collections, and send a sitdown action
   - push the **switch** botton, if the robot move correctly, then it start normally; otherwise, push **Back** botton, the robot reset to the ground
   - click **Trot** botton, the robot start torting, click **stop**, it stops troting, when torting, you can send cmd_vel msg to control the move.
+  - control panel in the right bottom can use to switch controller and controll single joint.
 ![rqt_free_gait_interface](/assets/rqt_free_gait_interface.png)
+
+### Control Panel
+when you launch the file for real robot, you actually connected to some EtherCAT driver, so you can use control panel to control motor via EtherCAT.
+![control_panel](/assets/control_panel.png)

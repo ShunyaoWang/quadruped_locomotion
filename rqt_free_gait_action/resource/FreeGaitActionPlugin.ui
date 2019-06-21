@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>479</width>
+    <width>521</width>
     <height>401</height>
    </rect>
   </property>
@@ -242,6 +242,13 @@
       <widget class="QPushButton" name="pushButtonTrot">
        <property name="text">
         <string>Tort</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="Pace">
+       <property name="text">
+        <string>Pace</string>
        </property>
       </widget>
      </item>
