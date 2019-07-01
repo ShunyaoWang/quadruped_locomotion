@@ -184,6 +184,12 @@ void RobotStateGazeboRosControlPlugin::Load(gazebo::physics::ModelPtr parent, sd
     return;
   }
 
+  if(!model_nh_.getParam("/real_time_factor", real_time_factor))
+    {
+      ROS_ERROR("Can't find parameter of 'real_time_factor'");
+      return ;
+    }
+
   // Load the RobotHWSim abstraction to interface the controllers with the gazebo model
   try
   {
@@ -241,6 +247,7 @@ void RobotStateGazeboRosControlPlugin::Update()
 
   // Check if we should update the controllers
   if(sim_period >= control_period_) {
+      sim_period = ros::Duration(sim_period.toSec()/real_time_factor);
     // Store this simulation time
     last_update_sim_time_ros_ = sim_time_ros;
 

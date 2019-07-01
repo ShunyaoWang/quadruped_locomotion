@@ -134,6 +134,8 @@ protected:
   // e_stop_active_ is true if the emergency stop is active.
   bool e_stop_active_, last_e_stop_active_;
 
+  double real_time_factor;
+
   double pos_read[12], pos_write[12], vel_read[12], vel_write[12], eff_read[12],eff_write[12];
   double position[3], orinetation[4], linear_vel[3], angular_vel[3];
   free_gait_msgs::RobotState actual_robot_state_;

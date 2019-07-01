@@ -72,6 +72,12 @@ bool SimRobotStateHardwareInterface::initSim(
   // parameter's name is "joint_limits/<joint name>". An example is "joint_limits/axle_joint".
   const ros::NodeHandle joint_limit_nh(model_nh);
 
+  if(!model_nh.getParam("/real_time_factor", real_time_factor))
+    {
+      ROS_ERROR("Can't find parameter of 'real_time_factor'");
+      return false;
+    }
+
   // Resize vectors to our DOF
   n_dof_ = transmissions.size();
   joint_names_.resize(n_dof_);
@@ -279,8 +285,8 @@ bool SimRobotStateHardwareInterface::initSim(
 
 void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration period)
 {
-  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
-  real_time_factor = 0.55;
+//  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
+//  real_time_factor = 0.55;
   for(unsigned int j=0; j < n_dof_; j++)
   {
     // Gazebo has an interesting API...

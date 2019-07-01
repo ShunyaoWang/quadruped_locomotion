@@ -82,7 +82,7 @@ bool AdapterRosInterfaceGazebo::updateAdapterWithRobotState(AdapterBase& adapter
                                                                base_pose_in_world_.twist.twist.angular.y,
                                                                base_pose_in_world_.twist.twist.angular.z));
 
-    state_last.setBaseStateFromFeedback(0.55*linear_velocity, angular_velocity);
+    state_last.setBaseStateFromFeedback(real_time_factor*linear_velocity, angular_velocity);
     state_last.setPoseBaseToWorld(pose_base_to_world);
     /****************
 * TODO(Shunyao) : Update joint velocity and efforts
