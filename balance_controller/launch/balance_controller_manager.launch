@@ -33,10 +33,16 @@
             rear_left_3_joint_position_controller"/> -->
 <rosparam file="$(find balance_controller)/config/controller_gains.yaml" command="load" />
 <node name="base_controller_spawner_stopped" pkg="controller_manager" type="spawner"
-      args="--stopped base_balance_controller" />
+      args="--stopped base_balance_controller
+                      all_joints_velocity_group_controller
+                      all_joints_effort_group_controller" />
 
 <node name="controller_manager" pkg="balance_controller" type="balance_controller_manager" args="" output="screen" respawn="false">
   <param name="/ethercat_card_name" value="eno1" type="str"/>
+  <param name="/slave_type" value="Twitter" type="str"/>
+  <param name="/pdo_type" value="PDOA" type="str"/>
+  <!-- <param name="/slave_type" value="GoldenTwitter" type="str"/>
+  <param name="/pdo_type" value="PDOA" type="str"/> -->
 </node>
 <!--get joint states and pub the robot tf-->
 <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">

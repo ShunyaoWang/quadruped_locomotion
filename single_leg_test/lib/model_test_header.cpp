@@ -1,5 +1,6 @@
 #include "single_leg_test/model_test_header.hpp"
 //#include "assert.h"
+#include <ros/package.h>
 
 MyRobotSolver::MyRobotSolver(const ros::NodeHandle& node_handle,
                              std::shared_ptr<free_gait::State> robot_state)
@@ -211,16 +212,20 @@ void MyRobotSolver::model_initialization()
 
 bool MyRobotSolver::loadLimbModelFromURDF()
 {
-  char* lf_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_lf_leg.urdf";
+  string lf_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_lf_leg.urdf";
+  char* lf_leg_urdf_dir = (char*)lf_leg_urdf_dir_str.c_str();
   RigidBodyDynamics::Addons::URDFReadFromFile(lf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LF_LEG), false, true);
 
-  char* rf_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_rf_leg.urdf";
+  string rf_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_rf_leg.urdf";
+  char* rf_leg_urdf_dir = (char*)rf_leg_urdf_dir_str.c_str();
   RigidBodyDynamics::Addons::URDFReadFromFile(rf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RF_LEG), false, true);
 
-  char* rh_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_rh_leg.urdf";
+  string rh_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_rh_leg.urdf";
+  char* rh_leg_urdf_dir = (char*)rh_leg_urdf_dir_str.c_str();
   RigidBodyDynamics::Addons::URDFReadFromFile(rh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RH_LEG), false, true);
 
-  char* lh_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_lh_leg.urdf";
+  string lh_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_lh_leg.urdf";
+  char* lh_leg_urdf_dir = (char*)lh_leg_urdf_dir_str.c_str();
   RigidBodyDynamics::Addons::URDFReadFromFile(lh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LH_LEG), false, true);
 
   return true;

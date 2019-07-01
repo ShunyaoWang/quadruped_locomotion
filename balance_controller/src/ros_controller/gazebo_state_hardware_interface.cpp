@@ -23,6 +23,15 @@ double clamp(const double val, const double min_val, const double max_val)
 namespace balance_controller
 {
 
+SimRobotStateHardwareInterface::SimRobotStateHardwareInterface()
+{
+
+}
+
+SimRobotStateHardwareInterface::~SimRobotStateHardwareInterface()
+{
+
+}
 
 bool SimRobotStateHardwareInterface::initSim(
   const std::string& robot_namespace,
@@ -146,8 +155,8 @@ bool SimRobotStateHardwareInterface::initSim(
 
     // Decide what kind of command interface this actuator/joint has
     hardware_interface::JointHandle joint_handle;
-    if(hardware_interface == "EffortJointInterface" || hardware_interface == "hardware_interface/EffortJointInterface")
-    {
+//    if(hardware_interface == "EffortJointInterface" || hardware_interface == "hardware_interface/EffortJointInterface")
+//    {
       // Create effort joint interface
       joint_control_methods_[j] = EFFORT;
       joint_handle = hardware_interface::JointHandle(js_interface_.getHandle(joint_names_[j]),
@@ -156,29 +165,29 @@ bool SimRobotStateHardwareInterface::initSim(
 //                                                                   &joint_effort_command_[j]));
       robot_state_interface_.joint_effort_interfaces_.registerHandle(joint_handle);
       ej_interface_.registerHandle(joint_handle);
-    }
-    else if(hardware_interface == "PositionJointInterface" || hardware_interface == "hardware_interface/PositionJointInterface")
-    {
+//    }
+//    else if(hardware_interface == "PositionJointInterface" || hardware_interface == "hardware_interface/PositionJointInterface")
+//    {
       // Create position joint interface
-      joint_control_methods_[j] = POSITION;
+//      joint_control_methods_[j] = POSITION;
       joint_handle = hardware_interface::JointHandle(js_interface_.getHandle(joint_names_[j]),
                                                      &joint_position_command_[j]);
       pj_interface_.registerHandle(joint_handle);
-    }
-    else if(hardware_interface == "VelocityJointInterface" || hardware_interface == "hardware_interface/VelocityJointInterface")
-    {
+//    }
+//    else if(hardware_interface == "VelocityJointInterface" || hardware_interface == "hardware_interface/VelocityJointInterface")
+//    {
       // Create velocity joint interface
-      joint_control_methods_[j] = VELOCITY;
+//      joint_control_methods_[j] = VELOCITY;
       joint_handle = hardware_interface::JointHandle(js_interface_.getHandle(joint_names_[j]),
                                                      &joint_velocity_command_[j]);
       vj_interface_.registerHandle(joint_handle);
-    }
-    else
-    {
-      ROS_FATAL_STREAM_NAMED("gazebo_robot_state_hw","No matching hardware interface found for '"
-        << hardware_interface << "' while loading interfaces for " << joint_names_[j] );
-      return false;
-    }
+//    }
+//    else
+//    {
+//      ROS_FATAL_STREAM_NAMED("gazebo_robot_state_hw","No matching hardware interface found for '"
+//        << hardware_interface << "' while loading interfaces for " << joint_names_[j] );
+//      return false;
+//    }
 
     if(hardware_interface == "EffortJointInterface" || hardware_interface == "PositionJointInterface" || hardware_interface == "VelocityJointInterface") {
       ROS_WARN_STREAM("Deprecated syntax, please prepend 'hardware_interface/' to '" << hardware_interface << "' within the <hardwareInterface> tag in joint '" << joint_names_[j] << "'.");
@@ -218,12 +227,13 @@ bool SimRobotStateHardwareInterface::initSim(
                         joint_limit_nh, urdf_model,
                         &joint_types_[j], &joint_lower_limits_[j], &joint_upper_limits_[j],
                         &joint_effort_limits_[j]);
+    pid_controllers_[j].init(ros::NodeHandle(model_nh, "all_joints_position_group_controller/" + joint_names_[j] + "/pid"));
+//    ROS_ERROR("%s",model_nh.getNamespace().c_str());
     if (joint_control_methods_[j] != EFFORT)
     {
       // Initialize the PID controller. If no PID gain values are found, use joint->SetAngle() or
       // joint->SetParam("vel") to control the joint.
-      const ros::NodeHandle nh(robot_namespace + "/gazebo_ros_control/pid_gains/" +
-                               joint_names_[j]);
+      const ros::NodeHandle nh("all_joints_position_group_controller/" + joint_names_[j] + "/pid");
       if (pid_controllers_[j].init(nh))
       {
         switch (joint_control_methods_[j])
@@ -263,6 +273,7 @@ bool SimRobotStateHardwareInterface::initSim(
   e_stop_active_ = false;
   last_e_stop_active_ = false;
 
+  ROS_WARN("Init Gazebo hardware interface");
   return true;
 }
 
@@ -449,6 +460,32 @@ void SimRobotStateHardwareInterface::writeSim(ros::Time time, ros::Duration peri
 void SimRobotStateHardwareInterface::eStopActive(const bool active)
 {
   e_stop_active_ = active;
+}
+
+bool SimRobotStateHardwareInterface::setControlMethod(const std::string& method)
+{
+
+  if(method == "Joint Position")
+    {
+      for(int i = 0;i<joint_control_methods_.size();i++)
+        {
+          joint_control_methods_[i] = POSITION_PID;
+        }
+      return true;
+    }else if (method == "Joint Velocity") {
+      for(int i = 0;i<joint_control_methods_.size();i++)
+        {
+          joint_control_methods_[i] = VELOCITY_PID;
+        }
+      return true;
+    }else if (method == "Joint Effort" || method == "Balance") {
+      for(int i = 0;i<joint_control_methods_.size();i++)
+        {
+          joint_control_methods_[i] = EFFORT;
+        }
+      return true;
+    }
+  return false;
 }
 
 // Register the limits of the joint specified by joint_name and joint_handle. The limits are
