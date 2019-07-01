@@ -1,6 +1,5 @@
 #include "single_leg_test/model_test_header.hpp"
 //#include "assert.h"
-#include <ros/package.h>
 
 MyRobotSolver::MyRobotSolver(const ros::NodeHandle& node_handle,
                              std::shared_ptr<free_gait::State> robot_state)
