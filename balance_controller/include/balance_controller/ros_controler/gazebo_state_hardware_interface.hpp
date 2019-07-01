@@ -47,7 +47,8 @@ namespace balance_controller {
 class SimRobotStateHardwareInterface : public gazebo_ros_control::RobotHWSim//public hardware_interface::RobotHW, public hardware_interface::HardwareInterface
 {
 public:
-//  SimRobotStateHardwareInterface(){};
+  SimRobotStateHardwareInterface();
+  ~SimRobotStateHardwareInterface();
   virtual bool initSim(
       const std::string& robot_namespace,
       ros::NodeHandle model_nh,
@@ -64,6 +65,7 @@ public:
   void readJoints();
   void writeJoints();
   void readStates();
+  bool setControlMethod(const std::string& method);
 protected:
   // Methods used to control a joint.
   enum ControlMethod {EFFORT, POSITION, POSITION_PID, VELOCITY, VELOCITY_PID, STANCE_LEG};

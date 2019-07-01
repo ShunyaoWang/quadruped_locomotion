@@ -164,11 +164,12 @@ void RobotStateGazeboRosControlPlugin::Load(gazebo::physics::ModelPtr parent, sd
   // Initialize the emergency stop code.
   e_stop_active_ = false;
   last_e_stop_active_ = false;
-  if (sdf_->HasElement("eStopTopic"))
-  {
-    const std::string e_stop_topic = sdf_->GetElement("eStopTopic")->Get<std::string>();
+//  if (sdf_->HasElement("eStopTopic"))
+//  {
+    const std::string e_stop_topic = "/e_stop";
+//    const std::string e_stop_topic = sdf_->GetElement("eStopTopic")->Get<std::string>();
     e_stop_sub_ = model_nh_.subscribe(e_stop_topic, 1, &RobotStateGazeboRosControlPlugin::eStopCB, this);
-  }
+//  }
 
   ROS_INFO_NAMED("gazebo_ros_control", "Starting gazebo_ros_control plugin in namespace: %s", robot_namespace_.c_str());
 
@@ -186,25 +187,28 @@ void RobotStateGazeboRosControlPlugin::Load(gazebo::physics::ModelPtr parent, sd
   // Load the RobotHWSim abstraction to interface the controllers with the gazebo model
   try
   {
-    robot_hw_sim_loader_.reset
-      (new pluginlib::ClassLoader<gazebo_ros_control::RobotHWSim>
-        ("balance_controller",
-          "gazebo_ros_control::RobotHWSim"));
+    control_method_server_ = model_nh_.advertiseService("/set_control_method", &RobotStateGazeboRosControlPlugin::setControlMethodCB, this);
+//    robot_hw_sim_loader_.reset
+//      (new pluginlib::ClassLoader<gazebo_ros_control::RobotHWSim>
+//        ("balance_controller",
+//          "gazebo_ros_control::RobotHWSim"));
+    robot_hw_.reset(new balance_controller::SimRobotStateHardwareInterface);
 
-    robot_hw_sim_ = robot_hw_sim_loader_->createInstance(robot_hw_sim_type_str_);
+
+//    robot_hw_sim_ = robot_hw_sim_loader_->createInstance(robot_hw_sim_type_str_);
     urdf::Model urdf_model;
     const urdf::Model *const urdf_model_ptr = urdf_model.initString(urdf_string) ? &urdf_model : NULL;
 
-    if(!robot_hw_sim_->initSim(robot_ns, model_nh_, parent_model_, urdf_model_ptr, transmissions_))
+    if(!robot_hw_->initSim(robot_ns, model_nh_, parent_model_, urdf_model_ptr, transmissions_))
     {
       ROS_FATAL_NAMED("gazebo_ros_control","Could not initialize robot simulation interface");
       return;
     }
-
+    robot_hw_->setControlMethod("Joint Effort");
     // Create the controller manager
     ROS_DEBUG_STREAM_NAMED("ros_control_plugin","Loading controller_manager");
     controller_manager_.reset
-      (new controller_manager::ControllerManager(robot_hw_sim_.get(), model_nh_));
+      (new controller_manager::ControllerManager(robot_hw_.get(), model_nh_));
 
     // Listen to the update event. This event is broadcast every simulation iteration.
     update_connection_ =
@@ -233,7 +237,7 @@ void RobotStateGazeboRosControlPlugin::Update()
   ros::Time sim_time_ros(gz_time_now.sec, gz_time_now.nsec);
   ros::Duration sim_period = sim_time_ros - last_update_sim_time_ros_;
 
-  robot_hw_sim_->eStopActive(e_stop_active_);
+  robot_hw_->eStopActive(e_stop_active_);
 
   // Check if we should update the controllers
   if(sim_period >= control_period_) {
@@ -241,7 +245,7 @@ void RobotStateGazeboRosControlPlugin::Update()
     last_update_sim_time_ros_ = sim_time_ros;
 
     // Update the robot simulation with the state of the gazebo model
-    robot_hw_sim_->readSim(sim_time_ros, sim_period);
+    robot_hw_->readSim(sim_time_ros, sim_period);
 
     // Compute the controller commands
     bool reset_ctrlrs;
@@ -267,7 +271,7 @@ void RobotStateGazeboRosControlPlugin::Update()
 
   // Update the gazebo model with the result of the controller
   // computation
-  robot_hw_sim_->writeSim(sim_time_ros, sim_time_ros - last_write_sim_time_ros_);
+  robot_hw_->writeSim(sim_time_ros, sim_time_ros - last_write_sim_time_ros_);
   last_write_sim_time_ros_ = sim_time_ros;
 }
 
@@ -321,6 +325,15 @@ bool RobotStateGazeboRosControlPlugin::parseTransmissionsFromURDF(const std::str
 void RobotStateGazeboRosControlPlugin::eStopCB(const std_msgs::BoolConstPtr& e_stop_active)
 {
   e_stop_active_ = e_stop_active->data;
+}
+
+bool RobotStateGazeboRosControlPlugin::setControlMethodCB(free_gait_msgs::SetLimbConfigure::Request& req,
+                        free_gait_msgs::SetLimbConfigure::Response& res)
+{
+  std::string control_method;
+  control_method = req.configure;
+  res.result = robot_hw_->setControlMethod(control_method);
+  return true;
 }
 
 
