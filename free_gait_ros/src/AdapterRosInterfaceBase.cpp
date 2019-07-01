@@ -43,6 +43,12 @@ bool AdapterRosInterfaceBase::readRobotDescription()
 //    throw pluginlib::PluginlibException("Did not find ROS parameter for robot description '" + robotDescriptionPath + "'.");
 //  }
 //  ROS_INFO("=================================================");
+  if(!nodeHandle_->getParam("/real_time_factor", real_time_factor))
+    {
+      ROS_ERROR("Can't find parameter of 'real_time_factor'");
+      return false;
+    }
+
   return true;
 }
 bool AdapterRosInterfaceBase::updateAdapterWithRobotState(AdapterBase& adapter) const
