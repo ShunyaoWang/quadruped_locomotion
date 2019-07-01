@@ -126,8 +126,9 @@ class BaseAuto : public BaseMotionBase
   curves::CubicHermiteSE3Curve trajectory_;
 
   // In world frame.
+  //typedef std::unordered_map<LimbEnum, Position, EnumClassHash> Stance;
   Stance footholdsToReach_, footholdsInSupport_, footholdsForOrientation_, footholdsOfNextLegMotion_;
-  // In base frame.
+  // In base frame.  
   Stance nominalStanceInBaseFrame_;
 
   //! If trajectory is updated.

@@ -8,7 +8,7 @@
 #include <free_gait_core/executor/State.hpp>
 #include <free_gait_core/TypePrints.hpp>
 
-#include <stdexcept>
+#include <stdexcept>//stl error lib
 
 namespace free_gait {
 
