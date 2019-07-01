@@ -38,7 +38,7 @@ MyRobotSolver::MyRobotSolver(const ros::NodeHandle& node_handle,
 
 MyRobotSolver::~MyRobotSolver()
 {
-  std::cout<<"MyRobotSolver Destroied"<<std::endl;  
+  std::cout<<"MyRobotSolver Destroied"<<std::endl;
 }
 
 Model& MyRobotSolver::getModel()
@@ -211,16 +211,16 @@ void MyRobotSolver::model_initialization()
 
 bool MyRobotSolver::loadLimbModelFromURDF()
 {
-  char* lf_leg_urdf_dir = (char*)"/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_lf_leg.urdf";
+  char* lf_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_lf_leg.urdf";
   RigidBodyDynamics::Addons::URDFReadFromFile(lf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LF_LEG), false, true);
 
-  char* rf_leg_urdf_dir = (char*)"/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_rf_leg.urdf";
+  char* rf_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_rf_leg.urdf";
   RigidBodyDynamics::Addons::URDFReadFromFile(rf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RF_LEG), false, true);
 
-  char* rh_leg_urdf_dir = (char*)"/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_rh_leg.urdf";
+  char* rh_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_rh_leg.urdf";
   RigidBodyDynamics::Addons::URDFReadFromFile(rh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RH_LEG), false, true);
 
-  char* lh_leg_urdf_dir = (char*)"/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_lh_leg.urdf";
+  char* lh_leg_urdf_dir = (char*)"/home/kun/catkin_ws_formal/src/quadruped_locomotion/quadruped_model/urdf/simpledog_lh_leg.urdf";
   RigidBodyDynamics::Addons::URDFReadFromFile(lh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LH_LEG), false, true);
 
   return true;
@@ -391,7 +391,7 @@ void MyRobotSolver::setDesiredPositionAndVelocity(const Eigen::Vector3d& positio
  */
 bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
                            const free_gait::LimbEnum& limb)
-{  
+{
     ROS_INFO("In swing leg controller update");
     calculation_iterstions = 1;//calculation_iterstions + 1;
     Eigen::Matrix3d jacobian = robot_state_->getTranslationJacobianFromBaseToFootInBaseFrame(limb);
