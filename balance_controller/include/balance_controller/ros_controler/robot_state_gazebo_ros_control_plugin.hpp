@@ -131,6 +131,8 @@ protected:
   bool e_stop_active_, last_e_stop_active_;
   ros::Subscriber e_stop_sub_;  // Emergency stop subscriber
 
+  double real_time_factor;
+
   ros::ServiceServer control_method_server_;
 
 };

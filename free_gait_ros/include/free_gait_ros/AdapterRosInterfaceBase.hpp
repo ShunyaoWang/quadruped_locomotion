@@ -37,10 +37,11 @@ class AdapterRosInterfaceBase
   virtual bool updateAdapterWithRobotState(AdapterBase& adapter) const = 0;
 
 //  void updateRobotState(const free_gait_msgs::RobotStateConstPtr& robotState);
-
+  double real_time_factor;
  protected:
   ros::NodeHandle* nodeHandle_;
   std::string robotDescriptionUrdfString_;
+
 //  ros::Subscriber joint_states_sub_;
 //  JointPositions all_joint_positions_;
 
