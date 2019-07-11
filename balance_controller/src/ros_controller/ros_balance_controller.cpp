@@ -296,7 +296,7 @@ namespace balance_controller{
               robot_state->setSupportLeg(limb, false);
               robot_state->setSurfaceNormal(limb, surface_normals.at(limb));
               //! WSHY: move back(-x) and upward(+z)
-              foot_positions.at(limb)(0) -= 0.001;
+              foot_positions.at(limb)(0) -= 0.005;
               foot_positions.at(limb)(2) += 0.02;
               robot_state->setTargetFootPositionInBaseForLimb(Position(foot_positions.at(limb).vector()), limb);
 
@@ -462,7 +462,7 @@ namespace balance_controller{
 //    joint_command_pub_.publish(joint_command);
     //! WSHY: for Swing Leg Control
 //    std::vector<double> & commands = *commands_buffer.readFromRT();
-    ros::Duration real_time_period = ros::Duration(period.toSec()/0.55);
+    ros::Duration real_time_period = ros::Duration(period.toSec());
     free_gait::Force gravity_in_base = base_orinetation.rotate(free_gait::Force(0,0,-9.8));
     if(!robot_state->isSupportLeg(free_gait::LimbEnum::LF_LEG))
       {

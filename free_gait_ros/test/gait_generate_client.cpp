@@ -46,7 +46,7 @@ using namespace free_gait;
     surface_normal.vector.x = 0.0;
     surface_normal.vector.y = 0.0;
     surface_normal.vector.z = 1.0;
-    height_ = 0.4;
+    height_ = 0.5;
     step_number = 0;
     sigma_st_0 = 0.8;
     sigma_st_1 = 0.8;
