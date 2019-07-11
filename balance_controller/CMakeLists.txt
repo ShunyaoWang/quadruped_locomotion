@@ -187,6 +187,20 @@ target_link_libraries(robot_state_gazebo_ros_control_plugin
   gazebo_state_hardware_interface
   )
 
+add_library(state_estimate_controller
+  src/ros_controller/state_estimate_controller.cpp
+  )
+target_link_libraries(state_estimate_controller
+  ${catkin_LIBRARIES}
+  )
+
+  add_library(single_leg_controller
+    src/ros_controller/single_leg_controller.cpp
+    )
+  target_link_libraries(single_leg_controller
+    ${catkin_LIBRARIES}
+    )
+
 #add_library(joint_torque_controller src/ros_controller/joint_torque_controller.cpp)
 #target_link_libraries(joint_torque_controller
 #  ${catkin_LIBRARIES}

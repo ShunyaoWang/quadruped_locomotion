@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com)
+     Commit Version: 1.5.0-0-g9aa0fdb  Build Version: 1.5.7004.21443
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot name="quadruped_model_lh_leg">
+
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.006699 -0.000736 0.001288"
+        rpy="0 0 0" />
+      <mass
+        value="27.801" />
+      <inertia
+        ixx="0.263947"
+        ixy="-0.003647"
+        ixz="0.009059"
+        iyy="2.018039"
+        iyz="-0.000762"
+        izz="2.056397" />
+    </inertial>
+  </link>
+  <link
+    name="rear_left_1_Link">
+    <inertial>
+      <origin
+        xyz="-0.000688 0.10488 0.003776"
+        rpy="0 0 0" />
+      <mass
+        value="2.9231" />
+      <inertia
+        ixx="0.007845"
+        ixy="0.0025"
+        ixz="-7.8E-05"
+        iyy="0.005144"
+        iyz="-0.000967"
+        izz="0.00794" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_left_1_joint"
+    type="revolute">
+    <origin
+      xyz="-0.427 0.075 -0.0095"
+      rpy="0 1.5708 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rear_left_1_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_left_2_Link">
+    <inertial>
+      <origin
+        xyz="0.184717 3.2E-05 0.129056"
+        rpy="0 0 0" />
+      <mass
+        value="4.216358" />
+      <inertia
+        ixx="0.00627"
+        ixy="-0.000181"
+        ixz="-8.8E-05"
+        iyy="0.029233"
+        iyz="9.2E-05"
+        izz="0.028163" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_left_2_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="rear_left_1_Link" />
+    <child
+      link="rear_left_2_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_left_3_Link">
+    <inertial>
+      <origin
+        xyz="0.202313 0.000199 0.225432"
+        rpy="0 0 0" />
+      <mass
+        value="0.444569" />
+      <inertia
+        ixx="0.000397"
+        ixy="-4E-06"
+        ixz="-0.000261"
+        iyy="0.0065"
+        iyz="-2.4E-05"
+        izz="0.006214" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_left_3_joint"
+    type="revolute">
+    <origin
+      xyz="0.308 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="rear_left_2_Link" />
+    <child
+      link="rear_left_3_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="lh_foot_Link">
+    <inertial>
+      <origin
+        xyz="0.022126 -7.7827E-14 0.00049896"
+        rpy="0 0 0" />
+      <mass
+        value="0.03332" />
+      <inertia
+        ixx="1.9126E-05"
+        ixy="-9.3607E-19"
+        ixz="2.2915E-19"
+        iyy="1.3677E-05"
+        iyz="-2.7943E-10"
+        izz="1.3678E-05" />
+    </inertial>
+  </link>
+  <joint
+    name="lh_foot_joint"
+    type="fixed">
+    <origin
+      xyz="0.308 0 0.23"
+      rpy="0 0 0" />
+    <parent
+      link="rear_left_3_Link" />
+    <child
+      link="lh_foot_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>

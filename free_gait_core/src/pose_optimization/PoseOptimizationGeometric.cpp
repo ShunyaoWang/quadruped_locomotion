@@ -45,7 +45,9 @@ bool PoseOptimizationGeometric::optimize(Pose& pose)
   }
   center.z() /= (double) stance_.size();
   pose.getPosition() = center;
-
+  for(auto vert:supportRegion_.getVertices())
+    std::cout<<"vert : "<<vert<<std::endl;
+  std::cout<<"center : "<<center<<std::endl;
   // Orientation: Squared error minimization (see sec. 4.2.2 from Bloesch, Technical
   // Implementations of the Sense of Balance, 2016).
   // Notes on (38):
@@ -88,9 +90,9 @@ bool PoseOptimizationGeometric::optimize(Pose& pose)
 //  pose.getRotation() = yawRotation * rollPitchRotation; // Alternative.
   pose.getRotation() = desiredHeading * rollPitchRotation;
   EulerAnglesZyx eular_zyx(pose.getRotation());
-//  std::cout<<"Pose Optiazation Geometric solve result:"<<std::endl<<pose.getPosition()<<std::endl<<
-//        "Rotation: "<<std::endl<<"Roll: "<<eular_zyx.roll()<<std::endl<<"Pitch: "<<
-//        eular_zyx.pitch()<<std::endl<<"Yaw: "<<eular_zyx.yaw()<<std::endl;
+  std::cout<<"Pose Optiazation Geometric solve result:"<<std::endl<<pose.getPosition()<<std::endl<<
+        "Rotation: "<<std::endl<<"Roll: "<<eular_zyx.roll()<<std::endl<<"Pitch: "<<
+        eular_zyx.pitch()<<std::endl<<"Yaw: "<<eular_zyx.yaw()<<std::endl;
   return true;
 }
 
