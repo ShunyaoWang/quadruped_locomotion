@@ -17,7 +17,8 @@ QuadrupedKinematics::QuadrupedKinematics()
 //  joint_positons_last_.resize(6);
 //  for(unsigned int i = 0;i<6;i++)
 //    joint_positons_last_(i) = 0.0;
-  string urdf_dir = ros::package::getPath("quadruped_model") + "/urdf/simpledog_m.urdf";
+//  string urdf_dir = ros::package::getPath("quadruped_model") + "/urdf/simpledog_m.urdf";
+  string urdf_dir = ros::package::getPath("quadruped_model") + "/urdf/quadruped_model.urdf";
   LoadRobotDescriptionFromFile(urdf_dir);
   std::cout<<urdf_dir<<std::endl;
   //  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog_m.urdf");
@@ -65,8 +66,8 @@ bool QuadrupedKinematics::LoadRobotDescriptionFromFile(const std::string filenam
 // KDL::Chain LF_Chain, RF_Chain,RH_Chain,LH_Chain;
  tree_.getChain("base_link", "lf_foot_Link", LF_Chain);
  tree_.getChain("base_link", "rf_foot_Link", RF_Chain);
- tree_.getChain("base_link", "lh_foot_Link", RH_Chain);
- tree_.getChain("base_link", "rh_foot_Link", LH_Chain);
+ tree_.getChain("base_link", "rh_foot_Link", RH_Chain);
+ tree_.getChain("base_link", "lh_foot_Link", LH_Chain);
  setHipPoseInBase(LF_Chain,LimbEnum::LF_LEG);
  setHipPoseInBase(RF_Chain,LimbEnum::RF_LEG);
  setHipPoseInBase(RH_Chain,LimbEnum::RH_LEG);
@@ -563,17 +564,20 @@ double QuadrupedKinematics::MapToPI(double q)
 
 Position QuadrupedKinematics::getPositionBaseToHipInBaseFrame(const LimbEnum& limb) const
 {
-  switch (limb) {
-    case LimbEnum::LF_LEG:
-      return Position(0.4, 0.175, 0.0);
-    case LimbEnum::RF_LEG:
-      return Position(0.4, -0.175, 0.0);
-    case LimbEnum::LH_LEG:
-      return Position(-0.4, 0.175, 0.0);
-    case LimbEnum::RH_LEG:
-      return Position(-0.4, -0.175, 0.0);
-    default:
-      throw std::runtime_error("QuadrupedKinematics::getPositionBaseToHipInBaseFrame something went wrong.");
-  }
+  Position hip_position_in_base = hip_pose_in_base_.at(limb).getPosition();
+  hip_position_in_base.z() = 0.0;
+  return hip_position_in_base;
+//  switch (limb) {
+//    case LimbEnum::LF_LEG:
+//      return Position(0.42, 0.075, 0.0);
+//    case LimbEnum::RF_LEG:
+//      return Position(0.42, -0.075, 0.0);
+//    case LimbEnum::LH_LEG:
+//      return Position(-0.42, 0.075, 0.0);
+//    case LimbEnum::RH_LEG:
+//      return Position(-0.42, -0.075, 0.0);
+//    default:
+//      throw std::runtime_error("QuadrupedKinematics::getPositionBaseToHipInBaseFrame something went wrong.");
+//  }
 }
 }//namespace

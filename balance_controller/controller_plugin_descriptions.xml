@@ -1,7 +1,26 @@
-<library path="lib/libros_balance_controller">
-  <class name="balance_controller/RosBalanceController"
-         type="balance_controller::RosBalanceController"
-         base_class_type="controller_interface::ControllerBase">
-    <description>A gazebo interface with robot state .</description>
-  </class>
-</library>
+<class_libraries>
+  <library path="lib/libros_balance_controller">
+    <class name="balance_controller/RosBalanceController"
+           type="balance_controller::RosBalanceController"
+           base_class_type="controller_interface::ControllerBase">
+      <description>A gazebo interface with robot state .</description>
+    </class>
+  </library>
+
+  <library path="lib/libstate_estimate_controller">
+    <class name="balance_controller/StateEstimateController"
+           type="balance_controller::StateEstimateController"
+           base_class_type="controller_interface::ControllerBase">
+      <description>A state estimate controller.</description>
+    </class>
+  </library>
+
+  <library path="lib/libsingle_leg_controller">
+    <class name="balance_controller/SingleLegController"
+           type="balance_controller::SingleLegController"
+           base_class_type="controller_interface::ControllerBase">
+      <description>A single leg  controller.</description>
+    </class>
+  </library>
+
+</class_libraries>

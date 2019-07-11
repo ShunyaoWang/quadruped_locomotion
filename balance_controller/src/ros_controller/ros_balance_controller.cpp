@@ -296,7 +296,7 @@ namespace balance_controller{
               robot_state->setSupportLeg(limb, false);
               robot_state->setSurfaceNormal(limb, surface_normals.at(limb));
               //! WSHY: move back(-x) and upward(+z)
-              foot_positions.at(limb)(0) -= 0.001;
+              foot_positions.at(limb)(0) -= 0.005;
               foot_positions.at(limb)(2) += 0.02;
               robot_state->setTargetFootPositionInBaseForLimb(Position(foot_positions.at(limb).vector()), limb);
 

@@ -25,7 +25,7 @@ LocalAngularVelocity QuadrupedState::base_feedback_angular_velocity_, QuadrupedS
 
 QuadrupedState::QuadrupedState()
   : QuadrupedKinematics(),
-    robot_mass_(25.0),
+    robot_mass_(27.0),
     CoM_in_base_(Position(0,0,0))
 {
 //  QuadrupedKinematics::LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
@@ -34,10 +34,10 @@ QuadrupedState::QuadrupedState()
 //  LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
 //  std::cout<<"Constructor QuadrupedState"<<std::endl;
   limb_mass_ = limb_mass({
-                         {LimbEnum::LF_LEG, 3.5},
-                         {LimbEnum::RF_LEG, 3.5},
-                         {LimbEnum::RH_LEG, 3.5},
-                         {LimbEnum::LH_LEG, 3.5},
+                         {LimbEnum::LF_LEG, 6.0},
+                         {LimbEnum::RF_LEG, 6.0},
+                         {LimbEnum::RH_LEG, 6.0},
+                         {LimbEnum::LH_LEG, 6.0},
                        });
 //  setPoseBaseToWorld(Pose(Position(0,0,0), RotationQuaternion()));
 //  joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
@@ -84,13 +84,13 @@ Position QuadrupedState::getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb
 {
   switch (limb) {
     case LimbEnum::LF_LEG:
-      return Position(0.3, 0.2, 0.0) - CoM_in_base_;
+      return Position(0.42, 0.075, 0.0) - CoM_in_base_;
     case LimbEnum::RF_LEG:
-      return Position(0.3, -0.2, 0.0) - CoM_in_base_;
+      return Position(0.42, -0.075, 0.0) - CoM_in_base_;
     case LimbEnum::LH_LEG:
-      return Position(-0.3, 0.2, 0.0) - CoM_in_base_;
+      return Position(-0.42, 0.075, 0.0) - CoM_in_base_;
     case LimbEnum::RH_LEG:
-      return Position(-0.3, -0.2, 0.0) - CoM_in_base_;
+      return Position(-0.42, -0.075, 0.0) - CoM_in_base_;
     default:
       throw std::runtime_error("Position QuadrupedState::getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb) const something went wrong.");
   }
