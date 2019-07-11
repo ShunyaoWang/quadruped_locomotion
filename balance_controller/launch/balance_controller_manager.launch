@@ -14,6 +14,8 @@
 
 <!-- Load controller configuration -->
 <rosparam command="load" file="$(find balance_controller)/config/control.yaml" />
+
+<rosparam command="load" file="$(find ros_ethercat_driver)/config/motor_param.yaml" />
 <!-- <rosparam command="load" file="$(find simpledog)/config/joint_names_simpleDog.yaml" /> -->
 <!-- Spawn controllers -->
 <node name="base_controller_spawner" pkg="controller_manager" type="spawner"

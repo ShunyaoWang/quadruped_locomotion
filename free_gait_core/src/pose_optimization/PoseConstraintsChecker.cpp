@@ -42,6 +42,8 @@ bool PoseConstraintsChecker::check(const Pose& pose)
   // Check center of mass.
   grid_map::Polygon supportRegionCopy(supportRegion_);
   supportRegionCopy.offsetInward(centerOfMassTolerance_);
+//  for(auto vert:supportRegion_.getVertices())
+//    std::cout<<"vert : "<<vert<<std::endl;
   if (!supportRegion_.isInside(adapter_.getCenterOfMassInWorldFrame().vector().head(2))) {
     std::cout<<"Center of mass: "<<adapter_.getCenterOfMassInWorldFrame()<<" is out of support region"<<std::endl;
     return false;

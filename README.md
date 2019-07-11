@@ -27,7 +27,9 @@ package for quadruped locomotion
     sudo cp RBDLConfig.cmake /usr/local/lib/cmake/rbdl
     ```
   - git clone other ROS dependence package AND run `catkin_make`
-
+  - **Bugs**
+    - first build package sim_assiants in simpledog_simulation
+    - then build package >>free_gait_msgs
 ## Install
 
 ## Usage
@@ -46,6 +48,10 @@ After these step, there would be a gazebo simulation and a rqt interface.
   - click **Trot** botton, the robot start torting, click **stop**, it stops troting, when torting, you can send cmd_vel msg to control the move.
   - control panel in the right bottom can use to switch controller and controll single joint.
 ![rqt_free_gait_interface](/assets/rqt_free_gait_interface.png)
+- ### Use Interactive Marker
+ If use a interactive marker in RVIZ to send a single footstep goal;
+ instead launch the **rqt_interface.launch** , do:
+ `roslaunch simpledog quadruped_interactive_marker.launch`
 
 ### Control Panel
 when you launch the file for real robot, you actually connected to some EtherCAT driver, so you can use control panel to control motor via EtherCAT.
