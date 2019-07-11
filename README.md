@@ -27,7 +27,9 @@ package for quadruped locomotion
     sudo cp RBDLConfig.cmake /usr/local/lib/cmake/rbdl
     ```
   - git clone other ROS dependence package AND run `catkin_make`
-
+  - **Bugs**
+    - first build package sim_assiants in simpledog_simulation
+    - then build package >>free_gait_msgs
 ## Install
 
 ## Usage
