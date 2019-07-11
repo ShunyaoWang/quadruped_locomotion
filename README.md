@@ -34,7 +34,7 @@ package for quadruped locomotion
 
 ## Usage
 - ### Launch simulation environment
-  `roslaunch simpledog simpledog_simulation.launch`
+  `roslaunch simpledog quadruped_simulation.launch`
 - ### Launch real robot(not fully surpported but can use for motor test)
     `roslaunch balance_controller balance_conoller_manager.launch `
 - ### Launch free_gait
