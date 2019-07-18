@@ -4,7 +4,7 @@
   <arg name="kinect_enabled" default="true"/>
   <arg name="robot_namespace" default="/"/>
 
-  <param name="robot_description" command="$(find xacro)/xacro '$(find simpledog)/urdf/simpledog_real_control.urdf.xacro'
+  <param name="robot_description" command="$(find xacro)/xacro '$(find simpledog)/urdf/quadruped_model.urdf.xacro'
   --inorder
   robot_namespace:=$(arg robot_namespace)
   kinect_enabled:=$(arg kinect_enabled)"/>
@@ -36,8 +36,9 @@
 <rosparam file="$(find balance_controller)/config/controller_gains.yaml" command="load" />
 <node name="base_controller_spawner_stopped" pkg="controller_manager" type="spawner"
       args="--stopped base_balance_controller
-                      all_joints_velocity_group_controller
-                      all_joints_effort_group_controller" />
+              single_leg_controller
+              all_joints_velocity_group_controller
+              all_joints_effort_group_controller" />
 
 <node name="controller_manager" pkg="balance_controller" type="balance_controller_manager" args="" output="screen" respawn="false">
   <param name="/ethercat_card_name" value="eno1" type="str"/>
