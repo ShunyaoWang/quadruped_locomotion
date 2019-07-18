@@ -22,6 +22,14 @@
 #include "free_gait_msgs/RobotState.h"
 #include "sim_assiants/FootContacts.h"
 #include "urdf/model.h"
+#include "tf/transform_broadcaster.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "free_gait_msgs/SetLimbConfigure.h"
+
+#include "geometry_msgs/Wrench.h"
+
+#include "algorithm"
+
 
 namespace balance_controller {
 
@@ -60,12 +68,33 @@ namespace balance_controller {
     realtime_tools::RealtimeBuffer<std::vector<double>> commands_buffer;
     unsigned int n_joints;
 
+    void staticTFPublisher();
+    void robotStatePublisher();
+    void fakePosePublisher();
+
   private:
 
     /**
      * @brief base_command_sub_,subscribe base_command and contact information
      */
-    ros::Subscriber base_command_sub_, contact_sub_;
+    ros::Subscriber base_command_sub_, contact_sub_, contact_force_sub_;
+
+    ros::ServiceClient switchControlMethodClient_;
+    //! TF boardcaster
+    tf::TransformBroadcaster tfBoardcaster_;
+    tf::Transform odom2base, odom_to_footprint, footprint_to_base;
+    tf::Quaternion q;
+
+    //! ROS publisher
+    ros::Publisher fakePosePub_, robot_state_pub_;
+
+    //! pose
+    geometry_msgs::PoseWithCovarianceStamped fakePoseMsg_;
+    geometry_msgs::Pose base_pose;
+
+//    std::vector<Force> contactForces_;
+
+    free_gait_msgs::RobotState robot_state_msg;
     /**
      * @brief robot_state_, State class to save all the robot state ,and provide method of
      * kinemaics
@@ -77,9 +106,14 @@ namespace balance_controller {
     std::vector<free_gait::LimbEnum> limbs_;
     std::vector<free_gait::BranchEnum> branches_;
     LimbFlag real_contact_, is_cartisian_motion_;
-    LimbVector foot_positions, foot_velocities, foot_accelerations;
+    LimbVector foot_positions, foot_velocities, foot_accelerations, contactForces_;
 
     Position end_desired_position;
+
+    //! WSHY: update joint state
+    free_gait::JointPositions all_joint_positions;
+    free_gait::JointVelocities all_joint_velocities;
+    free_gait::JointEfforts all_joint_efforts;
 
     /**
      * @brief baseCommandCallback, ros subscriber callback
@@ -88,5 +122,6 @@ namespace balance_controller {
     void baseCommandCallback(const free_gait_msgs::RobotStateConstPtr& robot_state_msg);
     void footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts);
 
+    void forceCommandCallback(const geometry_msgs::WrenchConstPtr& force_command);
   };
 }

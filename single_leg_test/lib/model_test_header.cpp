@@ -35,6 +35,7 @@ MyRobotSolver::MyRobotSolver(const ros::NodeHandle& node_handle,
       QDotActQueueLimb[limb] = vector_queue;
       LimbRBDLModel[limb] = new Model();
     }
+  joint_state_pub_ = node_handle_.advertise<sensor_msgs::JointState>("/inverse_dynamic_joint_state", 1);
 }
 
 MyRobotSolver::~MyRobotSolver()
@@ -399,9 +400,11 @@ void MyRobotSolver::setDesiredPositionAndVelocity(const Eigen::Vector3d& positio
  * @return
  */
 bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
-                           const free_gait::LimbEnum& limb)
-{
+const free_gait::LimbEnum& limb, bool real_time)
+{  
+
     ROS_INFO("In swing leg controller update");
+    sensor_msgs::JointState q_state;
     calculation_iterstions = 1;//calculation_iterstions + 1;
     Eigen::Matrix3d jacobian = robot_state_->getTranslationJacobianFromBaseToFootInBaseFrame(limb);
 //    cout<<"Jacobian : "<<jacobian<<endl;
@@ -414,11 +417,32 @@ bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
 //      QDotAcutal(calculation_iterstions,num) = (QAcutal(calculation_iterstions,num) - QAcutal(calculation_iterstions - 1, num))/Time_derta;
       QDDotAcutal(calculation_iterstions,num) = (QDotAcutal(calculation_iterstions,num) - QDotAcutal(calculation_iterstions - 1, num))/Time_derta;
      }
+    if(real_time)
+      {
+        std::queue<VectorNd> last_queue, current_queue;
+        last_queue = QDotActQueueLimb.at(limb);
+        current_queue = QDotActQueueLimb.at(limb);
+        int window_size = QDotActQueueLimb.at(limb).size() - 1;
+        for(int i = 0;i<QDotActQueueLimb.at(limb).size() - 1 ;i++)
+          {
+            current_queue.pop();
+            QDotAcutal.row(calculation_iterstions) = QDotAcutal.row(calculation_iterstions) + current_queue.front();
+            QDotAcutal.row(calculation_iterstions - 1) = QDotAcutal.row(calculation_iterstions - 1) + last_queue.front();
+            last_queue.pop();
+          }
+        QDotAcutal.row(calculation_iterstions) = QDotAcutal.row(calculation_iterstions)/window_size;
+        QDotAcutal.row(calculation_iterstions - 1) = QDotAcutal.row(calculation_iterstions - 1)/window_size;
+
+        for (int num = 0; num < num_of_joints; ++num) {
+          QDDotAcutal(calculation_iterstions,num) = (QDotAcutal(calculation_iterstions,num) - QDotAcutal(calculation_iterstions - 1, num))/period.toSec();
+
+          }
+      }
 
     VecQDotAct = QDotAcutal.row(calculation_iterstions).transpose();
-    VecQDDotAct = QDDotAcutal.row(calculation_iterstions).transpose();
+    VecQDDotAct = 0.1*QDDotAcutal.row(calculation_iterstions).transpose();
 
-    InverseDynamics(QuadrupedRobotModel,VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
+//    InverseDynamics(QuadrupedRobotModel,VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
 
     InverseDynamics(*LimbRBDLModel.at(limb),VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
 //    for (int num = 0; num < num_of_joints; ++num) {
@@ -426,15 +450,33 @@ bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
 //                     + kd_* (QDotPlanned(calculation_iterstions,num)-QDotAcutal(calculation_iterstions,num))
 //                     + VecTauAct[num];
 //    }
+    for (int num = 0; num < num_of_joints; ++num) {
+      q_state.name.push_back("joint"+std::to_string(num));
+      q_state.effort.push_back(VecTauAct(num));
+      q_state.velocity.push_back(VecQDDotAct(num));
+      q_state.position.push_back(VecQDotAct(num));
+      }
+    joint_state_pub_.publish(q_state);
 
 //    Tauacutal.row(calculation_iterstions) = VecTauAct.transpose();
 //    ROS_INFO("Got Here!");
+//    ROS_INFO("ID joint torque : ");
+//    std::cout<<VecTauAct<<std::endl;
+//    ROS_INFO("joint accelleration : ");
+//    std::cout<<VecQDDotAct<<std::endl;
+//    std::cout<<VecTauAct<<std::endl;
     if(limb == free_gait::LimbEnum::RF_LEG || limb == free_gait::LimbEnum::LH_LEG)
       VecTauAct = -VecTauAct;
     Tauacutal.row(0) = VecTauAct;
     Eigen::Vector3d position_error_in_base, velocity_error_in_base;
     position_error_in_base = robot_state_->getTargetFootPositionInBaseForLimb(limb).vector()
         - robot_state_->getPositionBaseToFootInBaseFrame(limb).vector();
+//    ROS_INFO("Position error in base : ");
+//    std::cout<<position_error_in_base<<std::endl;
+//    ROS_INFO("current Position in base : ");
+//    std::cout<<robot_state_->getPositionBaseToFootInBaseFrame(limb).vector()<<std::endl;
+//    ROS_INFO("Target Position error in base : ");
+//    std::cout<<robot_state_->getTargetFootPositionInBaseForLimb(limb).vector()<<std::endl;
     velocity_error_in_base = robot_state_->getTargetFootVelocityInBaseForLimb(limb).vector()
         - robot_state_->getEndEffectorVelocityInBaseForLimb(limb).vector();
 //    ROS_WARN_STREAM("Inertial Matrix :" <<QuadrupedRobotModel.IA<<std::endl);
