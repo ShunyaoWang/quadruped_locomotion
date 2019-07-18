@@ -18,7 +18,7 @@ package for quadruped locomotion
     mkdir build
     cd build
     cmake -D CMAKE_BUILD_TYPE=Release RBDL_BUILD_ADDON_URDFREADER=TRUE ../
-    make install
+    sudo make install
     ```
     then and .cmake file for cmake to find RBDL
     ```
@@ -28,19 +28,20 @@ package for quadruped locomotion
     ```
   - git clone other ROS dependence package AND run `catkin_make`
   - **Bugs**
-    - first build package sim_assiants in simpledog_simulation
-    - then build package >>free_gait_msgs
+    - first build package >>free_gait_msgs
+    - then build package sim_assiants in simpledog_simulation
 ## Install
 
 ## Usage
 - ### Launch simulation environment
-  `roslaunch simpledog simpledog_simulation.launch`
+  `roslaunch simpledog quadruped_simulation.launch`
 - ### Launch real robot(not fully surpported but can use for motor test)
     `roslaunch balance_controller balance_conoller_manager.launch `
 - ### Launch free_gait
   `roslaunch free_gait_ros test.launch`
 - ### Start rqt user interface
   ` roslaunch balance_controller rqt_interface.launch `
+
 After these step, there would be a gazebo simulation and a rqt interface.
   - First, move the dog model and place it in the gazebo.
   - Second, refresh the action collections, and send a sitdown action

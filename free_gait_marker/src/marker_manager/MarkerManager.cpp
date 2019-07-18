@@ -561,6 +561,9 @@ bool MarkerManager::sendStepGoal()
     footstep.name = foothold.legName;
     footstep.target.header.frame_id = footholdFrameId_;
     footstep.target.point = marker.pose.position;
+    footstep.profile_type = "triangle";
+    footstep.profile_height = 0.15;
+    footstep.average_velocity = 0.65;
 //    footstep.ignore_for_pose_adaptation = true;
 //    swingData.profile.type = "square";
     step.footstep.push_back(footstep);
