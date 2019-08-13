@@ -71,3 +71,9 @@ actions:
       file: motion_scripts/change_to_spot.yaml
       type: yaml
       description: change the leg configuration to a "Spot" like
+  - action:
+     id: "13"
+     name: Leg move Demo
+     file: motion_scripts/leg_move.yaml
+     type: yaml
+     description: move four legs

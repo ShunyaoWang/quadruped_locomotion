@@ -46,6 +46,9 @@ public:
     void setGains(const Eigen::Vector3d& kp, const Eigen::Vector3d& kd);
     void setDesiredPositionAndVelocity(const Eigen::Vector3d& position, const Eigen::Vector3d& velocity);
     const VectorNd& getVecQAct();
+    const VectorNd& getVecQDAct();
+    const VectorNd& getVecQDDAct();
+
     const VectorNd& getVecTauAct();
     const MatrixNd& getQAcutal();
     const MatrixNd& getQDotAcutal();
