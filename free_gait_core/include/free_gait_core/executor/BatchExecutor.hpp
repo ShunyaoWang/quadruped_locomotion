@@ -12,10 +12,10 @@
 #include "free_gait_core/executor/AdapterBase.hpp"
 #include "free_gait_core/executor/StateBatch.hpp"
 
-#include <thread>
+#include <thread>//duo xian cheng
 #include <memory>
-#include <functional>
-#include <atomic>
+#include <functional>//function object
+#include <atomic>//duoxiancheng tongbu caozuo
 
 namespace free_gait {
 

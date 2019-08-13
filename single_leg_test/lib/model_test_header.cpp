@@ -40,7 +40,7 @@ MyRobotSolver::MyRobotSolver(const ros::NodeHandle& node_handle,
 
 MyRobotSolver::~MyRobotSolver()
 {
-  std::cout<<"MyRobotSolver Destroied"<<std::endl;  
+  std::cout<<"MyRobotSolver Destroied"<<std::endl;
 }
 
 Model& MyRobotSolver::getModel()
@@ -410,9 +410,8 @@ void MyRobotSolver::setDesiredPositionAndVelocity(const Eigen::Vector3d& positio
  * @return
  */
 bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
-                           const free_gait::LimbEnum& limb, bool real_time)
+const free_gait::LimbEnum& limb, bool real_time)
 {  
-//    ROS_INFO("In swing leg controller update");
     sensor_msgs::JointState q_state;
     calculation_iterstions = 1;//calculation_iterstions + 1;
     Eigen::Matrix3d jacobian = robot_state_->getTranslationJacobianFromBaseToFootInBaseFrame(limb);

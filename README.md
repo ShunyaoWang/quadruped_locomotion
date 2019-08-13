@@ -1,5 +1,6 @@
 # quadruped_locomoton
 package for quadruped locomotion
+
 ## Dependencies
 - [kindr](https://github.com/ANYbotics/kindr)
 - [grid_map](https://github.com/ANYbotics/grid_map)
@@ -11,8 +12,12 @@ package for quadruped locomotion
 - [others](https://github.com/HITSZ-LeggedRobotics/dependencies)
 
 ## Build Dependencies
-  - first build and install **kindr**
-  - build and install **RBDL** follow instructions:
+   
+   - first build and install **kindr**
+
+  
+   - build and install **RBDL** follow instructions in the corresponding floder;
+
 
     ```
     mkdir build
@@ -20,7 +25,8 @@ package for quadruped locomotion
     cmake -D CMAKE_BUILD_TYPE=Release RBDL_BUILD_ADDON_URDFREADER=TRUE ../
     sudo make install
     ```
-    then and .cmake file for cmake to find RBDL
+   then and .cmake file for cmake to find RBDL
+   
     ```
     cd usr/local/lib/cmake
     sudo mkdir rbdl
