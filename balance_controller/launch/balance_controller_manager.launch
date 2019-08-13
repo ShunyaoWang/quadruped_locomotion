@@ -8,6 +8,8 @@
   --inorder
   robot_namespace:=$(arg robot_namespace)
   kinect_enabled:=$(arg kinect_enabled)"/>
+
+  <param name="/free_gait/robot_state" value="/leg_odom/robot_states" />
   <!--<param name="robot_description" textfile="$(find simpledog)/urdf/simpledog.urdf.xacro"/>-->
 
   <!--<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />-->

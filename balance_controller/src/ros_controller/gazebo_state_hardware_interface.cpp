@@ -310,7 +310,7 @@ void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration perio
 //    ROS_INFO("ReadSim: for joint states once");
     robot_state_data_.joint_position_read[j] = joint_position_[j];
 //    ROS_INFO("ReadSim: for joint states once");
-    robot_state_data_.joint_velocity_read[j] = joint_velocity_[j];
+    robot_state_data_.joint_velocity_read[j] = real_time_factor * joint_velocity_[j];
     robot_state_data_.joint_effort_read[j] = joint_effort_[j];
   }
   //! WSHY: for sim, read from gazebo, for real, read the joint information and
@@ -370,6 +370,7 @@ void SimRobotStateHardwareInterface::writeSim(ros::Time time, ros::Duration peri
   {
     last_e_stop_active_ = false;
   }
+//  ROS_ERROR("State Estimate Position in X : %f",robot_state_data_.position[0]);
 
   ej_sat_interface_.enforceLimits(period);
   ej_limits_interface_.enforceLimits(period);

@@ -32,10 +32,15 @@ namespace balance_controller {
       {
         real_contact_[limb] = false;
         is_cartisian_motion_[limb] = true;
-        foot_positions[limb] = Vector(0.5,0.2,-0.45);
+//        foot_positions[limb] = Vector(0.5,0.2,-0.45);
         foot_velocities[limb] = Vector(0,0,0);
         contactForces_[limb] = Vector(0,0,0);
       }
+    foot_positions[free_gait::LimbEnum::LF_LEG] = Vector(0.5,0.2,-0.45);
+    foot_positions[free_gait::LimbEnum::RF_LEG] = Vector(0.5,-0.2,-0.45);
+    foot_positions[free_gait::LimbEnum::RH_LEG] = Vector(-0.5,-0.2,-0.45);
+    foot_positions[free_gait::LimbEnum::LH_LEG] = Vector(-0.5,0.2,-0.45);
+    real_time_ = true;
 
   };
   SingleLegController::~SingleLegController()
@@ -83,6 +88,12 @@ namespace balance_controller {
         if(leg=="LH_LEG")
           leg_to_move.push_back(free_gait::LimbEnum::LH_LEG);
       }
+    param_name = "real_time";
+    if(!node_handle.getParam(param_name, real_time_))
+      {
+        ROS_ERROR_STREAM("Failed to getParam '" << param_name << "' (namespace: " << node_handle.getNamespace() << ").");
+        return false;
+      }
 
     param_name = "control_methods";
     if(!node_handle.getParam(param_name, control_methods))
@@ -121,6 +132,7 @@ namespace balance_controller {
     contact_force_sub_ = node_handle.subscribe<geometry_msgs::Wrench>("/force_cmd", 1, &SingleLegController::forceCommandCallback, this);
     fakePosePub_ = node_handle.advertise<geometry_msgs::PoseWithCovarianceStamped>("base_pose", 1);
     robot_state_pub_ = node_handle.advertise<free_gait_msgs::RobotState>("/gazebo/robot_states", 1);
+    joint_state_pub_ = node_handle.advertise<sensor_msgs::JointState>("/inverse_dynamic_joint_state", 1);
 
     switchControlMethodClient_ = node_handle.serviceClient<free_gait_msgs::SetLimbConfigure>("/set_control_method");
 
@@ -153,11 +165,13 @@ namespace balance_controller {
   void SingleLegController::update(const ros::Time& time, const ros::Duration& period)
   {
     staticTFPublisher();
+    sensor_msgs::JointState q_state;
 //    //! WSHY: update joint state
 //    free_gait::JointPositions all_joint_positions;
 //    free_gait::JointVelocities all_joint_velocities;
 //    free_gait::JointEfforts all_joint_efforts;
     //! WSHY: get joint postions from robot state handle
+
     for(unsigned int i=0; i<joints.size(); i++)
       {
         all_joint_positions(i) = joints[i].getPosition();
@@ -190,7 +204,10 @@ namespace balance_controller {
     free_gait::Force gravity_in_base = free_gait::Force(0,0,-9.8);
     for(unsigned int i =0; i<leg_to_move.size(); i++)
       {
+
         free_gait::LimbEnum limb = leg_to_move[i];
+        int start_index = static_cast<int>(leg_to_move[i])*3;
+//        std::cout<<"Num of leg to move "<<leg_to_move.size()<<endl<<"update leg "<<start_index/3<<endl;
 //        free_gait::LimbEnum limb = static_cast<free_gait::LimbEnum>(i);
 //        single_leg_solver_->update(time, real_time_period, limb, true);
 
@@ -203,14 +220,14 @@ namespace balance_controller {
                 free_gait::JointEffortsLeg jointTorques = free_gait::JointEffortsLeg(jacobian.transpose() * contactForce.toImplementation());
                 free_gait::JointPositionsLeg joint_position_leg = robot_state_->getJointPositionFeedbackForLimb(limb);
                 jointTorques += robot_state_->getGravityCompensationForLimb(limb, joint_position_leg, gravity_in_base);
-                for(int j = 0;j<3;j++)
+                for(int j = start_index;j<start_index +3;j++)
                   {
                     joints[j].setCommand(jointTorques(j));
                   }
               }
             if(control_methods[i] == "end_position")
               {
-                for(int j = 0;j<3;j++)
+                for(int j = start_index;j<start_index +3;j++)
                   {
 //                    double effort_command;
 //                    if(is_cartisian_motion_.at(limb))
@@ -222,19 +239,26 @@ namespace balance_controller {
         else if (!robot_state_->isSupportLeg(limb)) {
             if(control_methods[i] == "end_position")
               {
-                single_leg_solver_->update(time, real_time_period, limb, true);
+//                ROS_INFO("control end position");
+                single_leg_solver_->update(time, real_time_period, limb, real_time_);
 
-                for(int j = 0;j<3;j++)
+                for(int j = start_index;j<start_index +3;j++)
                   {
+                    q_state.name.push_back("joint"+std::to_string(j));
+                    q_state.effort.push_back(single_leg_solver_->getVecQDDAct()[j - start_index]);
+                    q_state.velocity.push_back(single_leg_solver_->getVecQDAct()[j - start_index]);
+                    q_state.position.push_back(single_leg_solver_->getVecQAct()[j - start_index]);
+
                     double effort_command;
                     if(is_cartisian_motion_.at(limb))
-                      effort_command = single_leg_solver_->getVecTauAct()[j];
+                      effort_command = single_leg_solver_->getVecTauAct()[j - start_index];
                     if(effort_command>20.0)
                       effort_command = 20.0;
                     if(effort_command<-20.0)
                       effort_command = -20.0;
                     joints[j].setCommand(effort_command);
                   }
+//                ROS_INFO("control end position");
               }
             if(control_methods[i] == "contact_force")
               {
@@ -243,13 +267,14 @@ namespace balance_controller {
                 free_gait::JointEffortsLeg jointTorques = free_gait::JointEffortsLeg(jacobian.transpose() * contactForce.toImplementation());
                 free_gait::JointPositionsLeg joint_position_leg = robot_state_->getJointPositionFeedbackForLimb(limb);
                 jointTorques += robot_state_->getGravityCompensationForLimb(limb, joint_position_leg, gravity_in_base);
-                for(int j = 0;j<3;j++)
+                for(int j = start_index;j<start_index +3;j++)
                   {
                     joints[j].setCommand(jointTorques(j));
                   }
                 std::cout<<"Joint Torque to Apply is : "<<jointTorques<<std::endl;
               }
           }
+        joint_state_pub_.publish(q_state);
       }
   fakePosePublisher();
   robotStatePublisher();

@@ -52,6 +52,8 @@ namespace balance_controller{
         update_surface_normal_flag[limb] = false;
         real_contact_[limb] = false;
         is_cartisian_motion_[limb] = false;
+        is_footstep_[limb] = false;
+        is_legmode_[limb] = false;
       }
 //    store_current_joint_state_flag_ = false;
 //    stored_limb_joint_position_.resize(3);
@@ -295,6 +297,8 @@ namespace balance_controller{
             {
               robot_state->setSupportLeg(limb, false);
               robot_state->setSurfaceNormal(limb, surface_normals.at(limb));
+              LinearVelocity base_velocity_in_base = base_orinetation.inverseRotate(base_desired_linear_velocity);
+
               //! WSHY: move back(-x) and upward(+z)
               foot_positions.at(limb)(0) -= 0.005;
               foot_positions.at(limb)(2) += 0.02;
@@ -388,6 +392,7 @@ namespace balance_controller{
     robot_state->setCurrentLimbJoints(all_joint_positions);
     robot_state->setCurrentLimbJointVelocities(all_joint_velocities);
 
+//    ROS_ERROR("State Estimate Position in X : %f",robot_state_handle.getPosition()[0]);
     Pose current_base_pose = Pose(Position(robot_state_handle.getPosition()[0],
                                   robot_state_handle.getPosition()[1],
                                   robot_state_handle.getPosition()[2]),
@@ -477,10 +482,12 @@ namespace balance_controller{
         for(int i = 0;i<3;i++)
           {
             double effort_command = computeTorqueFromPositionCommand(commands[i], i, real_time_period);
-            if(is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG))
+            if(is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) || is_footstep_.at(free_gait::LimbEnum::LF_LEG))
               effort_command = single_leg_solver_->getVecTauAct()[i];
-            else
+            else if(!is_legmode_.at(free_gait::LimbEnum::LF_LEG))
               effort_command += gravity_compensation_torque(i);
+            else
+              effort_command = gravity_compensation_torque(i);
             joints[i].setCommand(effort_command);
             //! WSHY: data logging
             joint_command.effort[i] = effort_command;
@@ -509,10 +516,12 @@ namespace balance_controller{
         for(int i = 0;i<3;i++)
           {
             double effort_command = computeTorqueFromPositionCommand(commands[i+3], i+3, real_time_period);
-            if(is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG))
+            if(is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG) || is_footstep_.at(free_gait::LimbEnum::RF_LEG))
               effort_command = single_leg_solver_->getVecTauAct()[i];
-            else
+            else if(!is_legmode_.at(free_gait::LimbEnum::RF_LEG))
               effort_command += gravity_compensation_torque(i);
+            else
+              effort_command = gravity_compensation_torque(i);
             joints[i+3].setCommand(effort_command);
             joint_command.effort[i+3] = effort_command;
 
@@ -540,10 +549,12 @@ namespace balance_controller{
         for(int i = 0;i<3;i++)
           {
             double effort_command =computeTorqueFromPositionCommand(commands[i+6], i+6, real_time_period);
-            if(is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG))
+            if(is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG) || is_footstep_.at(free_gait::LimbEnum::RH_LEG))
               effort_command = single_leg_solver_->getVecTauAct()[i];
-            else
+            else if(!is_legmode_.at(free_gait::LimbEnum::RH_LEG))
               effort_command += gravity_compensation_torque(i);
+            else
+              effort_command = gravity_compensation_torque(i);
             joints[i+6].setCommand(effort_command);
             joint_command.effort[i+6] = effort_command;
 
@@ -570,10 +581,12 @@ namespace balance_controller{
         for(int i = 0;i<3;i++)
           {
             double effort_command =computeTorqueFromPositionCommand(commands[i+9], i+9, real_time_period);
-            if(is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG))
+            if(is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG) || is_footstep_.at(free_gait::LimbEnum::LH_LEG))
               effort_command = single_leg_solver_->getVecTauAct()[i];
-            else
+            else if(!is_legmode_.at(free_gait::LimbEnum::LH_LEG))
               effort_command += gravity_compensation_torque(i);
+            else
+              effort_command = gravity_compensation_torque(i);
             joints[i+9].setCommand(effort_command);
             joint_command.effort[i+9] = effort_command;
 
@@ -851,24 +864,104 @@ namespace balance_controller{
     robot_state_->setAngularVelocityBaseInBaseFrame(base_desired_angular_velocity);
 
     if(robot_state_msg->lf_leg_mode.name == "joint")
-      is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) = false;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::LF_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::LF_LEG) = false;
+      }
+    if(robot_state_msg->lf_leg_mode.name == "leg_mode")
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::LF_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::LF_LEG) = true;
+      }
     if(robot_state_msg->lf_leg_mode.name == "cartesian")
-      is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) = true;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) = true;
+        is_footstep_.at(free_gait::LimbEnum::LF_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::LF_LEG) = false;
+      }
+    if(robot_state_msg->lf_leg_mode.name == "footstep")
+      {
+        is_footstep_.at(free_gait::LimbEnum::LF_LEG) = true;
+        is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::LF_LEG) = false;
+      }
 
     if(robot_state_msg->rf_leg_mode.name == "joint")
-      is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG) = false;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::RF_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::RF_LEG) = false;
+      }
+    if(robot_state_msg->rf_leg_mode.name == "leg_mode")
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::RF_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::RF_LEG) = true;
+      }
     if(robot_state_msg->rf_leg_mode.name == "cartesian")
-      is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG) = true;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG) = true;
+        is_footstep_.at(free_gait::LimbEnum::RF_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::RF_LEG) = false;
+      }
+    if(robot_state_msg->rf_leg_mode.name == "footstep")
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RF_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::RF_LEG) = true;
+        is_legmode_.at(free_gait::LimbEnum::RF_LEG) = false;
+      }
 
     if(robot_state_msg->rh_leg_mode.name == "joint")
-      is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG) = false;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::RH_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::RH_LEG) = false;
+      }
+    if(robot_state_msg->rh_leg_mode.name == "leg_mode")
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::RH_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::RH_LEG) = true;
+      }
     if(robot_state_msg->rh_leg_mode.name == "cartesian")
-      is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG) = true;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG) = true;
+        is_footstep_.at(free_gait::LimbEnum::RH_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::RH_LEG) = false;
+      }
+    if(robot_state_msg->rh_leg_mode.name == "footstep")
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::RH_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::RH_LEG) = true;
+        is_legmode_.at(free_gait::LimbEnum::RH_LEG) = false;
+      }
 
     if(robot_state_msg->lh_leg_mode.name == "joint")
-      is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG) = false;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::LH_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::LH_LEG) = false;
+      }
+    if(robot_state_msg->lh_leg_mode.name == "leg_mode")
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::LH_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::LH_LEG) = true;
+      }
     if(robot_state_msg->lh_leg_mode.name == "cartesian")
-      is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG) = true;
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG) = true;
+        is_footstep_.at(free_gait::LimbEnum::LH_LEG) = false;
+        is_legmode_.at(free_gait::LimbEnum::LH_LEG) = false;
+      }
+    if(robot_state_msg->lh_leg_mode.name == "footstep")
+      {
+        is_cartisian_motion_.at(free_gait::LimbEnum::LH_LEG) = false;
+        is_footstep_.at(free_gait::LimbEnum::LH_LEG) = true;
+        is_legmode_.at(free_gait::LimbEnum::LH_LEG) = false;
+      }
 
     if(robot_state_msg->lf_leg_mode.support_leg){
         robot_state_->setSupportLeg(free_gait::LimbEnum::LF_LEG, true);
@@ -1004,6 +1097,8 @@ namespace balance_controller{
         if(limbs_desired_state.at(limb)->getState() == StateSwitcher::States::SwingNormal)
           {
             limbs_state.at(limb)->setState(StateSwitcher::States::SwingNormal);
+            if(!is_footstep_.at(limb))
+              continue;
             if(sw_phase.at(limb)>0.5)//(ros::Time::now().toSec() - t_sw0.at(limb).toSec()) > 0.2)
               {
                 if(contact.is_contact)
@@ -1023,6 +1118,11 @@ namespace balance_controller{
 
         if(limbs_desired_state.at(limb)->getState() == StateSwitcher::States::StanceNormal)
           {
+            if(!is_footstep_.at(limb))
+              {
+                limbs_state.at(limb)->setState(StateSwitcher::States::StanceNormal);
+                continue;
+              }
             if(contact.is_contact){
                 limbs_state.at(limb)->setState(StateSwitcher::States::StanceNormal);
               } else if(st_phase.at(limb) < 0.1){
