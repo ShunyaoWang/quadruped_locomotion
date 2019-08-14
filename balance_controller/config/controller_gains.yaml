@@ -9,9 +9,9 @@ balance_controller:
       kd: 4000
       kff: 10
     vertical:
-      kp: 10000
-      kd: 5000
-      kff: 100
+      kp: 2000
+      kd: 1000
+      kff: 10
     roll:
       kp: 10000
       kd: 1000

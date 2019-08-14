@@ -53,6 +53,8 @@ public:
   LinearVelocity getEndEffectorLinearVelocityFromJointVelocities(const LimbEnum& limb, const JointVelocitiesLimb& jointVelocities);
   LinearVelocity getEndEffectorVelocityInBaseForLimb(const LimbEnum& limb);
 
+  Pose getPoseFootInBaseFrame(const LimbEnum& limb);
+  Pose getPoseFootInBaseFrame(const LimbEnum& limb, JointPositionsLimb& jointleg);
   double getRobotMass();
   Position getCenterOfMassInBase();
   Position getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb) const;
@@ -93,14 +95,14 @@ private:
 //  QuadrupedKinematics QK;
   limb_joints current_limb_joints_, current_limb_joint_velocities_;
   limb_configure limb_configure_;
-  FootPoseInBase footPoseInBaseFrame_;
+  FootPoseInBase footPoseInBaseFrame_, footPoseInBase_;
 
   //! feedback, current actual pose
   static FootVectorInBase target_foot_position_in_base_, target_foot_velocity_in_base_,
                           target_foot_acceleration_in_base_;
   static Pose poseInWorldFrame_, footholds_plane_pose_;
   static JointPositions joint_positions_, joint_positions_feedback_;
-  static JointPositions allJointPositionsFeedback_;
+  static JointPositions allJointPositionsFeedback_, allJointPositionsCB;
   static JointVelocities joint_velocities_, joint_velocities_feedback_;
   //! target base position and orientation
   static Position positionWorldToBaseInWorldFrame_;

@@ -13,10 +13,14 @@
 #include <pluginlib/class_list_macros.hpp>
 
 #include "free_gait_core/free_gait_core.hpp"
+//#include "free_gait_msgs/RobotState.h"
 #include "sim_assiants/FootContacts.h"
 #include "sensor_msgs/Imu.h"
 
 #include "urdf/model.h"
+#include "legodom.h"
+#include "kindr_ros/kindr_ros.hpp"
+//#include "quadruped_odom/legodom.h"
 
 namespace balance_controller {
   class StateEstimateController : public controller_interface::Controller<hardware_interface::RobotStateInterface>
@@ -52,17 +56,24 @@ namespace balance_controller {
      * @brief robot_state_handle, handle robot state
      */
     hardware_interface::RobotStateHandle robot_state_handle;
-
+//    hardware_interface::RobotStateHandle::Data robot_state_data_;
     unsigned int n_joints;
+
+    Eigen::VectorXd OdomState;
 
   private:
     ros::Subscriber contact_sub_, imu_sub_;
+    ros::Publisher robot_state_pub_;
+    std::shared_ptr<free_gait::State> robot_state_ptr;
+    std::shared_ptr<quadruped_odom::QuadrupedEstimation> LegOdom;
 
     LimbFlag real_contact_;
     std::vector<free_gait::LimbEnum> limbs_;
+    std::vector<free_gait::BranchEnum> branches_;
 
+    free_gait_msgs::RobotState robot_state_;
     void footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts);
-    void IMUmsgCallback(const sensor_msgs::ImuConstPtr& imu_msg);
+//    void IMUmsgCallback(const sensor_msgs::ImuConstPtr& imu_msg);
 
   };
 

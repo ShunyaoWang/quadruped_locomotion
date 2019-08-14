@@ -6,7 +6,7 @@
  *   Institute: ETH Zurich, Robotic Systems Lab
  */
 
-#include "free_gait_core/pose_optimization/PoseParameterization.hpp"
+#include "free_gait_core/pose_optimization/poseparameterization.h"
 
 namespace free_gait {
 
@@ -24,31 +24,34 @@ PoseParameterization::~PoseParameterization()
 //{
 //}
 
-numopt_common::Params& PoseParameterization::getParams()
+qp_solver::QuadraticProblemSolver::parameters& PoseParameterization::getParams()
 {
   return params_;
 }
 
-const numopt_common::Params& PoseParameterization::getParams() const
+const qp_solver::QuadraticProblemSolver::parameters& PoseParameterization::getParams() const
 {
   return params_;
 }
 
-bool PoseParameterization::plus(numopt_common::Params& result, const numopt_common::Params& p,
-                                const numopt_common::Delta& dp) const
+bool PoseParameterization::plus(qp_solver::QuadraticProblemSolver::parameters& result,
+                                const qp_solver::QuadraticProblemSolver::parameters& p,
+                                const qp_solver::QuadraticProblemSolver::Delta& dp) const
 {
   // Position.
-  result.head(nTransGlobal_) = p.head(nTransGlobal_) + dp.head(nTransLocal_);
+    result.head(nTransGlobal_) = p.head(nTransGlobal_) + dp.head(nTransLocal_);
 
-  // Orientation.
-  result.tail(nRotGlobal_) = RotationQuaternion(p.tail(nRotGlobal_)).boxPlus(
-      dp.tail(nRotLocal_)).vector();
-
-  return true;
+  //  // Orientation.
+  ////  result.tail(nRotGlobal_) = RotationQuaternion(p.tail(nRotGlobal_)).boxPlus(
+  ////      dp.tail(nRotLocal_)).vector();
+//  Eigen::VectorXd p1(7);
+//    result.tail(nRotGlobal_) = RotationQuaternion(p1.tail(nRotGlobal_)).boxPlus(dp.tail(nRotLocal_)).vector());
+      result.tail(nRotGlobal_) = RotationQuaternion(p.tail(nRotGlobal_)).boxPlus(dp.tail(nRotLocal_)).vector();
+    return true;
 }
 
-bool PoseParameterization::getTransformMatrixLocalToGlobal(
-    numopt_common::SparseMatrix& matrix, const numopt_common::Params& params) const
+bool PoseParameterization::getTransformMatrixLocalToGlobal(Eigen::MatrixXd& matrix,
+                                                           const qp_solver::QuadraticProblemSolver::parameters& params) const
 {
   Eigen::MatrixXd denseMatrix(Eigen::MatrixXd::Zero(getGlobalSize(), getLocalSize()));
   denseMatrix.topLeftCorner(nTransGlobal_, nTransLocal_).setIdentity();
@@ -60,12 +63,12 @@ bool PoseParameterization::getTransformMatrixLocalToGlobal(
 }
 
 bool PoseParameterization::getTransformMatrixGlobalToLocal(
-    numopt_common::SparseMatrix& matrix, const numopt_common::Params& params) const
+    Eigen::MatrixXd& matrix, const qp_solver::QuadraticProblemSolver::parameters& params) const
 {
   Eigen::MatrixXd denseMatrix(Eigen::MatrixXd::Zero(getLocalSize(), getGlobalSize()));
   denseMatrix.topLeftCorner(nTransLocal_, nTransGlobal_).setIdentity();
   denseMatrix.bottomRightCorner(nRotLocal_, nRotGlobal_) = 2.0
-      * RotationQuaternion(params).getLocalQuaternionDiffMatrix();
+      * RotationQuaternion(params.tail(nRotGlobal_)).getLocalQuaternionDiffMatrix();
   matrix = denseMatrix.sparseView();
   return true;
 }
@@ -85,31 +88,32 @@ int PoseParameterization::getLocalSize() const
   return nTransLocal_ + nRotLocal_;
 }
 
-bool PoseParameterization::setRandom(numopt_common::Params& p) const
+bool PoseParameterization::setRandom(qp_solver::QuadraticProblemSolver::parameters& p) const
 {
   p.resize(getGlobalSize());
   p.head(nTransGlobal_).setRandom();
   RotationQuaternion randomQuaternion;
-  randomQuaternion.setRandom();
+  randomQuaternion.setIdentity(); //TODO(shunyao): set random
   p.tail(nRotGlobal_) = randomQuaternion.vector();
   return true;
 }
 
-bool PoseParameterization::setIdentity(numopt_common::Params& p) const
+bool PoseParameterization::setIdentity(qp_solver::QuadraticProblemSolver::parameters& p) const
 {
   p.resize(getGlobalSize());
   p.head(nTransGlobal_).setZero();
   RotationQuaternion identityQuaternion;
   identityQuaternion.setIdentity();
+  std::cout<<identityQuaternion.vector()(0)<<std::endl;
   p.tail(nRotGlobal_) = identityQuaternion.vector();
   return true;
 }
 
-numopt_common::Parameterization* PoseParameterization::clone() const
-{
-  Parameterization* clone = new PoseParameterization(*this);
-  return clone;
-}
+//numopt_common::Parameterization* PoseParameterization::clone() const
+//{
+//  Parameterization* clone = new PoseParameterization(*this);
+//  return clone;
+//}
 
 const Pose PoseParameterization::getPose() const
 {

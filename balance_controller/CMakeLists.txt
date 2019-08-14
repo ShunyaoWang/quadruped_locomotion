@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   free_gait_core
   quadruped_model
+  quadruped_odom
   free_gait_ros
   controller_interface
   pluginlib
@@ -128,6 +129,7 @@ catkin_package(
   roscpp
   free_gait_core
   quadruped_model
+  quadruped_odom
   free_gait_ros
   controller_interface
   pluginlib

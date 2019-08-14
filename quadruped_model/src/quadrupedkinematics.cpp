@@ -109,6 +109,7 @@ bool QuadrupedKinematics::LoadRobotDescriptionFromFile(const std::string filenam
 bool QuadrupedKinematics::setHipPoseInBase(const KDL::Chain& kdl_chain, const LimbEnum& limb)
 {
   KDL::Frame cartisian_frame;
+  //设置Segment的惯量,getSegment(0)
   cartisian_frame = kdl_chain.getSegment(0).getFrameToTip();
   Position translation(cartisian_frame(0,3), cartisian_frame(1,3), cartisian_frame(2,3));
   RotationMatrix rotation_matrix(cartisian_frame(0,0), cartisian_frame(0,1), cartisian_frame(0,2),
@@ -152,7 +153,7 @@ bool QuadrupedKinematics::FowardKinematicsSolve(const JointPositionsLimb& joint_
 //    cout<<"the "<<i<<"th joint: "<<joints(i)<<endl;
   }
 //  cout<<LF_Chain.getNrOfSegments()<<endl;
-//  cout<<joints.data<<endl;
+  // cout<<joints.data<<endl;
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
@@ -290,6 +291,7 @@ bool QuadrupedKinematics::AnalysticJacobianForLink(const JointPositionsLimb& joi
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
+        //自己设置一个链条?
         KDL::Chain LF_Chain_Link;
         LF_Chain_Link.addSegment(LF_Chain.getSegment(0));
         cout<<LF_Chain.getSegment(0).getName()<<endl;
@@ -300,6 +302,7 @@ bool QuadrupedKinematics::AnalysticJacobianForLink(const JointPositionsLimb& joi
                                                   LF_Chain.getSegment(i).getJoint(),
                                                   KDL::Frame(com)));
           }
+        //
         KDL::ChainJntToJacSolver jacobian_solver(LF_Chain_Link);
         error_code = jacobian_solver.JntToJac(joints, J);
         if(error_code != 0)
@@ -565,7 +568,7 @@ double QuadrupedKinematics::MapToPI(double q)
 Position QuadrupedKinematics::getPositionBaseToHipInBaseFrame(const LimbEnum& limb) const
 {
   Position hip_position_in_base = hip_pose_in_base_.at(limb).getPosition();
-  hip_position_in_base.z() = 0.0;
+  hip_position_in_base.z() = 0.;
   return hip_position_in_base;
 //  switch (limb) {
 //    case LimbEnum::LF_LEG:

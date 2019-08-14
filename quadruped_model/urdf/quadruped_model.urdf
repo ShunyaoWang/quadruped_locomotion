@@ -282,7 +282,7 @@
     name="rf_foot_Link"
     type="fixed">
     <origin
-      xyz="0.308 0 0.22053"
+      xyz="0.308 0 0.23"
       rpy="0 0 0" />
     <parent
       link="front_right_3_Link" />
@@ -552,7 +552,7 @@
     name="rh_foot_joint"
     type="fixed">
     <origin
-      xyz="0.308 0 0.22053"
+      xyz="0.308 0 0.23"
       rpy="0 0 0" />
     <parent
       link="rear_right_3_Link" />

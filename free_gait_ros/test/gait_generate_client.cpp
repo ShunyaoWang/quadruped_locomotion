@@ -257,8 +257,10 @@ using namespace free_gait;
 //                displace_in_footprint = Position(0.33*t_stance_*desired_vel2D
 //                                                   + sqrt(z_hip/9.8) * (current_vel2D - desired_vel2D));
 //              }
+//            displace_in_footprint = Position(0.5*t_stance_*desired_vel2D);
             displace_in_footprint = Position(0.5*t_stance_*desired_vel2D
                                                  + sqrt(z_hip/9.8) * (current_vel2D - desired_vel2D));
+
             displace_in_footprint(2) = 0.02;
             Position displace_in_baselink = displace_in_footprint;
 //            displace_in_baselink(2) = -height_+ 0.025;

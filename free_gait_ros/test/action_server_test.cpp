@@ -41,17 +41,21 @@ public:
     nodeHandle_.getParam("/free_gait/stop_execution_service", stop_service_name_);
     nodeHandle_.getParam("/free_gait/pause_execution_service", pause_service_name_);
 //    nodeHandle_.getParam("/gait_generate/")
+//    ROS_ERROR("In action server thread");
     if(use_gazebo){
       adapter.reset(AdapterRos_.getAdapterPtr());
+//      ROS_ERROR("In action server thread");
       AdapterRos_.subscribeToRobotState();
+//      ROS_ERROR("In action server thread");
     } else {
       adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
     };
+//    ROS_ERROR("In action server thread");
     state.reset(new State());
     parameters.reset(new StepParameters());
     completer.reset(new StepCompleter(*parameters, *adapter));
     computer.reset(new StepComputer());
-
+//    ROS_ERROR("In action server thread");
     AdapterRos_.updateAdapterWithState();
     //! WSHY: get the initial pose and set to the fisrt pose command
     state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());

@@ -401,7 +401,7 @@ void MyRobotSolver::setDesiredPositionAndVelocity(const Eigen::Vector3d& positio
 bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
                            const free_gait::LimbEnum& limb)
 {  
-    ROS_INFO("In swing leg controller update");
+//    ROS_INFO("In swing leg controller update");
     calculation_iterstions = 1;//calculation_iterstions + 1;
     Eigen::Matrix3d jacobian = robot_state_->getTranslationJacobianFromBaseToFootInBaseFrame(limb);
 //    cout<<"Jacobian : "<<jacobian<<endl;

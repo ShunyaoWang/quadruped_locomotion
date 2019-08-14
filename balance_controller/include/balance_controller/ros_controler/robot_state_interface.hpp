@@ -84,11 +84,11 @@ public:
   RobotStateHandle(
         const std::string& name,                      ///< The name of the sensor
         const std::string& frame_id,                  ///< The reference frame to which this sensor is associated
-        const double* orientation,                    ///< A pointer to the storage of the orientation value: a quaternion (x,y,z,w)
-        const double* position,         ///< A pointer to the storage of the orientation covariance value: a row major 3x3 matrix about (x,y,z)
-        const double* angular_velocity,               ///< A pointer to the storage of the angular velocity value: a triplet (x,y,z)
-        const double* linear_acceleration,            ///< A pointer to the storage of the linear acceleration value: a triplet (x,y,z)
-        const double* linear_velocity,  ///< A pointer to the storage of the linear acceleration covariance value: a row major 3x3 matrix about (x,y,z)
+        double* orientation,                    ///< A pointer to the storage of the orientation value: a quaternion (x,y,z,w)
+        double* position,         ///< A pointer to the storage of the orientation covariance value: a row major 3x3 matrix about (x,y,z)
+        double* angular_velocity,               ///< A pointer to the storage of the angular velocity value: a triplet (x,y,z)
+        double* linear_acceleration,            ///< A pointer to the storage of the linear acceleration value: a triplet (x,y,z)
+        double* linear_velocity,  ///< A pointer to the storage of the linear acceleration covariance value: a row major 3x3 matrix about (x,y,z)
         const double* joint_position_read,
         double* joint_position_write,
         const double* joint_velocity_read,
@@ -116,11 +116,11 @@ public:
 
   std::string getName()                           const {return name_;}
   std::string getFrameId()                        const {return frame_id_;}
-  const double* getOrientation()                  const {return orientation_;}
-  const double* getPosition()                     const {return position_;}
-  const double* getAngularVelocity()              const {return angular_velocity_;}
-  const double* getLinearAcceleration()           const {return linear_acceleration_;}
-  const double* getLinearVelocity()               const {return linear_velocity_;}
+  double* getOrientation()                  const {return orientation_;}
+  double* getPosition()                     const {return position_;}
+  double* getAngularVelocity()              const {return angular_velocity_;}
+  double* getLinearAcceleration()           const {return linear_acceleration_;}
+  double* getLinearVelocity()               const {return linear_velocity_;}
   const double* getJointPositionRead()            const {return joint_position_read_;}
   double* getJointPositionWrite()                       {return joint_position_write_;}
   const double* getJointVelocityRead()            const {return joint_velocity_read_;}
@@ -134,15 +134,16 @@ public:
 //    joint_position_write_[i] = cmd[i];
 //  }
 //  hardware_interface::JointCommandInterface joint_effort_interfaces_;
+  double* orientation_;
+  double* position_;
+  double* angular_velocity_;
+  double* linear_acceleration_;
+  double* linear_velocity_;
 private:
   std::string name_;
   std::string frame_id_;
 
-  const double* orientation_;
-  const double* position_;
-  const double* angular_velocity_;
-  const double* linear_acceleration_;
-  const double* linear_velocity_;
+
   const double* joint_position_read_;
   double* joint_position_write_;
   const double* joint_velocity_read_;
