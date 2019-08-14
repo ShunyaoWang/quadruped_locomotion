@@ -41,6 +41,10 @@ class CustomCommand
  private:
   std::string type_;
   double duration_;
+  /**
+   * @brief command_
+   * command means what??????
+   */
   std::string command_;
 };
 

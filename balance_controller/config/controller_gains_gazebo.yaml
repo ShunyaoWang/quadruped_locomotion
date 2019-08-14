@@ -41,11 +41,11 @@ balance_controller:
       minimal_normal_force: 10
 single_leg_controller:
   x_direction:
-    kp: 5000
+    kp: 1000
     kd: 200
   y_direction:
-    kp: 5000
+    kp: 1000
     kd: 200
   z_direction:
-    kp: 5000
+    kp: 1000
     kd: 200

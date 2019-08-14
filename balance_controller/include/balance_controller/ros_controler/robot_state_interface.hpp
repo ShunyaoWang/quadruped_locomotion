@@ -85,7 +85,7 @@ public:
         const std::string& name,                      ///< The name of the sensor
         const std::string& frame_id,                  ///< The reference frame to which this sensor is associated
         const double* orientation,                    ///< A pointer to the storage of the orientation value: a quaternion (x,y,z,w)
-        const double* position,         ///< A pointer to the storage of the orientation covariance value: a row major 3x3 matrix about (x,y,z)
+        double* position,         ///< A pointer to the storage of the orientation covariance value: a row major 3x3 matrix about (x,y,z)
         const double* angular_velocity,               ///< A pointer to the storage of the angular velocity value: a triplet (x,y,z)
         const double* linear_acceleration,            ///< A pointer to the storage of the linear acceleration value: a triplet (x,y,z)
         const double* linear_velocity,  ///< A pointer to the storage of the linear acceleration covariance value: a row major 3x3 matrix about (x,y,z)
@@ -128,18 +128,20 @@ public:
   const double* getJointEffortRead()              const {return joint_effort_read_;}
   double* getJointEffortWrite()                         {return joint_effort_write_;}
   const bool* getFootContact()                    const {return foot_contact_;}
+  void setPosition(double x, double y, double z) {position_[0] = x;position_[1] =y;position_[2]=z;}
   //  void setJointPositionWrite(double* cmd)
 //  {
 //    for(unsigned int i=0;i<12;i++)
 //    joint_position_write_[i] = cmd[i];
 //  }
 //  hardware_interface::JointCommandInterface joint_effort_interfaces_;
+  double* position_;
 private:
   std::string name_;
   std::string frame_id_;
 
   const double* orientation_;
-  const double* position_;
+//  double* position_;
   const double* angular_velocity_;
   const double* linear_acceleration_;
   const double* linear_velocity_;

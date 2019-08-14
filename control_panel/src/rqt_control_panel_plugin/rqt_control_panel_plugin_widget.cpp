@@ -454,3 +454,62 @@ void rqt_control_panel_plugin_widget::on_stopSingleLegController_clicked()
 
   eStopPublisher_.publish(e_stop_msg);
 }
+
+void rqt_control_panel_plugin_widget::on_resetJointPostionButton_clicked()
+{
+  ui->lf_joint_positon_1->setValue(0);
+  ui->lf_joint_positon_2->setValue(0);
+  ui->lf_joint_positon_3->setValue(0);
+
+  ui->rf_joint_positon_1->setValue(0);
+  ui->rf_joint_positon_2->setValue(0);
+  ui->rf_joint_positon_3->setValue(0);
+
+  ui->rh_joint_positon_1->setValue(0);
+  ui->rh_joint_positon_2->setValue(0);
+  ui->rh_joint_positon_3->setValue(0);
+
+  ui->lh_joint_positon_1->setValue(0);
+  ui->lh_joint_positon_2->setValue(0);
+  ui->lh_joint_positon_3->setValue(0);
+
+
+}
+
+void rqt_control_panel_plugin_widget::on_resetJointVelocityButton_clicked()
+{
+    ui->lf_joint_velocity_1->setValue(0);
+    ui->lf_joint_velocity_2->setValue(0);
+    ui->lf_joint_velocity_3->setValue(0);
+
+    ui->rf_joint_velocity_1->setValue(0);
+    ui->rf_joint_velocity_2->setValue(0);
+    ui->rf_joint_velocity_3->setValue(0);
+
+    ui->rh_joint_velocity_1->setValue(0);
+    ui->rh_joint_velocity_2->setValue(0);
+    ui->rh_joint_velocity_3->setValue(0);
+
+    ui->lh_joint_velocity_1->setValue(0);
+    ui->lh_joint_velocity_2->setValue(0);
+    ui->lh_joint_velocity_3->setValue(0);
+}
+
+void rqt_control_panel_plugin_widget::on_resetJointEffortButton_clicked()
+{
+  ui->lf_joint_effort_1->setValue(0);
+  ui->lf_joint_effort_2->setValue(0);
+  ui->lf_joint_effort_3->setValue(0);
+
+  ui->rf_joint_effort_1->setValue(0);
+  ui->rf_joint_effort_2->setValue(0);
+  ui->rf_joint_effort_3->setValue(0);
+
+  ui->rh_joint_effort_1->setValue(0);
+  ui->rh_joint_effort_2->setValue(0);
+  ui->rh_joint_effort_3->setValue(0);
+
+  ui->lh_joint_effort_1->setValue(0);
+  ui->lh_joint_effort_2->setValue(0);
+  ui->lh_joint_effort_3->setValue(0);
+}

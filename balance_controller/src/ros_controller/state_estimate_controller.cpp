@@ -75,7 +75,9 @@ namespace balance_controller {
         ROS_INFO("Joint %d Position is : %f", i, all_joint_positions(i));
       }
     // TODO: call a state estimate method to calculate the pose estimate of robot.
-
+    robot_state_handle.position_[0] = 0;
+    robot_state_handle.position_[1] = 1;
+    robot_state_handle.position_[2] = 2;
   }
 
   void StateEstimateController::starting(const ros::Time& time)

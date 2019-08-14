@@ -140,6 +140,8 @@ class MarkerManager
   //! Foothold frame id.
   std::string footholdFrameId_;
 
+  bool ignoreBaseMotion_;
+
   //! Foothold marker scale.
   double footholdScale_;
 

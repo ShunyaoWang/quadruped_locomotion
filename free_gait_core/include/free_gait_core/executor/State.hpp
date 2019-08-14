@@ -90,8 +90,8 @@ class State : public quadruped_model::QuadrupedState
   friend std::ostream& operator << (std::ostream& out, const State& state);
 
  private:
-  LocalAngularVelocity angularVelocityBaseInWorldFrame_;
-  JointEfforts jointEfforts_;
+  LocalAngularVelocity angularVelocityBaseInWorldFrame_;//dimension 3
+  JointEfforts jointEfforts_;//dimension 12
   JointAccelerations jointAccelerations_;
   LinearAcceleration linearAccelerationBaseInWorldFrame_;
   AngularAcceleration angularAccelerationBaseInBaseFrame_;

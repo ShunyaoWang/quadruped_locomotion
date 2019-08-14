@@ -30,12 +30,12 @@
       <mass
         value="2.923111" />
       <inertia
-        ixx="0.007845"
-        ixy="0.00025"
-        ixz="-7.8E-05"
-        iyy="0.005144"
-        iyz="-0.000967"
-        izz="0.00794" />
+        ixx="0.004820"
+        ixy="0"
+        ixz="0"
+        iyy="0.007868"
+        iyz="0"
+        izz="0.008241" />
     </inertial>
   </link>
   <joint
@@ -65,12 +65,12 @@
       <mass
         value="4.216358" />
       <inertia
-        ixx="0.00627"
-        ixy="-0.000181"
-        ixz="-8.8E-05"
-        iyy="0.029233"
-        iyz="9.2E-05"
-        izz="0.028163" />
+        ixx="0.006286"
+        ixy="0"
+        ixz="0"
+        iyy="0.028156"
+        iyz="0"
+        izz="0.029242" />
     </inertial>
   </link>
   <joint
@@ -100,12 +100,12 @@
       <mass
         value="0.444569" />
       <inertia
-        ixx="0.000397"
-        ixy="-4E-06"
-        ixz="0.000261"
-        iyy="0.0065"
-        iyz="-2.4E-05"
-        izz="0.006214" />
+        ixx="0.000385"
+        ixy="0"
+        ixz="0"
+        iyy="0.006223"
+        iyz="0"
+        izz="0.006502" />
     </inertial>
   </link>
   <joint
@@ -135,16 +135,16 @@
       <mass
         value="0.03332" />
       <inertia
-        ixx="1.9126E-05"
-        ixy="-1.0162E-18"
-        ixz="-1.1377E-19"
-        iyy="1.3677E-05"
-        iyz="-6.5798E-11"
-        izz="1.3678E-05" />
+        ixx="0.000014"
+        ixy="0"
+        ixz="0"
+        iyy="0.000014"
+        iyz="0"
+        izz="0.000019" />
     </inertial>
   </link>
   <joint
-    name="rf_foot_Link"
+    name="rf_foot_joint"
     type="fixed">
     <origin
       xyz="0.308 0 0.22053"

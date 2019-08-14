@@ -48,10 +48,21 @@ class EndEffectorTrajectory : public EndEffectorMotionBase
    * @param values the value vector associated with the time vector.
    */
   void setTrajectory(
+      /**
+           * @brief frameIds
+           * the frameids stand for???????
+           */
       const std::unordered_map<ControlLevel, std::string, EnumClassHash>& frameIds,
       const std::vector<Time>& times,
       const std::unordered_map<ControlLevel, std::vector<ValueType>, EnumClassHash>& values);
   void setFrameId(const ControlLevel& controlLevel, const std::string& frameId);
+  /**
+   * @brief addPositionTrajectoryPoint
+   * @param time
+   * @param position
+   * add trajectory point at the end of trajectory
+   * @return
+   */
   bool addPositionTrajectoryPoint(const Time& time, const Position& position);
 
   /*!
@@ -121,6 +132,7 @@ class EndEffectorTrajectory : public EndEffectorMotionBase
   double duration_;
 
   //! End effector trajectory.
+  //! CubicHermiteE3Curve is a class
   curves::CubicHermiteE3Curve trajectory_;
 
   //! If trajectory is updated.

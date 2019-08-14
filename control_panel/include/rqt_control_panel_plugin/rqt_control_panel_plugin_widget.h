@@ -62,6 +62,12 @@ private slots:
 
   void on_stopSingleLegController_clicked();
 
+  void on_resetJointPostionButton_clicked();
+
+  void on_resetJointVelocityButton_clicked();
+
+  void on_resetJointEffortButton_clicked();
+
 private:
   Ui::rqt_control_panel_plugin_widget *ui;
   ros::NodeHandle nodehandle_;

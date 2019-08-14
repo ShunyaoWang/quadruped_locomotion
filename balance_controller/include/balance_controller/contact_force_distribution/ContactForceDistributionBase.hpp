@@ -118,9 +118,10 @@ class ContactForceDistributionBase
    virtual bool setToInterpolated(const ContactForceDistributionBase& contactForceDistribution1, const ContactForceDistributionBase& contactForceDistribution2, double t);
 
  protected:
+  //常量表达式(const expression)：是指值不会改变并且在编译过程中就得到计算结果的表达式
   constexpr static int nLegs_ = 4; // TODO move to robotModel
   constexpr static int nTranslationalDofPerFoot_ = 3; // TODO move to robotModel
-  constexpr static int nElementsVirtualForceTorqueVector_ = 6;
+  constexpr static int nElementsVirtualForceTorqueVector_ = 6;//why is six?force-> three, torque->three
 
 //  std::shared_ptr<TorsoBase> torso_;
 //  std::shared_ptr<LegGroup> legs_;

@@ -59,6 +59,7 @@ namespace balance_controller {
     std::vector<std::string> leg_names;
     std::vector<std::string> control_methods;
     std::vector<free_gait::LimbEnum> leg_to_move;
+    bool real_time_;
     /**
      * @brief joints, a vector of joint handle, handle the joint of hardware
      * interface
@@ -86,7 +87,7 @@ namespace balance_controller {
     tf::Quaternion q;
 
     //! ROS publisher
-    ros::Publisher fakePosePub_, robot_state_pub_;
+    ros::Publisher fakePosePub_, robot_state_pub_, joint_state_pub_;
 
     //! pose
     geometry_msgs::PoseWithCovarianceStamped fakePoseMsg_;

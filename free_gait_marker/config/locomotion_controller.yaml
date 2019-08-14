@@ -1,5 +1,6 @@
 action_server_topic: "/free_gait/action_server"
 wait_for_action_timeout: 5
+ignore_base_motion: true
 foothold:
   frame_id: "odom"
   scale: 0.075
