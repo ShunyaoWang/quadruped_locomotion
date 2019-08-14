@@ -14,8 +14,8 @@ TODO 1.data log
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Core>
-#include <sophus/so3.h>
-#include <sophus/se3.h>
+#include <sophus/so3.hpp>
+#include <sophus/se3.hpp>
 #include "kindr/Core"
 #include <queue>
 #include <boost/thread.hpp>

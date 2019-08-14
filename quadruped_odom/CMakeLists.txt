@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
 #  orocos_kdl
 )
 find_package(Eigen3 REQUIRED)
-#find_package(Sophus REQUIRED)
+find_package(sophus REQUIRED)
 find_package(kindr QUIET)
 if(NOT kindr_FOUND)
   # Attempt to find package-based kindr
@@ -60,14 +60,14 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/legodom.cpp
 )
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Sophus_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} )
 
 add_executable(legodom
   src/legodom_node.cpp
 )
 # add_dependencies(legodom ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(legodom
-  ${PROJECT_NAME} ${catkin_LIBRARIES} ${Sophus_LIBRARIES}
+  ${PROJECT_NAME} ${catkin_LIBRARIES}
 )
 
 add_executable(legodom_test
@@ -75,7 +75,7 @@ add_executable(legodom_test
 )
 add_dependencies(legodom_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(legodom_test
-  ${PROJECT_NAME} ${catkin_LIBRARIES} ${Sophus_LIBRARIES}
+  ${PROJECT_NAME} ${catkin_LIBRARIES}
 )
 
 
