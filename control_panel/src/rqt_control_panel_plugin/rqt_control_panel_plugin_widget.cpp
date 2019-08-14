@@ -12,6 +12,7 @@ rqt_control_panel_plugin_widget::rqt_control_panel_plugin_widget(const ros::Node
   ui->Controllers->setTabText(1, "Joint Position");
   ui->Controllers->setTabText(2, "Joint Velocity");
   ui->Controllers->setTabText(3, "Joint Effort");
+  ui->Controllers->setTabText(4, "Single Leg Control");
 
   switchControllerClient_ = nodehandle_.serviceClient<controller_manager_msgs::SwitchController>
       ("/controller_manager/switch_controller", false);
@@ -155,6 +156,11 @@ void rqt_control_panel_plugin_widget::on_Controllers_currentChanged(int index)
           current_controller = "base_balance_controller";
           break;
         }
+      if(controller.name == "single_leg_controller" && controller.state =="running")
+        {
+          current_controller = "single_leg_controller";
+          break;
+        }
 
     }
   controller_manager_msgs::SwitchController controller_switch;
@@ -234,6 +240,22 @@ void rqt_control_panel_plugin_widget::on_Controllers_currentChanged(int index)
           displayOutputInfos("green", "Switch to Joint Effort Controller");
         }
       updateJointState();
+    }else if (tab_name == "Single Leg Control") {
+      std::cout<<"Single Leg Controller"<<std::endl;
+      eStopPublisher_.publish(e_stop_msg);
+      controller_switch.request.start_controllers.push_back("single_leg_controller");
+      controller_switch.request.stop_controllers.push_back(current_controller.c_str());
+      controller_switch.request.strictness = controller_switch.request.STRICT;
+      switchControllerClient_.call(controller_switch.request, controller_switch.response);
+
+      control_method.request.configure = "Joint Effort";
+      switchControlMethodClient_.call(control_method.request, control_method.response);
+
+      if(controller_switch.response.ok && control_method.response.result)
+        {
+          control_method_ = JOINT_EFFORT;
+          displayOutputInfos("green", "Switch to Single Leg Controller");
+        }
     }
 }
 
@@ -416,3 +438,78 @@ void rqt_control_panel_plugin_widget::on_setVelocityBotton_clicked()
 
 }
 
+
+void rqt_control_panel_plugin_widget::on_startSingleLegContoller_clicked()
+{
+  std_msgs::Bool e_stop_msg;
+  e_stop_msg.data = false;
+
+  eStopPublisher_.publish(e_stop_msg);
+}
+
+void rqt_control_panel_plugin_widget::on_stopSingleLegController_clicked()
+{
+  std_msgs::Bool e_stop_msg;
+  e_stop_msg.data = true;
+
+  eStopPublisher_.publish(e_stop_msg);
+}
+
+void rqt_control_panel_plugin_widget::on_resetJointPostionButton_clicked()
+{
+  ui->lf_joint_positon_1->setValue(0);
+  ui->lf_joint_positon_2->setValue(0);
+  ui->lf_joint_positon_3->setValue(0);
+
+  ui->rf_joint_positon_1->setValue(0);
+  ui->rf_joint_positon_2->setValue(0);
+  ui->rf_joint_positon_3->setValue(0);
+
+  ui->rh_joint_positon_1->setValue(0);
+  ui->rh_joint_positon_2->setValue(0);
+  ui->rh_joint_positon_3->setValue(0);
+
+  ui->lh_joint_positon_1->setValue(0);
+  ui->lh_joint_positon_2->setValue(0);
+  ui->lh_joint_positon_3->setValue(0);
+
+
+}
+
+void rqt_control_panel_plugin_widget::on_resetJointVelocityButton_clicked()
+{
+    ui->lf_joint_velocity_1->setValue(0);
+    ui->lf_joint_velocity_2->setValue(0);
+    ui->lf_joint_velocity_3->setValue(0);
+
+    ui->rf_joint_velocity_1->setValue(0);
+    ui->rf_joint_velocity_2->setValue(0);
+    ui->rf_joint_velocity_3->setValue(0);
+
+    ui->rh_joint_velocity_1->setValue(0);
+    ui->rh_joint_velocity_2->setValue(0);
+    ui->rh_joint_velocity_3->setValue(0);
+
+    ui->lh_joint_velocity_1->setValue(0);
+    ui->lh_joint_velocity_2->setValue(0);
+    ui->lh_joint_velocity_3->setValue(0);
+}
+
+void rqt_control_panel_plugin_widget::on_resetJointEffortButton_clicked()
+{
+  ui->lf_joint_effort_1->setValue(0);
+  ui->lf_joint_effort_2->setValue(0);
+  ui->lf_joint_effort_3->setValue(0);
+
+  ui->rf_joint_effort_1->setValue(0);
+  ui->rf_joint_effort_2->setValue(0);
+  ui->rf_joint_effort_3->setValue(0);
+
+  ui->rh_joint_effort_1->setValue(0);
+  ui->rh_joint_effort_2->setValue(0);
+  ui->rh_joint_effort_3->setValue(0);
+
+  ui->lh_joint_effort_1->setValue(0);
+  ui->lh_joint_effort_2->setValue(0);
+  ui->lh_joint_effort_3->setValue(0);
+}

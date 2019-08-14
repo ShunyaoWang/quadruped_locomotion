@@ -9,9 +9,9 @@ balance_controller:
       kd: 4000
       kff: 10
     vertical:
-      kp: 2000
-      kd: 1000
-      kff: 10
+      kp: 10000
+      kd: 5000
+      kff: 100
     roll:
       kp: 10000
       kd: 1000
@@ -41,11 +41,11 @@ balance_controller:
       minimal_normal_force: 10
 single_leg_controller:
   x_direction:
-    kp: 300
-    kd: 20
+    kp: 1000
+    kd: 200
   y_direction:
-    kp: 300
-    kd: 20
+    kp: 1000
+    kd: 200
   z_direction:
-    kp: 300
-    kd: 20
+    kp: 1000
+    kd: 200

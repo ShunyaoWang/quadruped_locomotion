@@ -75,6 +75,9 @@ public:
 
   bool advance(double dt);
 
+//  bool updateBaseVelocity(LinearVelocity& desired_linear_velocity,
+//                          LocalAngularVelocity& desired_angular_velocity);
+
 
 
 

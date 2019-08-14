@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
   while (ros::ok()) {
       if(quit) break;
     }
-
+  balanceControllerManager.~BalanceControllerManager();
   ROS_INFO("balance_controller_manager is shutdown");
 
 //  ros_ethercat_driver::RobotStateEtherCATHardwareInterface EtherCATHardWare;

@@ -106,7 +106,7 @@ namespace balance_controller {
     std::vector<free_gait::BranchEnum> branches_;
 
     LimbState limbs_state, limbs_desired_state;
-    LimbFlag real_contact_, is_cartisian_motion_;
+    LimbFlag real_contact_, is_cartisian_motion_, is_footstep_, is_legmode_;
     LimbDuration t_sw0, t_st0;
     LimbFlag sw_flag, st_flag;
     LimbPhase sw_phase, st_phase;

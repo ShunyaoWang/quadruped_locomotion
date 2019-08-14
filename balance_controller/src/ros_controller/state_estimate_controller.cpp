@@ -108,6 +108,7 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
         all_joint_efforts(i) = robot_state_handle.getJointEffortRead()[i];
 //        ROS_INFO("Joint %d Position is : %f", i, all_joint_positions(i));
       }
+<<<<<<< HEAD
 
 // TODO: call a state estimate method to calculate the pose estimate of robot.
     for(int i=0;i<12;++i){
@@ -226,6 +227,13 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
 //    ROS_ERROR("robot_state_..........");
 
 }
+=======
+    // TODO: call a state estimate method to calculate the pose estimate of robot.
+    robot_state_handle.position_[0] = 0;
+    robot_state_handle.position_[1] = 1;
+    robot_state_handle.position_[2] = 2;
+  }
+>>>>>>> wshy/yc_dev
 
   void StateEstimateController::starting(const ros::Time& time)
   {

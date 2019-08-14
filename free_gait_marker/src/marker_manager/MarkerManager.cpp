@@ -266,6 +266,7 @@ void MarkerManager::loadManagerParameters()
   nodeHandle_.param("wait_for_action_timeout", duration, 5.0);
   waitForActionTimeout_.fromSec(duration);
   nodeHandle_.param("foothold/frame_id", footholdFrameId_, std::string("map"));
+  nodeHandle_.param("ignore_base_motion", ignoreBaseMotion_, true);
 }
 
 void MarkerManager::addFootholdMarker(const unsigned int stepNumber,
@@ -554,13 +555,17 @@ bool MarkerManager::sendStepGoal()
     free_gait_msgs::BaseAuto baseMotion;
     baseMotion.height = 0.35;
     preStep.base_auto.push_back(baseMotion);
-//    goal.steps.push_back(preStep);
+    if(!ignoreBaseMotion_)
+      goal.steps.push_back(preStep);
 
     free_gait_msgs::Step step;
     free_gait_msgs::Footstep footstep;
     footstep.name = foothold.legName;
     footstep.target.header.frame_id = footholdFrameId_;
     footstep.target.point = marker.pose.position;
+    footstep.profile_type = "triangle";
+    footstep.profile_height = 0.15;
+    footstep.average_velocity = 0.65;
 //    footstep.ignore_for_pose_adaptation = true;
 //    swingData.profile.type = "square";
     step.footstep.push_back(footstep);

@@ -12,6 +12,7 @@
 
 #include "free_gait_core/TypeDefs.hpp"
 #include "free_gait_core/free_gait_core.hpp"
+#include "sensor_msgs/JointState.h"
 
 using namespace std;
 using namespace RigidBodyDynamics;
@@ -45,6 +46,9 @@ public:
     void setGains(const Eigen::Vector3d& kp, const Eigen::Vector3d& kd);
     void setDesiredPositionAndVelocity(const Eigen::Vector3d& position, const Eigen::Vector3d& velocity);
     const VectorNd& getVecQAct();
+    const VectorNd& getVecQDAct();
+    const VectorNd& getVecQDDAct();
+
     const VectorNd& getVecTauAct();
     const MatrixNd& getQAcutal();
     const MatrixNd& getQDotAcutal();
@@ -56,10 +60,13 @@ public:
 
     void FDynamicsCalculation();//Calculate the forward dynamic with PD controller
     void FileStoreIntoTextFile(const char *filestoredlocation, const MatrixNd & Stored_data);
-    bool update(const ros::Time& time, const ros::Duration& period, const free_gait::LimbEnum& limb);
+    bool update(const ros::Time& time, const ros::Duration& period,
+                const free_gait::LimbEnum& limb, bool real_time = false);
 protected:
 
     ros::NodeHandle node_handle_;
+
+    ros::Publisher joint_state_pub_;
 
     std::shared_ptr<free_gait::State> robot_state_;
 

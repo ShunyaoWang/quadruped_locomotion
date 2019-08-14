@@ -6,6 +6,13 @@ state_estimate_update:
   type: "balance_controller/StateEstimateController"
   joints: ['front_left_1_joint', 'front_left_2_joint', 'front_left_3_joint', 'front_right_1_joint', 'front_right_2_joint', 'front_right_3_joint', 'rear_right_1_joint', 'rear_right_2_joint', 'rear_right_3_joint', 'rear_left_1_joint', 'rear_left_2_joint', 'rear_left_3_joint']
 
+single_leg_controller:
+  type: "balance_controller/SingleLegController"
+  joints: ['front_left_1_joint', 'front_left_2_joint', 'front_left_3_joint', 'front_right_1_joint', 'front_right_2_joint', 'front_right_3_joint', 'rear_right_1_joint', 'rear_right_2_joint', 'rear_right_3_joint', 'rear_left_1_joint', 'rear_left_2_joint', 'rear_left_3_joint']
+  legs: ['LF_LEG', 'RF_LEG', 'RH_LEG', 'LH_LEG']
+  control_methods: ['end_position','end_position','end_position','end_position']
+  real_time: true
+
 base_balance_controller:
   type: "balance_controller/RosBalanceController"
   joints: ['front_left_1_joint', 'front_left_2_joint', 'front_left_3_joint', 'front_right_1_joint', 'front_right_2_joint', 'front_right_3_joint', 'rear_right_1_joint', 'rear_right_2_joint', 'rear_right_3_joint', 'rear_left_1_joint', 'rear_left_2_joint', 'rear_left_3_joint']
