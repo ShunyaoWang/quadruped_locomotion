@@ -23,7 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
 #  orocos_kdl
 )
 find_package(Eigen3 REQUIRED)
-find_package(Sophus REQUIRED)
+#find_package(Sophus REQUIRED)
 find_package(kindr QUIET)
 if(NOT kindr_FOUND)
   # Attempt to find package-based kindr
@@ -57,7 +57,7 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(${PROJECT_NAME} 
+add_library(${PROJECT_NAME}
   src/legodom.cpp
 )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${Sophus_LIBRARIES})
