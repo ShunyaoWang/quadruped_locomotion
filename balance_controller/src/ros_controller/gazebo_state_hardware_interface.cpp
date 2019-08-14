@@ -77,6 +77,11 @@ bool SimRobotStateHardwareInterface::initSim(
       ROS_ERROR("Can't find parameter of 'real_time_factor'");
       return false;
     }
+  if(!model_nh.getParam("/use_gazebo_feedback", use_gazebo_feedback))
+    {
+      ROS_ERROR("Can't find parameter of 'use_gazebo_feedback'");
+      return false;
+    }
 
   // Resize vectors to our DOF
   n_dof_ = transmissions.size();
@@ -318,26 +323,30 @@ void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration perio
 //  robot_state_data_.position = &base_link_ptr_->GetWorldCoGPose().pos;
 //  ROS_INFO("ReadSim: for base pose once");
 //ROS_WARN_STREAM("Real Time Factor :"<<real_time_factor<<std::endl);
-//  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
-//  robot_state_data_.position[0] = base_link_ptr_->GetWorldCoGPose().pos.x;
-//  robot_state_data_.position[1] = base_link_ptr_->GetWorldCoGPose().pos.y;
-//  robot_state_data_.position[2] = base_link_ptr_->GetWorldCoGPose().pos.z;
-////  ROS_INFO("Base position: x=%f,y=%f,z=%f",robot_state_data_.position[0],
-////      robot_state_data_.position[1],robot_state_data_.position[2]);
-//  robot_state_data_.orientation[0] = base_link_ptr_->GetWorldCoGPose().rot.w;
-//  robot_state_data_.orientation[1] = base_link_ptr_->GetWorldCoGPose().rot.x;
-//  robot_state_data_.orientation[2] = base_link_ptr_->GetWorldCoGPose().rot.y;
-//  robot_state_data_.orientation[3] = base_link_ptr_->GetWorldCoGPose().rot.z;
 
-//  robot_state_data_.linear_velocity[0] = real_time_factor * base_link_ptr_->GetWorldLinearVel().x;
-//  robot_state_data_.linear_velocity[1] = real_time_factor * base_link_ptr_->GetWorldLinearVel().y;
-//  robot_state_data_.linear_velocity[2] = real_time_factor * base_link_ptr_->GetWorldLinearVel().z;
-////  ROS_INFO("Base linear velocity: x=%f,y=%f,z=%f",robot_state_data_.linear_velocity[0],
-////      robot_state_data_.linear_velocity[1],robot_state_data_.linear_velocity[2]);
-//  robot_state_data_.angular_velocity[0] = real_time_factor * base_link_ptr_->GetWorldAngularVel().x;
-//  robot_state_data_.angular_velocity[1] = real_time_factor * base_link_ptr_->GetWorldAngularVel().y;
-//  robot_state_data_.angular_velocity[2] = real_time_factor * base_link_ptr_->GetWorldAngularVel().z;
-  /****************
+  //  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
+if(use_gazebo_feedback)
+  {
+    robot_state_data_.position[0] = base_link_ptr_->GetWorldCoGPose().pos.x;
+    robot_state_data_.position[1] = base_link_ptr_->GetWorldCoGPose().pos.y;
+    robot_state_data_.position[2] = base_link_ptr_->GetWorldCoGPose().pos.z;
+    //  ROS_INFO("Base position: x=%f,y=%f,z=%f",robot_state_data_.position[0],
+    //      robot_state_data_.position[1],robot_state_data_.position[2]);
+    robot_state_data_.orientation[0] = base_link_ptr_->GetWorldCoGPose().rot.w;
+    robot_state_data_.orientation[1] = base_link_ptr_->GetWorldCoGPose().rot.x;
+    robot_state_data_.orientation[2] = base_link_ptr_->GetWorldCoGPose().rot.y;
+    robot_state_data_.orientation[3] = base_link_ptr_->GetWorldCoGPose().rot.z;
+
+    robot_state_data_.linear_velocity[0] = real_time_factor * base_link_ptr_->GetWorldLinearVel().x;
+    robot_state_data_.linear_velocity[1] = real_time_factor * base_link_ptr_->GetWorldLinearVel().y;
+    robot_state_data_.linear_velocity[2] = real_time_factor * base_link_ptr_->GetWorldLinearVel().z;
+    //  ROS_INFO("Base linear velocity: x=%f,y=%f,z=%f",robot_state_data_.linear_velocity[0],
+    //      robot_state_data_.linear_velocity[1],robot_state_data_.linear_velocity[2]);
+    robot_state_data_.angular_velocity[0] = real_time_factor * base_link_ptr_->GetWorldAngularVel().x;
+    robot_state_data_.angular_velocity[1] = real_time_factor * base_link_ptr_->GetWorldAngularVel().y;
+    robot_state_data_.angular_velocity[2] = real_time_factor * base_link_ptr_->GetWorldAngularVel().z;
+  }
+/****************
 * TODO(Shunyao) : update Imu data
 ****************/
 

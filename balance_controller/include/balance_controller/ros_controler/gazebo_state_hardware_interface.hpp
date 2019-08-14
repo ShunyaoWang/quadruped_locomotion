@@ -135,6 +135,7 @@ protected:
   bool e_stop_active_, last_e_stop_active_;
 
   double real_time_factor;
+  bool use_gazebo_feedback;
 
   double pos_read[12], pos_write[12], vel_read[12], vel_write[12], eff_read[12],eff_write[12];
   double position[3], orinetation[4], linear_vel[3], angular_vel[3];
