@@ -122,6 +122,8 @@ public:
     Eigen::Vector3d QuaterniondToRPY(Eigen::Quaterniond& imu_000);
     Eigen::Vector3d QuaterniondToRPY(RotationQuaternion imu_rq);
     RotationQuaternion RPYTOQuaterniond(Eigen::Vector3d q_rpy);
+
+    void setFootState(const std_msgs::Float64MultiArray& foot_msg);
 //    Eigen::Quaterniond RPYTOQuaterniond(Eigen::Vector3d q_rpy_);
     ////////////////////
     //output
@@ -180,7 +182,7 @@ public:
     std_msgs::Float64MultiArray foot_out;
     std_msgs::Float64MultiArray gazebo_out;
     std_msgs::Float64MultiArray legodom_error_cal;
-    std::string _cal_vel_way, _orientation_way, _cal_position_way;
+    std::string _cal_vel_way, _orientation_way, _cal_position_way, imu_topic_name_;
 
     ros::Publisher legodom_odom_pub,legodom_error_pub,legodom_map_pub, legodom_init_pub,legPose_pub,gazebo_pub,imuvel_pub;
 
@@ -190,7 +192,7 @@ private:
     ros::Subscriber imu_sub,joints_sub,foot_state_sub, gazebo_sub,robot_state_sub,modelStatesSub_;
     //main function
     std::shared_ptr<free_gait::State> robot_state_;
-    double _cal_fator_x, _cal_fator_y, real_time_factor;
+    double _cal_fator_x, _cal_fator_y, _cal_fator_z, real_time_factor;
     //tf
     geometry_msgs::TransformStamped odom2map_tf,base2odom_tf,base2map_tf;
     geometry_msgs::PoseWithCovarianceStamped Pose_stamped_;

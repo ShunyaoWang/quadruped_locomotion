@@ -14,6 +14,9 @@ JointPositions QuadrupedState::joint_positions_feedback_ = JointPositions(Eigen:
 JointVelocities QuadrupedState::joint_velocities_ = JointVelocities(Eigen::VectorXd::Zero(12,1));
 JointPositions QuadrupedState::allJointPositionsFeedback_;
 JointVelocities QuadrupedState::joint_velocities_feedback_;
+JointTorques QuadrupedState::joint_torques_ = JointTorques().setZero();
+JointTorques QuadrupedState::joint_torques_feedback_ = JointTorques().setZero();
+
 Pose QuadrupedState::poseInWorldFrame_;
 Position QuadrupedState::positionWorldToBaseInWorldFrame_;
 RotationQuaternion QuadrupedState::orientationBaseToWorld_;
@@ -201,6 +204,11 @@ JointVelocities& QuadrupedState::getJointVelocities()
   return joint_velocities_;
 }
 
+JointTorques& QuadrupedState::getJointTorques()
+{
+  return joint_torques_;
+}
+
 const LinearVelocity QuadrupedState::getLinearVelocityBaseInWorldFrame() const
 {
   return base_feedback_linear_velocity_;
@@ -350,6 +358,14 @@ Eigen::Matrix3d QuadrupedState::getTranslationJacobianFromBaseToFootInBaseFrame(
   AnalysticJacobian(jointPositions_, limb, jacobian);
 //  ROS_INFO("getTranslationJacobianFromBaseToFootInBaseFrame");
   return jacobian.block(0,0,3,3);
+}
+Eigen::Matrix3d QuadrupedState::getTranslationJacobianDotFromBaseToFootInBaseFrame(const LimbEnum& limb)
+{
+  Eigen::MatrixXd jacobian_dot;
+  JointPositionsLimb joint_pos = current_limb_joints_.at(limb);
+  JointVelocitiesLimb joint_vel = current_limb_joint_velocities_.at(limb);
+  AnalysticJacobianDot(joint_pos, joint_vel, limb, jacobian_dot);
+  return jacobian_dot.block(0,0,3,3);
 }
 
 Eigen::Matrix3d getTranslationJacobianBaseToCoMInBaseFrame(const LimbEnum& limb, const int link_index)

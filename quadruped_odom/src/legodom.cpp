@@ -13,20 +13,28 @@ QuadrupedEstimation::QuadrupedEstimation(const ros::NodeHandle& _nodehandle,
     //dpdtvel -- jacobvel
     nodeHandle_.param("cal_vel_way", _cal_vel_way, std::string("jacobvel"));
     nodeHandle_.param("orientation_way", _orientation_way, std::string("imu_way"));
-    nodeHandle_.param("vel_set_T", _vel_set_T,  double(50.0) );
+    nodeHandle_.param("vel_set_T", _vel_set_T,  double(10.0) );
     nodeHandle_.param("odom_dt", _odom_dt, double(0.02) );
-    nodeHandle_.param("cal_fator_x", _cal_fator_x, double(1.2));
-    nodeHandle_.param("cal_fator_y", _cal_fator_y, double(1.2));
-    nodeHandle_.param("real_time_factor", real_time_factor, double(0.2));
+    nodeHandle_.param("/cal_fator_x", _cal_fator_x, double(1.2));
+    nodeHandle_.param("/cal_fator_y", _cal_fator_y, double(1.2));
+    nodeHandle_.param("/cal_fator_z", _cal_fator_z, double(0.9));
+    nodeHandle_.param("/real_time_factor", real_time_factor, double(0.2));
+    nodeHandle_.param("/legodom/use_gazebo_feedback", gazebo_flag, bool(true));
+    nodeHandle_.param("/imu_topic_name", imu_topic_name_, std::string("/imu"));
     //Initialization1
     InitParam();
     init_time = ros::Time::now();
     //sub topic
-    imu_sub = nodeHandle_.subscribe<sensor_msgs::Imu>("/imu", 10, &QuadrupedEstimation::imuCb, this);
-    foot_state_sub = nodeHandle_.subscribe<std_msgs::Float64MultiArray>("/gazebo/foot_contact_state", 10, &QuadrupedEstimation::footstateCb, this);
-//    joints_sub = nodeHandle_.subscribe<sensor_msgs::JointState>("/joint_states", 10, &QuadrupedEstimation::jointsCb, this);
+    imu_sub = nodeHandle_.subscribe<sensor_msgs::Imu>(imu_topic_name_, 10, &QuadrupedEstimation::imuCb, this);
+//    foot_state_sub = nodeHandle_.subscribe<std_msgs::Float64MultiArray>("/gazebo/foot_contact_state", 10, &QuadrupedEstimation::footstateCb, this);
+
+    //    joints_sub = nodeHandle_.subscribe<sensor_msgs::JointState>("/joint_states", 10, &QuadrupedEstimation::jointsCb, this);
 //    gazebo_sub = nodeHandle_.subscribe("/gazebo/odom", 10, &QuadrupedEstimation::gazeboCb, this);
-    modelStatesSub_ = nodeHandle_.subscribe("/gazebo/model_states", 2, &QuadrupedEstimation::modelStatesCallback, this);
+    if(gazebo_flag)
+      {
+        modelStatesSub_ = nodeHandle_.subscribe("/gazebo/model_states", 2, &QuadrupedEstimation::modelStatesCallback, this);
+        gazebo_pub = nodeHandle_.advertise<nav_msgs::Odometry>("/gazebo/odom",10);
+      }
 
     //pub topic
     legodom_odom_pub = nodeHandle_.advertise<nav_msgs::Odometry>("/legodom", 10);
@@ -34,7 +42,7 @@ QuadrupedEstimation::QuadrupedEstimation(const ros::NodeHandle& _nodehandle,
     legodom_error_pub = nodeHandle_.advertise<nav_msgs::Odometry>("/legodom_error", 10);
     legodom_init_pub = nodeHandle_.advertise<nav_msgs::Odometry>("/legodom_init", 10);
     legPose_pub = nodeHandle_.advertise<geometry_msgs::PoseWithCovarianceStamped>("/legodom/base_pose", 10);
-    gazebo_pub = nodeHandle_.advertise<nav_msgs::Odometry>("/gazebo/odom",10);
+
     imuvel_pub = nodeHandle_.advertise<geometry_msgs::Twist>("/gazebo/imu_vel",10);
 
 
@@ -50,6 +58,7 @@ QuadrupedEstimation::QuadrupedEstimation(const ros::NodeHandle& _nodehandle)
     nodeHandle_.param("odom_dt", _odom_dt, double(0.02) );
     nodeHandle_.param("cal_fator_x", _cal_fator_x, double(1.25));
     nodeHandle_.param("cal_fator_y", _cal_fator_y, double(1.25));
+    nodeHandle_.param("cal_fator_z", _cal_fator_z, double(0.9));
     std::vector<free_gait::LimbEnum> limbs;
     std::vector<free_gait::BranchEnum> branches_;
     limbs.push_back(free_gait::LimbEnum::LF_LEG);
@@ -126,6 +135,12 @@ void QuadrupedEstimation::jointsCb(const sensor_msgs::JointState::ConstPtr& join
 //    robot_state_->setCurrentLimbJoints(joints_all);
 //    robot_state_->setCurrentLimbJointVelocities(jointsvel_all);
 
+}
+void QuadrupedEstimation::setFootState(const std_msgs::Float64MultiArray& foot_msg){
+
+//    ROS_WARN("get foot_msg");
+    foot_output = foot_msg;
+    foot_cb_flag = true;
 }
 
 void QuadrupedEstimation::footstateCb(const std_msgs::Float64MultiArray::ConstPtr& foot_msg){
@@ -548,12 +563,12 @@ void QuadrupedEstimation::TFINIT() {
 //    ROS_WARN("TFINIT !!!");
 
 //    if( gazebo_output.pose.pose.position.x == 0 && gazebo_output.pose.pose.orientation.w ==1 && gazebo_output.twist.twist.linear.x ==0 ){
-    if( !gazebo_flag && !imu_cb_flag ){
+    if( !gazebo_flag ){
 
 //        ROS_WARN("TFINIT-no gazebo msg");
         init_x = 0;
         init_y = 0;
-        init_z = 0;
+        init_z = 0.25;
         init_wx = 0;
         init_wy = 0;
         init_wz = 0;
@@ -891,17 +906,19 @@ void QuadrupedEstimation::LegTFOut(){
 //    ROS_WARN("LegTFOut !!!");
 //*********************base2map_tf***************************//
     ros::Time sim_time(imu_output.header.stamp);//ros::Time::now().toSec() - init_time.toSec());
-    base2map_tf.header.frame_id = "map";
-    base2map_tf.child_frame_id = "base_link";
-    base2map_tf.header.stamp = sim_time;//ros::Time::now(). - init_time;
-    base2map_tf.transform.translation.x = odom_position(0);
-    base2map_tf.transform.translation.y = odom_position(1);
-    base2map_tf.transform.translation.z = odom_position(2);
-    base2map_tf.transform.rotation.x = odom_orientation.x();
-    base2map_tf.transform.rotation.y = odom_orientation.y();
-    base2map_tf.transform.rotation.z = odom_orientation.z();
-    base2map_tf.transform.rotation.w = odom_orientation.w();
-    base2map_broadcaster.sendTransform(base2map_tf);
+    if(!gazebo_flag)
+      sim_time = ros::Time::now();
+    //    base2map_tf.header.frame_id = "map";
+//    base2map_tf.child_frame_id = "base_link";
+//    base2map_tf.header.stamp = sim_time;//ros::Time::now(). - init_time;
+//    base2map_tf.transform.translation.x = odom_position(0);
+//    base2map_tf.transform.translation.y = odom_position(1);
+//    base2map_tf.transform.translation.z = odom_position(2);
+//    base2map_tf.transform.rotation.x = odom_orientation.x();
+//    base2map_tf.transform.rotation.y = odom_orientation.y();
+//    base2map_tf.transform.rotation.z = odom_orientation.z();
+//    base2map_tf.transform.rotation.w = odom_orientation.w();
+//    base2map_broadcaster.sendTransform(base2map_tf);
 
 //*********************base2odom_tf***************************//
     base2odom_tf.header.frame_id = "odom";
@@ -919,17 +936,17 @@ void QuadrupedEstimation::LegTFOut(){
 
 
     //*********************odom2map_tf***************************//
-    odom2map_tf.header.frame_id = "map";
-    odom2map_tf.child_frame_id = "odom";
-    odom2map_tf.header.stamp = sim_time;//ros::Time::now() - init_time;
-    odom2map_tf.transform.translation.x = init_x;
-    odom2map_tf.transform.translation.y = init_y;
-    odom2map_tf.transform.translation.z = 0;
-    odom2map_tf.transform.rotation.x = init_wx;
-    odom2map_tf.transform.rotation.y = init_wy;
-    odom2map_tf.transform.rotation.z = init_wz;
-    odom2map_tf.transform.rotation.w = init_ww;
-    base2map_broadcaster.sendTransform(odom2map_tf);
+//    odom2map_tf.header.frame_id = "map";
+//    odom2map_tf.child_frame_id = "odom";
+//    odom2map_tf.header.stamp = sim_time;//ros::Time::now() - init_time;
+//    odom2map_tf.transform.translation.x = init_x;
+//    odom2map_tf.transform.translation.y = init_y;
+//    odom2map_tf.transform.translation.z = 0;
+//    odom2map_tf.transform.rotation.x = init_wx;
+//    odom2map_tf.transform.rotation.y = init_wy;
+//    odom2map_tf.transform.rotation.z = init_wz;
+//    odom2map_tf.transform.rotation.w = init_ww;
+//    base2map_broadcaster.sendTransform(odom2map_tf);
 
 //    ROS_WARN("LegTFOut........... !!!");
 //    tf::Quaternion q;
@@ -1048,29 +1065,10 @@ void QuadrupedEstimation::GetPositionAddEveryTimeInAllFoot(){
 
     }
     else{
-        if(foot_flag == 10000)
-        {
-            //test
-//            if((foot_flag == first_foot_flag) && (no_data_input_flag)){
-//                ROS_INFO("no data---init flag: 0000");
-//            }
-//            else if((foot_flag != first_foot_flag ) && (no_data_input_flag) ){
-//                ROS_INFO("last get data---now no data(first): 0000");
-//                no_data_input_flag = false;
-//            }
-//            else if((foot_flag == first_foot_flag) && (!no_data_input_flag)){
-//                ROS_INFO("before get data---again no data(again+++): 0000");
-//            }
-//            else if((foot_flag != first_foot_flag) && (!no_data_input_flag)){
-//                ROS_INFO("before get data---again no data(second+++): 0000");
-//            }
-            odom_position = odom_position;
-        }
-        else{
 //            cout << "foot_flag: " << foot_flag << endl;
             if(first_foot_flag == 1111 && first_check_p){
 //                ROS_ERROR("first inter flag: 1111---get init data msg");
-                odom_position = odom_positioninit;
+                odom_position = odom_positioninit + Position(0,0,0.0);
                 first_check_p = false;
             }
 
@@ -1078,18 +1076,23 @@ void QuadrupedEstimation::GetPositionAddEveryTimeInAllFoot(){
             P_leg2_ = P_BW[1];
             P_leg3_ = P_BW[2];
             P_leg4_ = P_BW[3];
-
-            odom_position_tmp(0) = -_cal_fator_x*( foot_output.data[0]*(P_leg1_(0) - leg1_first(0)) + foot_output.data[1]*(P_leg2_(0) - leg2_first(0)) + foot_output.data[2]*(P_leg3_(0) - leg3_first(0))
-                    +foot_output.data[3]* (P_leg4_(0) - leg4_first(0) ))/(foot_output.data[0] + foot_output.data[1] + foot_output.data[2] + foot_output.data[3]);
-            odom_position_tmp(1) = -_cal_fator_y*( foot_output.data[0]*(P_leg1_(1) - leg1_first(1)) + foot_output.data[1]*(P_leg2_(1) - leg2_first(1)) + foot_output.data[2]*(P_leg3_(1) - leg3_first(1))
-                    +foot_output.data[3]* (P_leg4_(1) - leg4_first(1) ))/(foot_output.data[0] + foot_output.data[1] + foot_output.data[2] + foot_output.data[3]);
-            odom_position_tmp(2) = -( foot_output.data[0]*(P_leg1_(2)) + foot_output.data[1]*(P_leg2_(2)) + foot_output.data[2]*(P_leg3_(2))
-                                +foot_output.data[3]* (P_leg4_(2)))/(foot_output.data[0] + foot_output.data[1] + foot_output.data[2] + foot_output.data[3]) + 0.03;
+            double number_of_contact = foot_output.data[0] + foot_output.data[1] + foot_output.data[2] + foot_output.data[3];
+            if(number_of_contact>=2)
+              {
+                odom_position_tmp(0) = -_cal_fator_x*( foot_output.data[0]*(P_leg1_(0) - leg1_first(0)) + foot_output.data[1]*(P_leg2_(0) - leg2_first(0)) + foot_output.data[2]*(P_leg3_(0) - leg3_first(0))
+                    +foot_output.data[3]* (P_leg4_(0) - leg4_first(0) ))/number_of_contact;
+                odom_position_tmp(1) = -_cal_fator_y*( foot_output.data[0]*(P_leg1_(1) - leg1_first(1)) + foot_output.data[1]*(P_leg2_(1) - leg2_first(1)) + foot_output.data[2]*(P_leg3_(1) - leg3_first(1))
+                    +foot_output.data[3]* (P_leg4_(1) - leg4_first(1) ))/number_of_contact;
+//                odom_position_tmp(2) = -( foot_output.data[0]*(P_leg1_(2)) + foot_output.data[1]*(P_leg2_(2)) + foot_output.data[2]*(P_leg3_(2))
+//                    +foot_output.data[3]* (P_leg4_(2)))/number_of_contact + 0.03;
+                odom_position_tmp(2) = -_cal_fator_z*( foot_output.data[0]*(P_leg1_(2) - leg1_first(2)) + foot_output.data[1]*(P_leg2_(2)- leg2_first(2)) + foot_output.data[2]*(P_leg3_(2) - leg3_first(2))
+                    +foot_output.data[3]* (P_leg4_(2) - leg4_first(2)))/number_of_contact;// + 0.03;
+              }
             odom_position(0) += odom_position_tmp(0);
             odom_position(1) += odom_position_tmp(1);
-            odom_position(2) = odom_position_tmp(2);
+            odom_position(2) += odom_position_tmp(2);
         }
-    }
+
 }
 
 void QuadrupedEstimation::GetPositionAddEveryTime(){
@@ -2084,7 +2087,7 @@ void QuadrupedEstimation::GetLinearVelFromKin() {
         odom_v_vec = (odom_p_vec - odom_p_before) /t;
 
 
-        odom_vel = GetLinearVelFilter(odom_v_vec);
+        odom_vel = 2.5*GetLinearVelFilter(odom_v_vec);
 
 //        if(velget_flag && !foot_cb_flag){
 //            odom_vel << 0.0, 0.0, 0.0;
@@ -2171,42 +2174,74 @@ void QuadrupedEstimation::GetLinearVelFromJointvel() {
 //    }
 
     //form shunyao
-    V_Jacob[0] = real_time_factor * robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::LF_LEG);
-    V_Jacob[1] = real_time_factor * robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::RF_LEG);
-    V_Jacob[2] = real_time_factor * robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::RH_LEG);
-    V_Jacob[3] = real_time_factor * robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::LH_LEG);
+    V_Jacob[0] = robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::LF_LEG);
+    V_Jacob[1] = robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::RF_LEG);
+    V_Jacob[2] = robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::RH_LEG);
+    V_Jacob[3] = robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::LH_LEG);
+
+    Eigen::Vector3d min_vector_error;
+    min_vector_error << 100,100,100;
+    int min_index_a, min_index_b;
+    std::vector<int> foots;
+    foots.resize(4);
+    for(int i = 0;i<4;i++)
+      {
+        for(int j = 0;j<4;j++)
+          {
+            Eigen::Vector3d vector_error = V_Jacob[i].cross(V_Jacob[j]).vector();
+            if(vector_error.norm() < min_vector_error.norm())
+              {
+                min_vector_error = vector_error;
+                min_index_a = i;
+                min_index_b = j;
+              }
+          }
+        if(foot_output.data[i] == 1 && V_Jacob[i](0)<1 && V_Jacob[i](1)<1 && V_Jacob[i](2)<1)
+          foots[i] = 1;
+        else
+          foots[i] = 0;
+      }
+
 
 //    for(int i=0;i<4;++i){
 //        cout << "V_Jacob[i]:" << i << " " <<V_Jacob[i] << endl;
 //    }
 
-    if(foot_flag == 1111) {
-//        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[2] + V_Jacob[3] )/4  ;
-        odom_vel_inodom_1 = -(V_Jacob[1] + V_Jacob[3] ) * 1/2;
-        odom_vel_inodom_2 = -(V_Jacob[0]  + V_Jacob[2] ) * 1/2;
-        odom_vel_inodom = odom_vel_inodom_1.norm() > odom_vel_inodom_2.norm() ? odom_vel_inodom_2 : odom_vel_inodom_1;
+//    if(foot_flag == 1111) {
+////        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[2] + V_Jacob[3] )/4  ;
+//        odom_vel_inodom_1 = -(V_Jacob[1] + V_Jacob[3] ) * 1/2;
+//        odom_vel_inodom_2 = -(V_Jacob[0]  + V_Jacob[2] ) * 1/2;
+//        odom_vel_inodom = odom_vel_inodom_1.norm() > odom_vel_inodom_2.norm() ? odom_vel_inodom_2 : odom_vel_inodom_1;
 
-//        odom_vel_inodom = std::min(abs(odom_vel_inodom_1,odom_vel_inodom_2));
+////        odom_vel_inodom = std::min(abs(odom_vel_inodom_1,odom_vel_inodom_2));
 
-    }
-    else if(foot_flag == 1110) {
-        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[2] ) * 1/3;
-    }
-    else if(foot_flag == 1101) {
-        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[3] ) * 1/3;
-    }
-    else if(foot_flag == 1011) {
-        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[2] + V_Jacob[3] ) * 1/3;
-    }
-    else if(foot_flag == 10111) {
-        odom_vel_inodom =  -( V_Jacob[1] + V_Jacob[2] + V_Jacob[3] ) * 1/3;
-    }
-    else if(foot_flag == 10101) {
-        odom_vel_inodom =  -(V_Jacob[1] + V_Jacob[3] ) * 1/2;
-    }
-    else if(foot_flag == 1010) {
-        odom_vel_inodom =  -(V_Jacob[0]  + V_Jacob[2] ) * 1/2;
-    }
+//    }
+//    else if(foot_flag == 1110) {
+//        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[2] ) * 1/3;
+//    }
+//    else if(foot_flag == 1101) {
+//        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[3] ) * 1/3;
+//    }
+//    else if(foot_flag == 1011) {
+//        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[2] + V_Jacob[3] ) * 1/3;
+//    }
+//    else if(foot_flag == 10111) {
+//        odom_vel_inodom =  -( V_Jacob[1] + V_Jacob[2] + V_Jacob[3] ) * 1/3;
+//    }
+//    else if(foot_flag == 10101) {
+//        odom_vel_inodom =  -(V_Jacob[1] + V_Jacob[3] ) * 1/2;
+//    }
+//    else if(foot_flag == 1010) {
+//        odom_vel_inodom =  -(V_Jacob[0]  + V_Jacob[2] ) * 1/2;
+//    }
+//    odom_vel_inodom = -0.5*(V_Jacob[min_index_a] + V_Jacob[min_index_b]);
+    int number_of_contact = foots[0] + foots[1] + foots[2] + foots[3];
+    if(number_of_contact > 0)
+      {
+        odom_vel_inodom = -(foots[0] * V_Jacob[0] + foots[1] * V_Jacob[1] + foots[2] * V_Jacob[2] + foots[3] * V_Jacob[3])
+            /number_of_contact;
+      }
+
 //    cout << "odom_vel_inodom: "<< odom_vel_inodom << endl;
     GetVelInWorld(odom_vel_inodom);
 

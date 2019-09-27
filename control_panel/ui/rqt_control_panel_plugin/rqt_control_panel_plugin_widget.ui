@@ -443,13 +443,6 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="4">
-        <widget class="QPushButton" name="stopPositionButton">
-         <property name="text">
-          <string>Stop</string>
-         </property>
-        </widget>
-       </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_11">
          <property name="text">
@@ -506,6 +499,20 @@
          </property>
          <property name="text">
           <string>Joint Position (rad)</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="4">
+        <widget class="QPushButton" name="stopPositionButton">
+         <property name="text">
+          <string>Stop</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="4">
+        <widget class="QPushButton" name="setInitialJointPosition">
+         <property name="text">
+          <string>Init Position</string>
          </property>
         </widget>
        </item>

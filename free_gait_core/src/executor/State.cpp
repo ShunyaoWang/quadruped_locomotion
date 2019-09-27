@@ -226,12 +226,17 @@ const JointEffortsLeg State::getJointEffortsForLimb(const LimbEnum& limb) const
 
 const JointEfforts& State::getAllJointEfforts() const
 {
-  return jointEfforts_;
+  return quadruped_model::QuadrupedState::getJointTorques();
+//  return jointEfforts_;
 }
 
 void State::setJointEffortsForLimb(const LimbEnum& limb, const JointEffortsLeg& jointEfforts)
 {
-  jointEfforts_.setSegment<3>(QD::getLimbStartIndexInJ(limb), jointEfforts);
+  //! WSHY: command
+  quadruped_model::QuadrupedState::getJointTorques().setSegment<3>(
+      QD::getLimbStartIndexInJ(limb), jointEfforts);
+//  jointEfforts_.setSegment<3>(QD::getLimbStartIndexInJ(limb), jointEfforts);
+
 //  jointEfforts_.getSegment<QD::getNumDofLimb()>(QD::getLimbStartIndexInJ(limb)) = jointEfforts;
 }
 

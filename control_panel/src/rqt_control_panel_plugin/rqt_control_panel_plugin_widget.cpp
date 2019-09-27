@@ -73,13 +73,13 @@ bool rqt_control_panel_plugin_widget::updateJointState()
         ui->rf_joint_positon_2->setValue(joint_states_.position[4]);
         ui->rf_joint_positon_3->setValue(joint_states_.position[5]);
 
-        ui->rh_joint_positon_1->setValue(joint_states_.position[6]);
-        ui->rh_joint_positon_2->setValue(joint_states_.position[7]);
-        ui->rh_joint_positon_3->setValue(joint_states_.position[8]);
+        ui->rh_joint_positon_1->setValue(joint_states_.position[9]);
+        ui->rh_joint_positon_2->setValue(joint_states_.position[10]);
+        ui->rh_joint_positon_3->setValue(joint_states_.position[11]);
 
-        ui->lh_joint_positon_1->setValue(joint_states_.position[9]);
-        ui->lh_joint_positon_2->setValue(joint_states_.position[10]);
-        ui->lh_joint_positon_3->setValue(joint_states_.position[11]);
+        ui->lh_joint_positon_1->setValue(joint_states_.position[6]);
+        ui->lh_joint_positon_2->setValue(joint_states_.position[7]);
+        ui->lh_joint_positon_3->setValue(joint_states_.position[8]);
         break;
       }
     case 2: //joint velocity
@@ -92,13 +92,13 @@ bool rqt_control_panel_plugin_widget::updateJointState()
         ui->rf_joint_velocity_2->setValue(joint_states_.velocity[4]);
         ui->rf_joint_velocity_3->setValue(joint_states_.velocity[5]);
 
-        ui->rh_joint_velocity_1->setValue(joint_states_.velocity[6]);
-        ui->rh_joint_velocity_2->setValue(joint_states_.velocity[7]);
-        ui->rh_joint_velocity_3->setValue(joint_states_.velocity[8]);
+        ui->rh_joint_velocity_1->setValue(joint_states_.velocity[9]);
+        ui->rh_joint_velocity_2->setValue(joint_states_.velocity[10]);
+        ui->rh_joint_velocity_3->setValue(joint_states_.velocity[11]);
 
-        ui->lh_joint_velocity_1->setValue(joint_states_.velocity[9]);
-        ui->lh_joint_velocity_2->setValue(joint_states_.velocity[10]);
-        ui->lh_joint_velocity_3->setValue(joint_states_.velocity[11]);
+        ui->lh_joint_velocity_1->setValue(joint_states_.velocity[6]);
+        ui->lh_joint_velocity_2->setValue(joint_states_.velocity[7]);
+        ui->lh_joint_velocity_3->setValue(joint_states_.velocity[8]);
         break;
       }
     case 3: //joint effort
@@ -111,13 +111,13 @@ bool rqt_control_panel_plugin_widget::updateJointState()
         ui->rf_joint_effort_2->setValue(joint_states_.effort[4]);
         ui->rf_joint_effort_3->setValue(joint_states_.effort[5]);
 
-        ui->rh_joint_effort_1->setValue(joint_states_.effort[6]);
-        ui->rh_joint_effort_2->setValue(joint_states_.effort[7]);
-        ui->rh_joint_effort_3->setValue(joint_states_.effort[8]);
+        ui->rh_joint_effort_1->setValue(joint_states_.effort[9]);
+        ui->rh_joint_effort_2->setValue(joint_states_.effort[10]);
+        ui->rh_joint_effort_3->setValue(joint_states_.effort[11]);
 
-        ui->lh_joint_effort_1->setValue(joint_states_.effort[9]);
-        ui->lh_joint_effort_2->setValue(joint_states_.effort[10]);
-        ui->lh_joint_effort_3->setValue(joint_states_.effort[11]);
+        ui->lh_joint_effort_1->setValue(joint_states_.effort[6]);
+        ui->lh_joint_effort_2->setValue(joint_states_.effort[7]);
+        ui->lh_joint_effort_3->setValue(joint_states_.effort[8]);
         break;
       }
     }
@@ -512,4 +512,23 @@ void rqt_control_panel_plugin_widget::on_resetJointEffortButton_clicked()
   ui->lh_joint_effort_1->setValue(0);
   ui->lh_joint_effort_2->setValue(0);
   ui->lh_joint_effort_3->setValue(0);
+}
+
+void rqt_control_panel_plugin_widget::on_setInitialJointPosition_clicked()
+{
+  ui->lf_joint_positon_1->setValue(0);
+  ui->lf_joint_positon_2->setValue(1.4);
+  ui->lf_joint_positon_3->setValue(-2.4);
+
+  ui->rf_joint_positon_1->setValue(0);
+  ui->rf_joint_positon_2->setValue(-1.4);
+  ui->rf_joint_positon_3->setValue(2.4);
+
+  ui->rh_joint_positon_1->setValue(0);
+  ui->rh_joint_positon_2->setValue(1.4);
+  ui->rh_joint_positon_3->setValue(-2.4);
+
+  ui->lh_joint_positon_1->setValue(0);
+  ui->lh_joint_positon_2->setValue(-1.4);
+  ui->lh_joint_positon_3->setValue(2.4);
 }

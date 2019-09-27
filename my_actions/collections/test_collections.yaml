@@ -14,3 +14,10 @@ collections:
         - "2"
         - "3"
       is_sequence: True
+  - collection:
+      id: "3"
+      name: Jump
+      actions:
+        - "14"
+        - "16"
+      is_sequence: True

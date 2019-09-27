@@ -33,9 +33,11 @@ public:
   const Position getTargetFootPositionInBaseForLimb(const LimbEnum& limb) const;
   const LinearVelocity getTargetFootVelocityInBaseForLimb(const LimbEnum& limb) const;
   const LinearAcceleration getTargetFootAccelerationInBaseForLimb(const LimbEnum& limb) const;
-
+  //! WSHY: command
   static JointPositions& getJointPositions();
   static JointVelocities& getJointVelocities();
+  static JointTorques& getJointTorques();
+
   const JointPositions& getJointPositionFeedback() const;
   const JointPositionsLimb getJointPositionFeedbackForLimb(const LimbEnum& limb) const;
   const LinearVelocity getLinearVelocityBaseInWorldFrame() const;
@@ -60,7 +62,9 @@ public:
   Position getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb) const;
   double getLegMass(const LimbEnum& limb) const;
   Eigen::Matrix3d getTranslationJacobianFromBaseToFootInBaseFrame(const LimbEnum& limb);
+  Eigen::Matrix3d getTranslationJacobianDotFromBaseToFootInBaseFrame(const LimbEnum& limb);
   Eigen::Matrix3d getTranslationJacobianBaseToCoMInBaseFrame(const LimbEnum& limb, const int link_index);
+
   //  struct getJointPositions
 //  {
 //    Eigen::VectorXd joint_position_;
@@ -104,6 +108,7 @@ private:
   static JointPositions joint_positions_, joint_positions_feedback_;
   static JointPositions allJointPositionsFeedback_, allJointPositionsCB;
   static JointVelocities joint_velocities_, joint_velocities_feedback_;
+  static JointTorques joint_torques_, joint_torques_feedback_;
   //! target base position and orientation
   static Position positionWorldToBaseInWorldFrame_;
   static RotationQuaternion orientationBaseToWorld_;

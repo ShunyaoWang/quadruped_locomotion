@@ -8,33 +8,135 @@ steps:
     - footstep:
         name: LF_LEG
         profile_type: triangle
-        profile_height: 0.10
+        profile_height: 0.15
         average_velocity: 1
         target:
           frame: foot_print
-          position: [0.4, 0.25, 0]
+          position: [0.4, 0.175, 0]
     - footstep:
         name: RH_LEG
         profile_type: triangle
-        profile_height: 0.10
+        profile_height: 0.15
         average_velocity: 1
         target:
           frame: foot_print
-          position: [-0.4, -0.25, 0]
+          position: [-0.4, -0.175, 0]
   - step:
     - footstep:
         name: RF_LEG
         profile_type: triangle
-        profile_height: 0.10
+        profile_height: 0.15
         average_velocity: 1
         target:
           frame: foot_print
-          position: [0.4, -0.25, 0]
+          position: [0.4, -0.175, 0]
     - footstep:
         name: LH_LEG
         profile_type: triangle
-        profile_height: 0.10
+        profile_height: 0.15
         average_velocity: 1
         target:
           frame: foot_print
-          position: [-0.4, 0.25, 0]
+          position: [-0.4, 0.175, 0]
+  - step:
+    - footstep:
+        name: LF_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [0.4, 0.175, 0]
+    - footstep:
+        name: RH_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [-0.4, -0.175, 0]
+  - step:
+    - footstep:
+        name: RF_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [0.4, -0.175, 0]
+    - footstep:
+        name: LH_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [-0.4, 0.175, 0]
+  - step:
+    - footstep:
+        name: LF_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [0.4, 0.175, 0]
+    - footstep:
+        name: RH_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [-0.4, -0.175, 0]
+  - step:
+    - footstep:
+        name: RF_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [0.4, -0.175, 0]
+    - footstep:
+        name: LH_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [-0.4, 0.175, 0]
+  - step:
+    - footstep:
+        name: LF_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [0.4, 0.175, 0]
+    - footstep:
+        name: RH_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [-0.4, -0.175, 0]
+  - step:
+    - footstep:
+        name: RF_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [0.4, -0.175, 0]
+    - footstep:
+        name: LH_LEG
+        profile_type: triangle
+        profile_height: 0.15
+        average_velocity: 1
+        target:
+          frame: foot_print
+          position: [-0.4, 0.175, 0]

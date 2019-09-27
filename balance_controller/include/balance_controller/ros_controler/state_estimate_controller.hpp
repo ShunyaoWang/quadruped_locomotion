@@ -20,6 +20,7 @@
 #include "urdf/model.h"
 #include "legodom.h"
 #include "kindr_ros/kindr_ros.hpp"
+#include "state_switcher/StateSwitcher.hpp"
 //#include "quadruped_odom/legodom.h"
 
 namespace balance_controller {
@@ -60,6 +61,7 @@ namespace balance_controller {
     unsigned int n_joints;
 
     Eigen::VectorXd OdomState;
+    double real_time_factor;
 
   private:
     ros::Subscriber contact_sub_, imu_sub_;
@@ -73,6 +75,8 @@ namespace balance_controller {
 
     free_gait_msgs::RobotState robot_state_;
     void footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts);
+    int delay_counts[4];
+    bool use_gazebo_feedback, real_robot;
 //    void IMUmsgCallback(const sensor_msgs::ImuConstPtr& imu_msg);
 
   };

@@ -56,15 +56,51 @@ VirtualModelController::VirtualModelController(const ros::NodeHandle& node_handl
       contactForceDistribution_(contactForceDistribution),
       gravityCompensationForcePercentage_(1.0)
 {
+
   limbs_.push_back(free_gait::LimbEnum::LF_LEG);
   limbs_.push_back(free_gait::LimbEnum::RF_LEG);
   limbs_.push_back(free_gait::LimbEnum::LH_LEG);
   limbs_.push_back(free_gait::LimbEnum::RH_LEG);
 
+  dynamicReconfigureServer_.reset(new DynamicConfigServer(node_handle));
+  reconfigureCallbackType_ = boost::bind(&VirtualModelController::dynamicReconfigureCallback, this, _1, _2);
+  dynamicReconfigureServer_->setCallback(reconfigureCallbackType_);
+
 }
 
 VirtualModelController::~VirtualModelController()
 {
+
+}
+
+void VirtualModelController::dynamicReconfigureCallback(balance_controller::balance_controllerConfig& config, uint32_t level)
+{
+  ROS_INFO("dynamic reconfigure update once");
+  proportionalGainTranslation_.x() = config.heading_kp;
+  derivativeGainTranslation_.x() = config.heading_kd;
+  feedforwardGainTranslation_.x() = config.heading_kff;
+
+  proportionalGainTranslation_.y() = config.lateral_kp;
+  derivativeGainTranslation_.y() = config.lateral_kd;
+  feedforwardGainTranslation_.y() = config.lateral_kff;
+
+  proportionalGainTranslation_.z() = config.vertical_kp;
+  derivativeGainTranslation_.z() = config.vertical_kd;
+  feedforwardGainTranslation_.z() = config.vertical_kff;
+
+  proportionalGainRotation_.x() = config.roll_kp;
+  derivativeGainRotation_.x() = config.roll_kd;
+  feedforwardGainRotation_.x() = config.roll_kff;
+
+  proportionalGainRotation_.y() = config.pitch_kp;
+  derivativeGainRotation_.y() = config.pitch_kd;
+  feedforwardGainRotation_.y() = config.pitch_kff;
+
+  proportionalGainRotation_.z() = config.yaw_kp;
+  derivativeGainRotation_.z() = config.yaw_kd;
+  feedforwardGainRotation_.z() = config.yaw_kff;
+
+  gravityCompensationForcePercentage_ = config.gravity_compensation_percentage;
 
 }
 
@@ -120,7 +156,7 @@ bool VirtualModelController::computeError()
    const RotationQuaternion& orientationControlToBase = robot_state_->getTargetOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
    positionErrorInControlFrame_ = robot_state_->getTargetPositionWorldToBaseInWorldFrame() //torso_->getDesiredState().getPositionControlToBaseInControlFrame()
        - robot_state_->getPositionWorldToBaseInWorldFrame();//torso_->getMeasuredState().getPositionControlToBaseInControlFrame();
-
+   //! WSHY: in base !!!!
   orientationError_ = -orientationControlToBase.boxMinus(robot_state_->getOrientationBaseToWorld().inverted());//torso_->getDesiredState().getOrientationControlToBase().boxMinus(
       //torso_->getMeasuredState().getOrientationControlToBase());
 
@@ -254,8 +290,8 @@ bool VirtualModelController::computeVirtualTorque()
 //                       + gravityCompensationTorqueInBaseFrame_;
 
   virtualTorqueInBaseFrame_ = Torque(proportionalGainRotation_.cwiseProduct(orientationError_))
-                       + orientationControlToBase.rotate(Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation())))
-                       + orientationControlToBase.rotate(Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame)))
+                       + Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation()))
+                       + Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame))
                        + gravityCompensationTorqueInBaseFrame_;
 
 //  std::cout << "--------------------" << std::endl
@@ -543,7 +579,14 @@ bool VirtualModelController::loadParameters()
     ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/virtual_model_controller/yaw/kff'.");
     return false;
   }
+  if (node_handle_.hasParam("/balance_controller/virtual_model_controller/gravity_compensation_percentage")) {
+    node_handle_.getParam("/balance_controller/virtual_model_controller/gravity_compensation_percentage", gravityCompensationForcePercentage_);
+  } else {
+    ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/virtual_model_controller/gravity_compensation_percentage'.");
+    return false;
+  }
   isParametersLoaded_ = true;
+  ROS_INFO("Parameters Loaded from Server");
   return true;
 }
 

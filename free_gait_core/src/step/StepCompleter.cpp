@@ -110,7 +110,7 @@ bool StepCompleter::complete(const State& state, const Step& step, EndEffectorMo
         endEffectorMotion.getLimb());//, state.getJointPositionsForLimb(endEffectorMotion.getLimb()));
 //    std::cout<<"Step completer, foot_pose_in_base is : "<<startPositionInBaseFrame<<std::endl;
     Position startPosition = adapter_.transformPosition("base_link", frameId, startPositionInBaseFrame);
-//    std::cout<<"Step completer, foot_pose_in_world is : "<<startPosition<<std::endl;
+//    std::cout<<"Step completer, foot_pose in "<<frameId.c_str()<<" is : "<<startPosition<<std::endl;
 
     endEffectorMotion.updateStartPosition(startPosition);
   }

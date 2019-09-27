@@ -5,7 +5,7 @@ adapt_coordinates:
 steps:
   - step:
     - base_auto:
-       height: 0.3
+       height: 0.4
        ignore_timing_of_leg_motion: false
   - step:
     - base_target:
@@ -15,7 +15,7 @@ steps:
         target:
           frame: base_link
           position: [0.01,0.0,0.0]
-          orientation: [0.3,0.0,0.0]
+          orientation: [0.2,0.0,0.0]
   - step:
     - base_target:
         ignore_timing_of_leg_motion: false
@@ -24,8 +24,8 @@ steps:
         target:
           frame: base_link
           position: [0.01,0.0,0.0]
-          orientation: [-0.3,0.0,0.0]
+          orientation: [-0.2,0.0,0.0]
   - step:
     - base_auto:
-       height: 0.3
+       height: 0.4
        ignore_timing_of_leg_motion: false

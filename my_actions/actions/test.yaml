@@ -77,3 +77,21 @@ actions:
      file: motion_scripts/leg_move.yaml
      type: yaml
      description: move four legs
+  - action:
+     id: "14"
+     name: Jump Once
+     file: motion_scripts/jump.yaml
+     type: yaml
+     description: jump once
+  - action:
+     id: "15"
+     name: EndEffector move Demo
+     file: motion_scripts/end_effector_trajectory_demo.yaml
+     type: yaml
+     description: EndEffectorTrajectory step demo
+  - action:
+      id: "16"
+      name: stand middle
+      file: motion_scripts/stand_middle.yaml
+      type: yaml
+      description: robot stand at a height of 0.3

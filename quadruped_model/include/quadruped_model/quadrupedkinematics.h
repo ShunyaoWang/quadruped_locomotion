@@ -10,6 +10,8 @@
 //#include "kdl/chainiksolverpos_lma.hpp"
 //#include "kdl/chainiksolverpos_nr_jl.hpp"
 #include "kdl/chainjnttojacsolver.hpp"
+//#include "kdl/chainiksolver.hpp"
+//#include "kdl/chainjnttojacdotsolver.hpp"
 #include "kdl/frames.hpp"
 #include "kdl/frames_io.hpp"
 #include "kdl/tree.hpp"
@@ -66,6 +68,8 @@ public:
                               const std::string LimbType = "IN_LEFT");
   bool AnalysticJacobian(const JointPositionsLimb& joint_positions, const LimbEnum& limb, Eigen::MatrixXd& jacobian);
   bool AnalysticJacobianForLink(const JointPositionsLimb& joint_positions, const LimbEnum& limb, const int& link_index, Eigen::MatrixXd& jacobian);
+  bool AnalysticJacobianDot(const JointPositionsLimb& joint_positions, const JointVelocitiesLimb& joint_velocity, const LimbEnum& limb, Eigen::MatrixXd& jacobian_dot);
+  bool CalculateJacobianDotFromJointVel(const KDL::Chain& chain, const KDL::JntArrayVel& q_in, KDL::Jacobian& jdot);
   double MapToPI(double q);
 
   bool setHipPoseInBase(const KDL::Chain& kdl_chain, const LimbEnum& limb);

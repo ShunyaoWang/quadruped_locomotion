@@ -119,6 +119,7 @@ bool AdapterDummy::updateExtrasAfter(const StepQueue& stepQueue, State& state)
       {
         footholdsInSupport_[limb] = state_->getPositionWorldToFootInWorldFrame(limb);
       }
+//      std::cout<<"foot hold "<<footholdsInSupport_<<std::endl;
 //      I_r_IF = state_->getPositionWorldToFootInWorldFrame(limb);
       I_r_IF = footholdsInSupport_.at(limb);
 //      baseMotion.getDuration();

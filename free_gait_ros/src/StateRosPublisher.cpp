@@ -565,6 +565,12 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
 //  ROS_INFO("Publised robot state once");
   return true;
 }
+
+bool StateRosPublisher::publish()
+{
+  robot_state_pub_.publish(robot_state_);
+  return true;
+}
 //void StateRosPublisher::publishSupportRegion(const State& state)
 
 } /* namespace free_gait */

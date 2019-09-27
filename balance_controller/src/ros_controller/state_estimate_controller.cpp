@@ -28,7 +28,7 @@ StateEstimateController::StateEstimateController()
 
   for(auto limb : limbs_)
     {
-      real_contact_[limb] = false;
+      real_contact_[limb] = true;
     }
 
 };
@@ -51,6 +51,22 @@ bool StateEstimateController::init(hardware_interface::RobotStateInterface* hard
 //      return false;
 //    }
 
+    if(!node_handle.getParam("/real_time_factor", real_time_factor))
+      {
+        ROS_ERROR("Can't find parameter of 'real_time_factor'");
+        return false;
+      }
+    if(!node_handle.getParam("use_gazebo_feedback", use_gazebo_feedback))
+      {
+        ROS_ERROR("Can't find parameter of 'use_gazebo_feedback'");
+        return false;
+      }
+    if(!node_handle.getParam("real_robot", real_robot))
+      {
+        ROS_ERROR("Can't find parameter of 'real_robot'");
+        return false;
+      }
+
     //! WSHY: get joint handle from robot state handle
     std::string param_name = "joints";
     if(!node_handle.getParam(param_name, joint_names))
@@ -66,9 +82,11 @@ bool StateEstimateController::init(hardware_interface::RobotStateInterface* hard
 
     //! WSHY: get robot state handle
     robot_state_handle = hardware->getHandle("base_controller");
+    for(int i = 0;i<4;i++)
+      robot_state_handle.foot_contact_[i] = 1;
 
     //    imu_sub_ = node_handle.subscribe<sensor_msgs::Imu>("/imu", 1, &StateEstimateController::IMUmsgCallback, this);
-    contact_sub_ = node_handle.subscribe<sim_assiants::FootContacts>("/bumper_sensor_filter_node/foot_contacts", 1, &StateEstimateController::footContactsCallback, this);
+//    contact_sub_ = node_handle.subscribe<sim_assiants::FootContacts>("/bumper_sensor_filter_node/foot_contacts", 1, &StateEstimateController::footContactsCallback, this);
     robot_state_pub_ = node_handle.advertise<free_gait_msgs::RobotState>("/legodom/robot_states", 1);
 
     robot_state_.lf_leg_joints.name.resize(3);
@@ -90,6 +108,26 @@ bool StateEstimateController::init(hardware_interface::RobotStateInterface* hard
     robot_state_.rh_leg_joints.position.resize(3);
     robot_state_.rh_leg_joints.velocity.resize(3);
     robot_state_.rh_leg_joints.effort.resize(3);
+
+    geometry_msgs::Vector3Stamped vector_z;
+    vector_z.vector.x = 0;
+    vector_z.vector.y = 0;
+    vector_z.vector.z = 1;
+    robot_state_.lf_leg_mode.name = "LF_LEG";
+    robot_state_.lf_leg_mode.surface_normal = vector_z;
+
+//    robot_state_.rf_leg_mode.support_leg = foot_contacts->foot_contacts[1].is_contact;
+    robot_state_.rf_leg_mode.name = "RF_LEG";
+    robot_state_.rf_leg_mode.surface_normal = vector_z;
+
+//    robot_state_.rh_leg_mode.support_leg = foot_contacts->foot_contacts[2].is_contact;
+    robot_state_.rh_leg_mode.name = "RH_LEG";
+    robot_state_.rh_leg_mode.surface_normal = vector_z;
+
+//    robot_state_.lh_leg_mode.support_leg = foot_contacts->foot_contacts[3].is_contact;
+    robot_state_.lh_leg_mode.name = "LH_LEG";
+    robot_state_.lh_leg_mode.surface_normal = vector_z;
+
 
   }
 
@@ -117,7 +155,51 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
 
     robot_state_ptr->setCurrentLimbJoints(all_joint_positions);
     robot_state_ptr->setCurrentLimbJointVelocities(all_joint_velocities);
+//    std::vector<bool> real_c
+    std_msgs::Float64MultiArray foot_msg;
+    foot_msg.data.resize(4);
+    for(int i = 0;i<4;i++)
+      {
+        StateSwitcher::States foot_state = static_cast<StateSwitcher::States>(robot_state_handle.foot_contact_[i]);
+        free_gait::LimbEnum limb = static_cast<free_gait::LimbEnum>(i);
+//        if(foot_state == StateSwitcher::States::SwingEarlyTouchDown)
+//          {
+//            //delay 10 periods for make sure contact
+//            delay_counts[i] ++;
+//            if(delay_counts[i] == 10)
+//              {
+//                delay_counts[i] = 0;
+//                real_contact_.at(limb) = true;
+//              }
+//          }
+//        if(foot_state == StateSwitcher::States::SwingLatelyTouchDown)
+//          {
+//            //delay 10 periods for make sure contact
+//            delay_counts[i] ++;
+//            if(delay_counts[i] == 10)
+//              {
+//                delay_counts[i] = 0;
+//                real_contact_.at(limb) = true;
+//              }
+//          }
+        if(foot_state == StateSwitcher::States::StanceNormal)
+          {
+            real_contact_.at(limb) = true;
+            foot_msg.data[i] = 1;
+          }
+        if(foot_state == StateSwitcher::States::SwingNormal)
+          {
+            real_contact_.at(limb) = false;
+            foot_msg.data[i] = 0;
+          }
+//        std::cout<<"foot "<<i<<" contact state "<<robot_state_handle.foot_contact_[i]<<std::endl;
 
+      }
+      LegOdom->setFootState(foot_msg);
+      robot_state_.lf_leg_mode.support_leg = real_contact_.at(free_gait::LimbEnum::LF_LEG);
+      robot_state_.rf_leg_mode.support_leg = real_contact_.at(free_gait::LimbEnum::RF_LEG);
+      robot_state_.rh_leg_mode.support_leg = real_contact_.at(free_gait::LimbEnum::RH_LEG);
+      robot_state_.lh_leg_mode.support_leg = real_contact_.at(free_gait::LimbEnum::LH_LEG);
 
     //!!!频率控制，保证每秒钟处理的image不多于FREQ，这里将平率控制在10hz以内
 //    if (round(1.0 * pub_count / (img_msg->header.stamp.toSec() - first_image_time)) <= FREQ)
@@ -143,20 +225,27 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
     OdomState = LegOdom->GetStopStateOdom();//PVQ
 //    std::cout <<"OdomState: " << OdomState << std::endl;
 
-    robot_state_handle.position_[0] = LegOdom->odom_position.x();
-    robot_state_handle.position_[1] = LegOdom->odom_position.y();
-    robot_state_handle.position_[2] = LegOdom->odom_position.z();
-    robot_state_handle.linear_velocity_[0] = LegOdom->odom_vel.x();
-    robot_state_handle.linear_velocity_[1] = LegOdom->odom_vel.y();
-    robot_state_handle.linear_velocity_[2] = LegOdom->odom_vel.z();
-    robot_state_handle.orientation_[0] = LegOdom->odom_orientation.w();//w,x,y,z
-    robot_state_handle.orientation_[1] = LegOdom->odom_orientation.x();
-    robot_state_handle.orientation_[2] = LegOdom->odom_orientation.y();
-    robot_state_handle.orientation_[3] = LegOdom->odom_orientation.z();
 
-    robot_state_handle.angular_velocity_[0] = 0.2*LegOdom->imu_output.angular_velocity.x;
-    robot_state_handle.angular_velocity_[1] = 0.2*LegOdom->imu_output.angular_velocity.y;
-    robot_state_handle.angular_velocity_[2] = 0.2*LegOdom->imu_output.angular_velocity.z;
+    if(!use_gazebo_feedback || real_robot)
+      {
+        robot_state_handle.position_[0] = LegOdom->odom_position.x();
+        robot_state_handle.position_[1] = LegOdom->odom_position.y();
+        robot_state_handle.position_[2] = LegOdom->odom_position.z();
+        robot_state_handle.linear_velocity_[0] = LegOdom->odom_vel.x();
+        robot_state_handle.linear_velocity_[1] = LegOdom->odom_vel.y();
+        robot_state_handle.linear_velocity_[2] = LegOdom->odom_vel.z();
+        robot_state_handle.orientation_[0] = LegOdom->odom_orientation.w();//w,x,y,z
+        robot_state_handle.orientation_[1] = LegOdom->odom_orientation.x();
+        robot_state_handle.orientation_[2] = LegOdom->odom_orientation.y();
+        robot_state_handle.orientation_[3] = LegOdom->odom_orientation.z();
+      }
+
+    if(real_robot)
+      {
+        robot_state_handle.angular_velocity_[0] = real_time_factor*LegOdom->imu_output.angular_velocity.x;
+        robot_state_handle.angular_velocity_[1] = real_time_factor*LegOdom->imu_output.angular_velocity.y;
+        robot_state_handle.angular_velocity_[2] = real_time_factor*LegOdom->imu_output.angular_velocity.z;
+      }
 
 
 //    robot_state_.lf_leg_joints.header =
@@ -187,33 +276,35 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
     robot_state_.rf_leg_joints.velocity[2] = all_joint_velocities(5);
     robot_state_.rf_leg_joints.effort[2] = all_joint_efforts(5);
 
+    //    robot_state_.rh_leg_joints.header = joint_states->header;
+    robot_state_.rh_leg_joints.name[0] = "rear_right_1_joint";
+    robot_state_.rh_leg_joints.position[0] = all_joint_positions(6);
+    robot_state_.rh_leg_joints.velocity[0] = all_joint_velocities(6);
+    robot_state_.rh_leg_joints.effort[0] = all_joint_efforts(6);
+    robot_state_.rh_leg_joints.name[1] = "rear_right_2_joint";
+    robot_state_.rh_leg_joints.position[1] = all_joint_positions(7);
+    robot_state_.rh_leg_joints.velocity[1] = all_joint_velocities(7);
+    robot_state_.rh_leg_joints.effort[1] = all_joint_efforts(7);
+    robot_state_.rh_leg_joints.name[2] = "rear_right_3_joint";
+    robot_state_.rh_leg_joints.position[2] = all_joint_positions(8);
+    robot_state_.rh_leg_joints.velocity[2] = all_joint_velocities(8);
+    robot_state_.rh_leg_joints.effort[2] = all_joint_efforts(8);
+
 //    robot_state_.lh_leg_joints.header = joint_states->header;
     robot_state_.lh_leg_joints.name[0] = "rear_left_1_joint";
-    robot_state_.lh_leg_joints.position[0] = all_joint_positions(6);
-    robot_state_.lh_leg_joints.velocity[0] = all_joint_velocities(6);
-    robot_state_.lh_leg_joints.effort[0] = all_joint_efforts(6);
+    robot_state_.lh_leg_joints.position[0] = all_joint_positions(9);
+    robot_state_.lh_leg_joints.velocity[0] = all_joint_velocities(9);
+    robot_state_.lh_leg_joints.effort[0] = all_joint_efforts(9);
     robot_state_.lh_leg_joints.name[1] = "rear_left_2_joint";
-    robot_state_.lh_leg_joints.position[1] = all_joint_positions(7);
-    robot_state_.lh_leg_joints.velocity[1] = all_joint_velocities(7);
-    robot_state_.lh_leg_joints.effort[1] = all_joint_efforts(7);
+    robot_state_.lh_leg_joints.position[1] = all_joint_positions(10);
+    robot_state_.lh_leg_joints.velocity[1] = all_joint_velocities(10);
+    robot_state_.lh_leg_joints.effort[1] = all_joint_efforts(10);
     robot_state_.lh_leg_joints.name[2] = "rear_left_3_joint";
-    robot_state_.lh_leg_joints.position[2] = all_joint_positions(8);
-    robot_state_.lh_leg_joints.velocity[2] = all_joint_velocities(8);
-    robot_state_.lh_leg_joints.effort[2] = all_joint_efforts(8);
+    robot_state_.lh_leg_joints.position[2] = all_joint_positions(11);
+    robot_state_.lh_leg_joints.velocity[2] = all_joint_velocities(11);
+    robot_state_.lh_leg_joints.effort[2] = all_joint_efforts(11);
 
-//    robot_state_.rh_leg_joints.header = joint_states->header;
-    robot_state_.rh_leg_joints.name[0] = "rear_right_1_joint";
-    robot_state_.rh_leg_joints.position[0] = all_joint_positions(9);
-    robot_state_.rh_leg_joints.velocity[0] = all_joint_velocities(9);
-    robot_state_.rh_leg_joints.effort[0] = all_joint_efforts(9);
-    robot_state_.rh_leg_joints.name[1] = "rear_right_2_joint";
-    robot_state_.rh_leg_joints.position[1] = all_joint_positions(10);
-    robot_state_.rh_leg_joints.velocity[1] = all_joint_velocities(10);
-    robot_state_.rh_leg_joints.effort[1] = all_joint_efforts(10);
-    robot_state_.rh_leg_joints.name[2] = "rear_right_3_joint";
-    robot_state_.rh_leg_joints.position[2] = all_joint_positions(11);
-    robot_state_.rh_leg_joints.velocity[2] = all_joint_velocities(11);
-    robot_state_.rh_leg_joints.effort[2] = all_joint_efforts(11);
+
 
     kindr_ros::convertToRosGeometryMsg(LegOdom->odom_position, robot_state_.base_pose.pose.pose.position);
     kindr_ros::convertToRosGeometryMsg(LegOdom->odom_orientation, robot_state_.base_pose.pose.pose.orientation);
@@ -230,6 +321,8 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
   void StateEstimateController::starting(const ros::Time& time)
   {
     ROS_INFO("State Estimate Start Once");
+    for(int i = 0;i<4;i++)
+      robot_state_handle.foot_contact_[i] = 1;
 
   }
 
@@ -251,19 +344,19 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
 //      }
 
 
-    robot_state_.lf_leg_mode.support_leg = foot_contacts->foot_contacts[0].is_contact;
+//    robot_state_.lf_leg_mode.support_leg = foot_contacts->foot_contacts[0].is_contact;
     robot_state_.lf_leg_mode.name = foot_contacts->foot_contacts[0].name;
     robot_state_.lf_leg_mode.surface_normal = foot_contacts->foot_contacts[0].surface_normal;
 
-    robot_state_.rf_leg_mode.support_leg = foot_contacts->foot_contacts[1].is_contact;
+//    robot_state_.rf_leg_mode.support_leg = foot_contacts->foot_contacts[1].is_contact;
     robot_state_.rf_leg_mode.name = foot_contacts->foot_contacts[1].name;
     robot_state_.rf_leg_mode.surface_normal = foot_contacts->foot_contacts[1].surface_normal;
 
-    robot_state_.rh_leg_mode.support_leg = foot_contacts->foot_contacts[2].is_contact;
+//    robot_state_.rh_leg_mode.support_leg = foot_contacts->foot_contacts[2].is_contact;
     robot_state_.rh_leg_mode.name = foot_contacts->foot_contacts[2].name;
     robot_state_.rh_leg_mode.surface_normal = foot_contacts->foot_contacts[2].surface_normal;
 
-    robot_state_.lh_leg_mode.support_leg = foot_contacts->foot_contacts[3].is_contact;
+//    robot_state_.lh_leg_mode.support_leg = foot_contacts->foot_contacts[3].is_contact;
     robot_state_.lh_leg_mode.name = foot_contacts->foot_contacts[3].name;
     robot_state_.lh_leg_mode.surface_normal = foot_contacts->foot_contacts[3].surface_normal;
 //    ROS_ERROR("footContactsCallback");

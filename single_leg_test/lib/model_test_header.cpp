@@ -105,7 +105,7 @@ const VectorNd& MyRobotSolver::getVecQDDAct()
 
 void MyRobotSolver::setvecQAct(const Eigen::Vector3d& joint_positions, const free_gait::LimbEnum& limb)
 {
-  VecQAct = joint_positions;
+//  VecQAct = joint_positions;
   QActQueueLimb.at(limb).push(VecQAct);
   if(QActQueueLimb.at(limb).size()>11)
     QActQueueLimb.at(limb).pop();
@@ -226,22 +226,27 @@ bool MyRobotSolver::loadLimbModelFromURDF()
 //  string lf_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_lf_leg.urdf";
   string lf_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/quadruped_model_lf_leg.urdf";
   char* lf_leg_urdf_dir = (char*)lf_leg_urdf_dir_str.c_str();
-  RigidBodyDynamics::Addons::URDFReadFromFile(lf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LF_LEG), false, true);
-
+  RigidBodyDynamics::Addons::URDFReadFromFile(lf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LF_LEG), false, false);
+//  std::cout<<" Gravity :"<<LimbRBDLModel.at(free_gait::LimbEnum::LF_LEG)->gravity<<std::endl;
+//  VecQAct << 0,1,1;
+//  VecQDotAct.setZero();
+//  VecQDDotAct.setZero();
+//  InverseDynamics(*LimbRBDLModel.at(free_gait::LimbEnum::LF_LEG),VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
+//  std::cout<<" Tau :"<<VecTauAct<<endl;
 //  string rf_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_rf_leg.urdf";
   string rf_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/quadruped_model_rf_leg.urdf";
   char* rf_leg_urdf_dir = (char*)rf_leg_urdf_dir_str.c_str();
-  RigidBodyDynamics::Addons::URDFReadFromFile(rf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RF_LEG), false, true);
+  RigidBodyDynamics::Addons::URDFReadFromFile(rf_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RF_LEG), false, false);
 
 //  string rh_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_rh_leg.urdf";
   string rh_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/quadruped_model_rh_leg.urdf";
   char* rh_leg_urdf_dir = (char*)rh_leg_urdf_dir_str.c_str();
-  RigidBodyDynamics::Addons::URDFReadFromFile(rh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RH_LEG), false, true);
+  RigidBodyDynamics::Addons::URDFReadFromFile(rh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::RH_LEG), false, false);
 
 //  string lh_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/simpledog_lh_leg.urdf";
   string lh_leg_urdf_dir_str = ros::package::getPath("quadruped_model") + "/urdf/quadruped_model_lh_leg.urdf";
   char* lh_leg_urdf_dir = (char*)lh_leg_urdf_dir_str.c_str();
-  RigidBodyDynamics::Addons::URDFReadFromFile(lh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LH_LEG), false, true);
+  RigidBodyDynamics::Addons::URDFReadFromFile(lh_leg_urdf_dir, LimbRBDLModel.at(free_gait::LimbEnum::LH_LEG), false, false);
 
   return true;
 }
@@ -410,11 +415,12 @@ void MyRobotSolver::setDesiredPositionAndVelocity(const Eigen::Vector3d& positio
  * @return
  */
 bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
-const free_gait::LimbEnum& limb, bool real_time)
+                            const free_gait::LimbEnum& limb, bool real_time, const Eigen::Vector3d& acc_ref)
 {
 //    ROS_INFO("In swing leg controller update");
     calculation_iterstions = 1;//calculation_iterstions + 1;
     Eigen::Matrix3d jacobian = robot_state_->getTranslationJacobianFromBaseToFootInBaseFrame(limb);
+    Eigen::Matrix3d jacobian_dot = robot_state_->getTranslationJacobianDotFromBaseToFootInBaseFrame(limb);
 //    cout<<"Jacobian : "<<jacobian<<endl;
     Time_derta = period.toSec()*10;
     QAcutal.row(calculation_iterstions) = QActQueueLimb.at(limb).back();//VecQAct.transpose();
@@ -426,8 +432,12 @@ const free_gait::LimbEnum& limb, bool real_time)
       QDDotAcutal(calculation_iterstions,num) = (QDotAcutal(calculation_iterstions,num) - QDotAcutal(calculation_iterstions - 1, num))/Time_derta;
      }
 //    ROS_INFO("Got Here");
+    VecQAct = QAcutal.row(calculation_iterstions).transpose();
     VecQDotAct = QDotAcutal.row(calculation_iterstions).transpose();
     VecQDDotAct = QDDotAcutal.row(calculation_iterstions).transpose();
+    Eigen::Vector3d jac_mul_qddot = acc_ref - jacobian_dot*VecQDotAct;
+    VecQDDotAct = jacobian.transpose()*jac_mul_qddot;
+//    VecQDDotAct =
 
     if(real_time)
       {
@@ -450,6 +460,11 @@ const free_gait::LimbEnum& limb, bool real_time)
 
           }
 //        VecQDDotAct = QDDotAcutal.row(calculation_iterstions).transpose();
+        InverseDynamics(*LimbRBDLModel.at(limb),VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
+      }else{
+        InverseDynamics(*LimbRBDLModel.at(limb),VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
+//        if(limb == free_gait::LimbEnum::RF_LEG || limb == free_gait::LimbEnum::LH_LEG)
+//          VecTauAct = -VecTauAct;
       }
 
 //    VecQDotAct = QDotAcutal.row(calculation_iterstions).transpose();
@@ -457,19 +472,23 @@ const free_gait::LimbEnum& limb, bool real_time)
 
 //    InverseDynamics(QuadrupedRobotModel,VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
 
-    InverseDynamics(*LimbRBDLModel.at(limb),VecQAct,VecQDotAct,0.5*VecQDDotAct,VecTauAct);
+
 //    for (int num = 0; num < num_of_joints; ++num) {
 //      VecTauAct[num] = kp_ * (QPlanned(calculation_iterstions,num) - QAcutal(calculation_iterstions,num))
 //                     + kd_* (QDotPlanned(calculation_iterstions,num)-QDotAcutal(calculation_iterstions,num))
 //                     + VecTauAct[num];
 //    }
-//    for (int num = 0; num < num_of_joints; ++num) {
-//      q_state.name.push_back("joint"+std::to_string(num));
-//      q_state.effort.push_back(VecTauAct(num));
-//      q_state.velocity.push_back(VecQDDotAct(num));
-//      q_state.position.push_back(VecQDotAct(num));
+//    if(limb == free_gait::LimbEnum::LF_LEG)
+//      {
+//        sensor_msgs::JointState q_state;
+//        for (int num = 0; num < num_of_joints; num++) {
+//            q_state.name.push_back("lf_leg_joint"+std::to_string(num));
+//            q_state.effort.push_back(VecTauAct(num));
+//            q_state.velocity.push_back(VecQDDotAct(num));
+//            q_state.position.push_back(VecQDotAct(num));
+//          }
+//        joint_state_pub_.publish(q_state);
 //      }
-//    joint_state_pub_.publish(q_state);
 
 //    Tauacutal.row(calculation_iterstions) = VecTauAct.transpose();
 //    ROS_INFO("Got Here!");

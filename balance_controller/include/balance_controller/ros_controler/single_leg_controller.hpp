@@ -27,6 +27,8 @@
 #include "free_gait_msgs/SetLimbConfigure.h"
 
 #include "geometry_msgs/Wrench.h"
+#include "dynamic_reconfigure/server.h"
+#include "balance_controller/balance_controllerConfig.h"
 
 #include "algorithm"
 
@@ -116,6 +118,12 @@ namespace balance_controller {
     free_gait::JointVelocities all_joint_velocities;
     free_gait::JointEfforts all_joint_efforts;
 
+    typedef dynamic_reconfigure::Server<balance_controller::balance_controllerConfig> DynamicConfigServer;
+
+    boost::shared_ptr<DynamicConfigServer> dynamicReconfigureServer_;
+    dynamic_reconfigure::Server<balance_controller::balance_controllerConfig>::CallbackType reconfigureCallbackType_;
+    boost::recursive_mutex param_reconfig_mutex_;
+
     /**
      * @brief baseCommandCallback, ros subscriber callback
      * @param robot_state
@@ -124,5 +132,6 @@ namespace balance_controller {
     void footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts);
 
     void forceCommandCallback(const geometry_msgs::WrenchConstPtr& force_command);
+    void dynamicReconfigureCallback(balance_controller::balance_controllerConfig& config, uint32_t level);
   };
 }

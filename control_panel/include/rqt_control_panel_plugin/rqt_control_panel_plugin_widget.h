@@ -68,6 +68,8 @@ private slots:
 
   void on_resetJointEffortButton_clicked();
 
+  void on_setInitialJointPosition_clicked();
+
 private:
   Ui::rqt_control_panel_plugin_widget *ui;
   ros::NodeHandle nodehandle_;

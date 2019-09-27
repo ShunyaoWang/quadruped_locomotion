@@ -63,6 +63,8 @@ bool SimRobotStateHardwareInterface::initSim(
   robot_state_data_.joint_velocity_write = vel_write;
   robot_state_data_.joint_effort_read = eff_read;
   robot_state_data_.joint_effort_write = eff_write;
+  robot_state_data_.foot_contact = foot_contact;
+  robot_state_data_.motor_status_word = motor_status_word;
   //! WSHY: registerhandle pass the data point to the hardwareResourseManager and then
   //! the read() method update data which the pointer points to or write() the
   //! updated commmand
@@ -342,10 +344,11 @@ if(use_gazebo_feedback)
     robot_state_data_.linear_velocity[2] = real_time_factor * base_link_ptr_->GetWorldLinearVel().z;
     //  ROS_INFO("Base linear velocity: x=%f,y=%f,z=%f",robot_state_data_.linear_velocity[0],
     //      robot_state_data_.linear_velocity[1],robot_state_data_.linear_velocity[2]);
-    robot_state_data_.angular_velocity[0] = real_time_factor * base_link_ptr_->GetWorldAngularVel().x;
-    robot_state_data_.angular_velocity[1] = real_time_factor * base_link_ptr_->GetWorldAngularVel().y;
-    robot_state_data_.angular_velocity[2] = real_time_factor * base_link_ptr_->GetWorldAngularVel().z;
+
   }
+robot_state_data_.angular_velocity[0] = real_time_factor * base_link_ptr_->GetWorldAngularVel().x;
+robot_state_data_.angular_velocity[1] = real_time_factor * base_link_ptr_->GetWorldAngularVel().y;
+robot_state_data_.angular_velocity[2] = real_time_factor * base_link_ptr_->GetWorldAngularVel().z;
 /****************
 * TODO(Shunyao) : update Imu data
 ****************/

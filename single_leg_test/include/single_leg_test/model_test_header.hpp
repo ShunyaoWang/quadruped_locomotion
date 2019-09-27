@@ -61,7 +61,7 @@ public:
     void FDynamicsCalculation();//Calculate the forward dynamic with PD controller
     void FileStoreIntoTextFile(const char *filestoredlocation, const MatrixNd & Stored_data);
     bool update(const ros::Time& time, const ros::Duration& period,
-                const free_gait::LimbEnum& limb, bool real_time = false);
+                const free_gait::LimbEnum& limb, bool real_time = false, const Eigen::Vector3d& acc_ref = Eigen::Vector3d(0,0,0));
 protected:
 
     ros::NodeHandle node_handle_;

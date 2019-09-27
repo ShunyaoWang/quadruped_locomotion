@@ -172,6 +172,7 @@ public:
 //                  //! WSHY: publish robot state to balance controller
 //                rosPublisher->publish(*state);
 //                }
+              rosPublisher->publish();
             }
 
           rate.sleep();
@@ -184,7 +185,7 @@ public:
     ROS_INFO("In GaitGenerateThread thread");
     ros::Rate rate(100);
     double dt = 0.01;
-    gait_generate_client_.initializeTrot(0.45, 0.45);
+//    gait_generate_client_.initializeTrot(0.45, 0.45);
 //    gait_generate_client_.initializePace(0.45, 3*0.5);
     while (ros::ok()) {
 //        ROS_INFO("Gait Generate updated Once");

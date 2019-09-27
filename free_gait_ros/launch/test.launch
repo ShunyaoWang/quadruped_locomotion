@@ -15,12 +15,16 @@
   <param name="/kinematics_control" value="false" />
   <param name="/free_gait/adapter_plugin/gazebo" value="free_gait_ros/AdapterGazebo" />
   <param name="/free_gait/adapter_ros_interface_plugin/gazebo" value="free_gait_ros/AdapterRosInterfaceGazebo" />
+
+  <param name="/use_terrian_map" value="false" />
+  <param name="/step_height" value="0.15" />
+
   <node pkg="free_gait_ros"
     type="action_server_test_node"
     name="action_server_test_node"
     output="screen">
   </node>
-  <rosparam file="$(find balance_controller)/config/controller_gains.yaml" command="load" />
+  <!-- <rosparam file="$(find balance_controller)/config/controller_gains.yaml" command="load" /> -->
   <!-- <node pkg="rqt_free_gait_action" type="rqt_free_gait_action" name="rqt_free_gait_action"/>
   <node pkg="rqt_free_gait_monitor" type="rqt_free_gait_monitor" name="rqt_free_gait_monitor"/> -->
   <!-- <include file="$(find rqt_free_gait_monitor)/launch/rqt_free_gait_monitor.launch"/> -->
