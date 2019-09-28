@@ -30,8 +30,9 @@ class AdapterRos
   };
 
   AdapterRos(ros::NodeHandle& nodeHandle, const AdapterType type = AdapterType::Base);
+//  AdapterRos(ros::NodeHandle& nodeHandle, const AdapterType type);
   virtual ~AdapterRos();
-  bool subscribeToRobotState(const std::string& robotStateTopic = "");
+  bool subscribeToRobotState(const std::string& robotStateTopic = "");//moren parameters
   void unsubscribeFromRobotState();
   const std::string getRobotStateMessageType();
   bool isReady() const ;

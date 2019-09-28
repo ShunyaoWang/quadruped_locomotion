@@ -51,8 +51,9 @@ Executor::Mutex& Executor::getMutex()
 
 bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
 {
+    //need initialized
   if (!isInitialized_) return false;
-  if (!skipStateMeasurmentUpdate) updateStateWithMeasurements();// Shunyao: set limb and base motion mode
+  if (!skipStateMeasurmentUpdate) updateStateWithMeasurements();//sync with adaptor and robot state
   bool executionStatus = adapter_.isExecutionOk() && !isPausing_;
 
   if (executionStatus) {
@@ -74,17 +75,17 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   }
 
   // Advance queue.
-//  std::cout<<"Current Step Time : "<<queue_.getCurrentStep().getTime()<<std::endl;
+  std::cout<<"Current Step Time : "<<queue_.getCurrentStep().getTime()<<std::endl;
   if (!queue_.advance(dt)) return false;//Update a step cycle time
   if (!adapter_.updateExtrasBefore(queue_, state_)) return false;
-//    std::cout<<"just go out updateExtrasBefore()"<<state_.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
-//    state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
+    std::cout<<"just go out updateExtrasBefore()"<<state_.getJointPositionsForLimb(LimbEnum::LF_LEG)<<std::endl;
+    state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
 
   // For a new switch in step, do some work on step for the transition.
   while (queue_.hasSwitchedStep()) {
     auto& currentStep = queue_.getCurrentStep();
-//    std::cout<<"================================================"<<std::endl
-//            <<currentStep<<std::endl;
+    std::cout<<"================================================"<<std::endl
+            <<currentStep<<std::endl;
     if (!completer_.complete(state_, queue_, currentStep)) {//set step parameters
       std::cerr << "Executor::advance: Could not complete step." << std::endl;
       return false;
@@ -111,7 +112,7 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
     stream << "Switched step to:" << std::endl << queue_.getCurrentStep();
     addToFeedback(stream.str());
   }
-//  std::cout<<"===========================Executor update dt started========================"<<std::endl;
+  std::cout<<"===========================Executor update dt started========================"<<std::endl;
 //  state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
 
   if (!writeIgnoreContact()) return false;
@@ -121,13 +122,13 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
   if (!writeLegMotion()) return false;
   if (!writeTorsoMotion()) return false;
   if (!writeStepId()) return false;
-//  std::cout<<"before into updateExtrasAfter()"<<std::endl;
+  std::cout<<"before into updateExtrasAfter()"<<std::endl;
 //  state_.getPositionWorldToFootInWorldFrame(LimbEnum::LF_LEG);
   if (!adapter_.updateExtrasAfter(queue_, state_)) return false;// TODO(Shunyao): update state to ex robot or sim
-//  std::cout << state_ << std::endl;
-//  std::cout<<"===========================Executor update dt finished======================="<<std::endl;
-//  std::cout << state_.getPositionWorldToBaseInWorldFrame()<< std::endl;
-//  std::cout<<"Updated Joint Positions: "<<std::endl<<state_.getJointPositions()<<std::endl;
+  std::cout << state_ << std::endl;
+  std::cout<<"===========================Executor update dt finished======================="<<std::endl;
+  std::cout << state_.getPositionWorldToBaseInWorldFrame()<< std::endl;
+  std::cout<<"Updated Joint Positions: "<<std::endl<<state_.getJointPositions()<<std::endl;
   return true;
 }
 
@@ -209,6 +210,8 @@ void Executor::setPreemptionType(const PreemptionType& type)
   preemptionType_ = type;
 }
 
+//adaptor means the state of the robot in real or sim
+//state is the state of this robot
 bool Executor::resetStateWithRobot()
 {
   for (const auto& limb : adapter_.getLimbs()) {
@@ -233,16 +236,7 @@ bool Executor::resetStateWithRobot()
   }
 
   state_.setAllJointPositions(adapter_.getAllJointPositions());
-//  state_.setAllJointVelocities(adapter_.getAllJointVelocities());// TODO
-//  state_.setAllJointAccelerations(adapter_.getAllJointAccelerations()); // TODO
-//  state_.setAllJointEfforts(adapter_.getAllJointEfforts());//TODO
-
-//  state_.setPositionWorldToBaseInWorldFrame(adapter_.getPositionWorldToBaseInWorldFrame());
-//  state_.setOrientationBaseToWorld(adapter_.getOrientationBaseToWorld());
   state_.setPoseBaseToWorld(Pose(adapter_.getPositionWorldToBaseInWorldFrame(), adapter_.getOrientationBaseToWorld()));
-
-//  state_.setLinearVelocityBaseInWorldFrame(adapter_.getLinearVelocityBaseInWorldFrame());
-//  state_.setAngularVelocityBaseInBaseFrame(adapter_.getAngularVelocityBaseInBaseFrame());
   state_.setBaseStateFromFeedback(adapter_.getLinearVelocityBaseInWorldFrame(), adapter_.getAngularVelocityBaseInBaseFrame());
   state_.setRobotExecutionStatus(true);
   // TODO Add base velocities.
@@ -252,47 +246,30 @@ bool Executor::resetStateWithRobot()
 
 bool Executor::updateStateWithMeasurements()
 {
-//  for (const auto& limb : adapter_.getLimbs()) {
-//    const auto& controlSetup = state_.getControlSetup(limb);
-//    if (!controlSetup.at(ControlLevel::Position)) {
-//      state_.setJointPositionsForLimb(limb, adapter_.getJointPositionsForLimb(limb));
-//    }
-//    if (!controlSetup.at(ControlLevel::Velocity)) {
-//      state_.setJointVelocitiesForLimb(limb, adapter_.getJointVelocitiesForLimb(limb));
-//    }
-//    if (!controlSetup.at(ControlLevel::Acceleration)) {
-////      state_.setJointAccelerations(limb, adapter_.getJointAccelerations(limb));
-//    }
-//    if (!controlSetup.at(ControlLevel::Effort)) {
-//      state_.setJointEffortsForLimb(limb, adapter_.getJointEffortsForLimb(limb));
-//    }
-//  }
+
   state_.setCurrentLimbJoints(adapter_.getAllJointPositions());
 
+  //std::unordered_map<BranchEnum, ControlSetup, EnumClassHash> controlSetups_;
+  //check the base control level is position or velocity.
   const auto& controlSetup = state_.getControlSetup(BranchEnum::BASE);
   if (controlSetup.at(ControlLevel::Position)) {
-//    state_.setPositionWorldToBaseInWorldFrame(adapter_.getPositionWorldToBaseInWorldFrame());
-//    state_.setOrientationBaseToWorld(adapter_.getOrientationBaseToWorld());
     state_.setPoseBaseToWorld(Pose(adapter_.getPositionWorldToBaseInWorldFrame(), adapter_.getOrientationBaseToWorld()));
   }
   if (controlSetup.at(ControlLevel::Velocity)) {
-//    state_.setLinearVelocityBaseInWorldFrame(adapter_.getLinearVelocityBaseInWorldFrame());
-//    state_.setAngularVelocityBaseInBaseFrame(adapter_.getAngularVelocityBaseInBaseFrame());
     state_.setBaseStateFromFeedback(adapter_.getLinearVelocityBaseInWorldFrame(), adapter_.getAngularVelocityBaseInBaseFrame());
   }
-
-  // TODO Copy also acceleraitons and torques.
-//    state.setLinearVelocityBaseInWorldFrame(torso_->getMeasuredState().getLinearVelocityBaseInBaseFrame());
-//    state.setAngularVelocityBaseInBaseFrame(torso_->getMeasuredState().getAngularVelocityBaseInBaseFrame());
   return true;
 }
 
 bool Executor::writeIgnoreContact()
 {
+    //empty or the fist step is not update.
   if (!queue_.active()) return true;
   const Step& step = queue_.getCurrentStep();
   for (const auto& limb : adapter_.getLimbs()) {
+      // this step this leg has leg motion
     if (step.hasLegMotion(limb)) {
+        //judge this step this legmotion is ignore contact.
       bool ignoreContact = step.getLegMotion(limb).isIgnoreContact();
       state_.setIgnoreContact(limb, ignoreContact);
     }
@@ -315,6 +292,7 @@ bool Executor::writeIgnoreForPoseAdaptation()
 
 bool Executor::writeSupportLegs()
 {
+    // if this leg is ignore contact -> support leg?
   if (!queue_.active()) {
     for (const auto& limb : adapter_.getLimbs()) {
       state_.setSupportLeg(limb, !state_.isIgnoreContact(limb));
@@ -351,21 +329,26 @@ bool Executor::writeSurfaceNormals()
 
 bool Executor::writeLegMotion()
 {
+    //supportleg no motion
+    //if this leg is support leg, means it need no motion. using the balance controller to control the leg
   for (const auto& limb : adapter_.getLimbs()) {
     if (state_.isSupportLeg(limb)) state_.setEmptyControlSetup(limb);
   }
+  //why, queue is empty, return true? the legmotion is also empty, nothing happens
   if (!queue_.active()) return true;
 
+  //the current step is no motion
   const auto& step = queue_.getCurrentStep();
   if (!step.hasLegMotion()) return true;
 
+  //set the limb's controlSetup
   double time = queue_.getCurrentStep().getTime();
   for (const auto& limb : adapter_.getLimbs()) {
     if (!step.hasLegMotion(limb)) continue;
     auto const& legMotion = step.getLegMotion(limb);
     ControlSetup controlSetup = legMotion.getControlSetup();
     state_.setControlSetup(limb, controlSetup);
-
+ //the legmotion type
     switch (legMotion.getTrajectoryType()) {
 
       case LegMotionBase::TrajectoryType::EndEffector:
@@ -382,7 +365,7 @@ bool Executor::writeLegMotion()
           Position positionInBaseFrame = adapter_.transformPosition(frameId, adapter_.getBaseFrameId(), endEffectorMotion.evaluatePosition(time));
 //          std::cout<<"IN Write leg motion, leg position in base is : "<<positionInBaseFrame<<std::endl;
 //          std::cout<<"foot step motion frame_id is : "<<frameId<<std::endl;
-          JointPositionsLeg jointPositions;
+          JointPositionsLeg jointPositions;//3D
           if (!adapter_.getLimbJointPositionsFromPositionBaseToFootInBaseFrame(positionInBaseFrame, limb, jointPositions)) {
             std::cerr << "Failed to compute joint positions from end effector position for " <<limb << "." << std::endl;
             return false;
@@ -442,18 +425,19 @@ bool Executor::writeLegMotion()
   return true;
 }
 
+//torso motion
 bool Executor::writeTorsoMotion()
 {
   if (state_.getNumberOfSupportLegs() == 0) state_.setEmptyControlSetup(BranchEnum::BASE);
   if (!queue_.active()) return true;
-
+    //no base motion
   if (!queue_.getCurrentStep().hasBaseMotion()) return true;
   double time = queue_.getCurrentStep().getTime();
   const auto& baseMotion = queue_.getCurrentStep().getBaseMotion();
   ControlSetup controlSetup = baseMotion.getControlSetup();
   state_.setControlSetup(BranchEnum::BASE, controlSetup);
   if (controlSetup[ControlLevel::Position]) {
-    const std::string& frameId = baseMotion.getFrameId(ControlLevel::Position);
+    const std::string& frameId = baseMotion.getFrameId(ControlLevel::Position);//position->frame_id
     if (!adapter_.frameIdExists(frameId)) {
       std::cerr << "Could not find frame '" << frameId << "' for free gait base motion!" << std::endl;
       return false;

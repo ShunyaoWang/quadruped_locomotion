@@ -43,6 +43,10 @@ class State : public quadruped_model::QuadrupedState
 
   bool isSupportLeg(const LimbEnum& limb) const;
   void setSupportLeg(const LimbEnum& limb, bool isSupportLeg);
+  /**
+   * @brief getNumberOfSupportLegs
+   * @return how many support legs?
+   */
   unsigned int getNumberOfSupportLegs() const;
 
   bool isIgnoreContact(const LimbEnum& limb) const;
@@ -92,24 +96,24 @@ class State : public quadruped_model::QuadrupedState
  private:
   LocalAngularVelocity angularVelocityBaseInWorldFrame_;//dimension 3
   JointEfforts jointEfforts_;//dimension 12
-  JointAccelerations jointAccelerations_;
-  LinearAcceleration linearAccelerationBaseInWorldFrame_;
-  AngularAcceleration angularAccelerationBaseInBaseFrame_;
+  JointAccelerations jointAccelerations_;//dimension 12
+  LinearAcceleration linearAccelerationBaseInWorldFrame_;//3D
+  AngularAcceleration angularAccelerationBaseInBaseFrame_;//3D
 
   // Free gait specific.
-  std::unordered_map<BranchEnum, ControlSetup, EnumClassHash> controlSetups_;
-  Force netForceOnBaseInBaseFrame_;
-  Torque netTorqueOnBaseInBaseFrame_;
+  std::unordered_map<BranchEnum, ControlSetup, EnumClassHash> controlSetups_;//BranchEnum->control_level
+  Force netForceOnBaseInBaseFrame_;//3D
+  Torque netTorqueOnBaseInBaseFrame_;//3D
   std::unordered_map<LimbEnum, bool, EnumClassHash> isSupportLegs_;
   std::unordered_map<LimbEnum, bool, EnumClassHash> ignoreContact_;
-  std::unordered_map<LimbEnum, bool, EnumClassHash> ignoreForPoseAdaptation_;
-  std::unordered_map<LimbEnum, Vector, EnumClassHash> surfaceNormals_;
+  std::unordered_map<LimbEnum, bool, EnumClassHash> ignoreForPoseAdaptation_;//???Why need the ignore th e pose adaptation?
+  std::unordered_map<LimbEnum, Vector, EnumClassHash> surfaceNormals_;//get the corresponding the leg footholds surfacenormals?
   bool robotExecutionStatus_;
   std::string stepId_; // empty if undefined.
 
-  Stance footHoldInSupport_;
+  Stance footHoldInSupport_;//typedef std::unordered_map<LimbEnum, Position, EnumClassHash> Stance
 
-  Pose footholds_plane_pose_;
+  Pose footholds_plane_pose_;//position and rotation
 };
 
 } /* namespace */

@@ -14,12 +14,9 @@ AdapterRos::AdapterRos(ros::NodeHandle& nodeHandle, const AdapterType type)
       tutor_loader_("pluginlib_tutorials", "polygon_base::RegularPolygon"),
       adapterLoader_("free_gait_ros", "free_gait::AdapterBase"),
       adapterRosInterfaceLoader_("free_gait_ros", "free_gait::AdapterRosInterfaceBase")
+//      adapterRosInterfaceLoader_("free_gait_ros", "free_gait::AdapterRosInterfaceGazebo")
 {
-  // Load and initialize adapter.
-  std::cout<<"Constructing AdapterRos..."<<std::endl;
-  std::cout<<adapterLoader_.getBaseClassType()<<std::endl;
-  std::cout<<adapterLoader_.getDeclaredClasses()[0]<<std::endl;
-//  std::cout<<adapterLoader_.g<<std::endl;
+
   std::string adapterParameterName;
   std::string adapterRosInterfaceParameterName;
   if (type == AdapterType::Base) {
@@ -33,27 +30,24 @@ AdapterRos::AdapterRos(ros::NodeHandle& nodeHandle, const AdapterType type)
     adapterRosInterfaceParameterName = "/free_gait/adapter_ros_interface_plugin/gazebo";
   };
 
-//  pluginlib::ClassLoader<polygon_base::RegularPolygon> tutor_loader("pluginlib_tutorials", "polygon_base::RegularPolygon");
-//  tutor_loader.createInstance("pluginlib_tutorials/regular_triangle");
-//  tutor_.reset(tutor_loader_.createUnmanagedInstance("pluginlib_tutorials/regular_triangle"));
-//  std::cout<<"Haved loaded tutorials"<<std::endl;
-//  std::vector<std::string> libs_before = adapterRosInterfaceLoader_.getRegisteredLibraries();
   std::string adapterRosInterfacePluginName;
   nodeHandle.getParam(adapterRosInterfaceParameterName, adapterRosInterfacePluginName);
-//  std::cout<<"===="<<adapterRosInterfaceLoader_.getClassLibraryPath(adapterRosInterfacePluginName)<<std::endl;
+  //value="free_gait_ros/AdapterRosInterfaceGazebo"
+
+  /**
+    Load class "free_gait_ros/AdapterRosInterfaceGazebo"
+    */
   adapterRosInterfaceLoader_.createInstance(adapterRosInterfacePluginName);
   adapterRosInterface_.reset(adapterRosInterfaceLoader_.createUnmanagedInstance(adapterRosInterfacePluginName));
-//  std::vector<std::string> libs_after =adapterRosInterfaceLoader_.getRegisteredLibraries();
-//  std::cout<<libs_after[0]<<std::endl;
+
 
   std::string adapterPluginName;
+  //free_gait_ros/AdapterGazebo
   nodeHandle.getParam(adapterParameterName, adapterPluginName);
+  std::cout <<"adapterPluginName is " << adapterPluginName << std::endl;
 //  std::cout<<"===="<<adapterLoader_.getClassLibraryPath(adapterPluginName)<<std::endl;
-  adapter_.reset(adapterLoader_.createUnmanagedInstance(adapterPluginName));
+  adapter_.reset(adapterLoader_.createUnmanagedInstance(adapterPluginName));//AdapterGazebo.cpp, use the function in adaptergazebo
 
-//  std::string adapterRosInterfacePluginName;
-//  nodeHandle.getParam("/free_gait/adapter_ros_interface_plugin", adapterRosInterfacePluginName);
-//  adapterRosInterface_.reset(adapterRosInterfaceLoader_.createUnmanagedInstance(adapterRosInterfacePluginName));
 
   adapterRosInterface_->setNodeHandle(nodeHandle_);
   adapterRosInterface_->readRobotDescription();
@@ -70,7 +64,7 @@ bool AdapterRos::subscribeToRobotState(const std::string& robotStateTopic)
   std::string topic(robotStateTopic);
   if (topic.empty()) {
     if (nodeHandle_.hasParam("/free_gait/robot_state")) {
-      nodeHandle_.getParam("/free_gait/robot_state", topic);
+      nodeHandle_.getParam("/free_gait/robot_state", topic);//quadruped_simulation.launch /gazebo/robot_state;
     } else {
       ROS_ERROR("Did not find ROS parameter for robot state topic '/free_gait/robot_state'.");
       return false;
@@ -78,7 +72,7 @@ bool AdapterRos::subscribeToRobotState(const std::string& robotStateTopic)
   }
 
   // Subscribe.
-  return adapterRosInterface_->subscribeToRobotState(topic);
+  return adapterRosInterface_->subscribeToRobotState(topic);//adapterRosInterface subscribe robot state.
 }
 
 void AdapterRos::unsubscribeFromRobotState()
@@ -98,6 +92,12 @@ bool AdapterRos::isReady() const
 
 bool AdapterRos::updateAdapterWithState()
 {
+    /**
+    std::unique_ptr<AdapterRosInterfaceBase> adapterRosInterface_; base, here is gazebo;
+    adapter here is adaptergazebo;
+    finished the initialized before.
+    adapter subcribes
+*/
   return adapterRosInterface_->updateAdapterWithRobotState(*adapter_);
 }
 

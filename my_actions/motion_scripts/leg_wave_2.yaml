@@ -1,0 +1,44 @@
+adapt_coordinates:
+ - transform:
+    source_frame: base_link
+    target_frame: odom
+steps:
+  - step:
+    - base_auto:
+       height: 0.1
+       ignore_timing_of_leg_motion: false
+  - step:
+    - base_target:
+        ignore_timing_of_leg_motion: false
+        average_linear_velocity: 0.1
+        average_angular_velocity: 0.2
+        target:
+          frame: base_link
+          position: [0.0,0.0,-0.3]
+          orientation: [0.0,0.0,0.0,1.0]
+
+
+  - step:
+    - joint_trajectory:
+        name: RH_LEG
+        trajectory:
+          joint_names: [RH_LEG_HAA, RH_LEG_HFE, RH_LEG_KFE]
+          knots: [{time: 0.5, positions: [0,1.57,-3.14]},{time: 1.5, positions: [0,4.54,-3.53]}]
+        ignore_contact: false
+    - joint_trajectory:
+        name: LH_LEG
+        trajectory:
+          joint_names: [LH_LEG_HAA, LH_LEG_HFE, LH_LEG_KFE]
+          knots: [{time: 0.5, positions: [0,-1.57,3.14]},{time: 1.5, positions: [0,-4.54,3.53]}]
+        ignore_contact: false
+  - step:
+    - leg_mode:
+        name: RH_LEG
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+    - leg_mode:
+        name: LH_LEG
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false

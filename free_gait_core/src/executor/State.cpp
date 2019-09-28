@@ -22,6 +22,7 @@ State::~State()
 {
 }
 
+
 void State::initialize(const std::vector<LimbEnum>& limbs, const std::vector<BranchEnum>& branches)
 {
   for (const auto& limb : limbs) {

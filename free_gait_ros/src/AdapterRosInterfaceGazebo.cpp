@@ -27,6 +27,7 @@ AdapterRosInterfaceGazebo::~AdapterRosInterfaceGazebo()
 bool AdapterRosInterfaceGazebo::subscribeToRobotState(const std::string& robotStateTopic)
 {
   free_gait_msgs::RobotStateConstPtr initial_state;
+  // robotstatetopic is /gazebo/robot_state;
   initial_state = ros::topic::waitForMessage<free_gait_msgs::RobotState>(robotStateTopic, ros::Duration(5));
   updateRobotState(initial_state);
   joint_states_sub_ = nodeHandle_->subscribe(robotStateTopic, 1, &AdapterRosInterfaceGazebo::updateRobotState,this);
@@ -123,7 +124,7 @@ bool AdapterRosInterfaceGazebo::updateAdapterWithRobotState(AdapterBase& adapter
 
 }
 
-void AdapterRosInterfaceGazebo::updateRobotState(const free_gait_msgs::RobotStateConstPtr& robotState)
+void AdapterRosInterfaceGazebo::updateRobotState(const free_gait_msgs::RobotStateConstPtr& robotState)//gazebo/robot_state
 {
 //  std::cout<<"AdapterRosInterfaceGazebo::updateRobotState Once"<<std::endl;
   for(int i = 0;i<3;i++)

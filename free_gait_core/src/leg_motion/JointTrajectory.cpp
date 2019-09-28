@@ -37,6 +37,11 @@ void JointTrajectory::setTrajectory(
   times_ = times;
   values_ = values;
   jointNodeEnums_ = jointNodeEnums;
+  //typedef std::unordered_map<ControlLevel, bool, EnumClassHash> ControlSetup;
+  /**
+    value.first is the controlLevel
+    controlSetup_ is also the controllevel and bool
+    */
   for (const auto& value : values) controlSetup_[value.first] = true;
 }
 
@@ -50,6 +55,11 @@ const ControlSetup JointTrajectory::getControlSetup() const
   return controlSetup_;
 }
 
+/**
+ * @brief JointTrajectory::updateStartPosition
+ * JOintPositionsLeg: typedef kindr::VectorTypeless<double,3> JointPositionsLimb; double vector, 3D
+ * @param startPosition
+ */
 void JointTrajectory::updateStartPosition(const JointPositionsLeg& startPosition)
 {
   isComputed_ = false;
@@ -58,12 +68,13 @@ void JointTrajectory::updateStartPosition(const JointPositionsLeg& startPosition
     {
       if(fabs(startPosition(i))>2*3.14)
         delta_positions(i) = startPosition(i) - fmod(startPosition(i), 2*M_PI);
-//      if(startPosition(i)<-2*3.14)
-//        delta_positions(i) = startPosition(i) + fmod(startPosition(i), 2*M_PI);
     }
 
   auto& values = values_.at(ControlLevel::Position);
   auto& times = times_.at(ControlLevel::Position);
+  // j is vector and j = 0, 1, 2, joint number;
+  // values is two dimensions, joint values
+  // i is number of the knot in this trajectory.
   for (size_t j = 0; j < values[0].size(); ++j) {
       for (size_t i = 0; i < values.size(); ++i) {
         values[i][j] += delta_positions(i);
@@ -116,6 +127,7 @@ bool JointTrajectory::prepareComputation(const State& state, const Step& step, c
   isComputed_ = false;
   duration_ = 0.0;
   for (const auto& times : times_) {
+      //the duration_ should be bigger than the time of joint movement.
     if (times.second.back() > duration_) duration_ = times.second.back();
   }
 //  compute();
@@ -130,6 +142,7 @@ bool JointTrajectory::needsComputation() const
 bool JointTrajectory::compute()
 {
   for (auto& trajectories : trajectories_) {
+      //trajecotry's size is equal to the values' size
     trajectories.second.resize(values_.at(trajectories.first).size());
     for (size_t i = 0; i < values_.at(trajectories.first).size(); ++i) {
       trajectories.second[i].fitCurve(times_.at(trajectories.first), values_.at(trajectories.first)[i]);

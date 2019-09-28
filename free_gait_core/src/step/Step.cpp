@@ -86,6 +86,7 @@ Step& Step::operator=(const Step& other)
   legMotions_.clear();
   for (const auto& legMotion : other.legMotions_) {
     legMotions_[legMotion.first] = std::move(legMotion.second->clone());
+    //if legmotion.first matches an element in the container, then function returns a reference to its mapped value.
   }
   return *this;
 }
@@ -106,7 +107,7 @@ void Step::addLegMotion(const LegMotionBase& legMotion)
 {
   if (hasLegMotion(legMotion.getLimb())) {
     legMotions_.erase(legMotion.getLimb());
-  }
+  }//remove this leg motion and insert
   /**
     map<int, int> maps;
     maps.insert(pair<int, int> (10, 15));
@@ -144,7 +145,7 @@ bool Step::needsComputation() const
 {
   bool needsComputation = false;
   for (auto& legMotion : legMotions_) {
-    if (legMotion.second->needsComputation())
+    if (legMotion.second->needsComputation())//the second term of legMotion is a ptr
       needsComputation = true;
   }
 
@@ -242,14 +243,23 @@ bool Step::advance(double dt)
 
 bool Step::hasLegMotion() const
 {
-  return !legMotions_.empty();
+  return !legMotions_.empty();//true if the legmotions_ is empty
 }
 
 bool Step::hasLegMotion(const LimbEnum& limb) const
 {
-  return !(legMotions_.find(limb) == legMotions_.end());
+    /**
+      means if it not found the leg motion, it is true.
+      */
+  return !(legMotions_.find(limb) == legMotions_.end());//find an element with limb and returns an iterator to it if found,
+                                                        //otherwise it returns an iterator to unordered_map::end
 }
 
+/**
+ * @brief Step::getLegMotion std::unordered_map<LimbEnum, std::unique_ptr<LegMotionBase>, EnumClassHash> LegMotions
+ * @param limb
+ * @return return the legmotionbase.
+ */
 const LegMotionBase& Step::getLegMotion(const LimbEnum& limb) const
 {
   if (!hasLegMotion(limb)) throw std::out_of_range("No leg motion for this limb in this step!");

@@ -43,7 +43,7 @@ public:
 //    nodeHandle_.getParam("/gait_generate/")
     if(use_gazebo){
       adapter.reset(AdapterRos_.getAdapterPtr());
-      AdapterRos_.subscribeToRobotState();
+      AdapterRos_.subscribeToRobotState();//moren parameters to /gazebo/robot_state, and update robot state.
     } else {
       adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
     };
@@ -52,7 +52,8 @@ public:
     completer.reset(new StepCompleter(*parameters, *adapter));
     computer.reset(new StepComputer());
 
-    AdapterRos_.updateAdapterWithState();
+    AdapterRos_.updateAdapterWithState();//this state is /gazebo/robot_state
+    //in fact, this is to sync state and /gazebo/robot_state
     //! WSHY: get the initial pose and set to the fisrt pose command
     state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());
     state->setOrientationBaseToWorld(AdapterRos_.getAdapter().getOrientationBaseToWorld());
@@ -61,8 +62,8 @@ public:
     std::cout<<*state<<std::endl;
 
     executor.reset(new Executor(*completer, *computer, *adapter, *state));
-    rosPublisher.reset(new StateRosPublisher(nodeHandle_, *adapter));
-    if(is_kinematics_control){
+    rosPublisher.reset(new StateRosPublisher(nodeHandle_, *adapter));//
+    if(is_kinematics_control){//means what?
       rosPublisher->setTfPrefix("/ideal");
       }else if (!is_kinematics_control) {
       rosPublisher->setTfPrefix("/desired");
@@ -70,8 +71,9 @@ public:
 
     executor->initialize();
 
-    AdapterRos_.updateAdapterWithState();
+    AdapterRos_.updateAdapterWithState();//
 //    AdvertiseServiceOptions pause_service_option = Advertise("a", boost::bind(&ActionServerTest::PauseServiceCallback, this, _1, _2), ros::VoidConstPtr())
+    //receive the request, then use the funtion pauseservicecallback
     pause_service_server_ = nodeHandle_.advertiseService(pause_service_name_, &ActionServerTest::PauseServiceCallback, this);
     stop_service_server_ = nodeHandle_.advertiseService(stop_service_name_, &ActionServerTest::StopServiceCallback, this);
     gait_start_server_ = nodeHandle_.advertiseService("/gait_generate_switch", &ActionServerTest::GaitGenerateSwitchCallback, this);
@@ -79,16 +81,15 @@ public:
 
     limb_configure_switch_server_ = nodeHandle_.advertiseService("/limb_configure", &ActionServerTest::SwitchLimbConfigureCallback, this);
 
-    joint_state_pub_ = nodeHandle_.advertise<sensor_msgs::JointState>("all_joint_position", 1);
+    joint_state_pub_ = nodeHandle_.advertise<sensor_msgs::JointState>("all_joint_position", 1);//ros::publisher
     allJointStates_.position.resize(12);
 
+    //free_gait_action server
     server_.reset(new FreeGaitActionServer(nodeHandle_, "/free_gait/action_server", *executor, *adapter));
     server_->initialize();
     server_->start();
 //    server_->update();
     action_server_thread_ = boost::thread(boost::bind(&ActionServerTest::ActionServerThread, this));
-
-
     gait_generate_thread_ = boost::thread(boost::bind(&ActionServerTest::GaitGenerateThread, this));
 
   }
@@ -123,13 +124,6 @@ public:
       rosPublisher->publish(AdapterRos_.getAdapter().getState());
       while (ros::ok()) {
           server_->update();
-//          ROS_INFO("Action Server updated Once");
-//          AdapterRos_.updateAdapterWithState();
-//          cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
-
-//          TODO(Shunyao): How to Update?
-//          cout<<"Current base position : "<<AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame()<<endl;
-//          cout<<"joint position: "<<AdapterRos_.getAdapter().getAllJointPositions()<<endl;
           if (!executor->getQueue().empty()&&!is_pause&&!is_stop) {
             boost::recursive_mutex::scoped_lock lock(r_mutex_);
             AdapterRos_.updateAdapterWithState();
@@ -139,8 +133,6 @@ public:
                 state->setLinearVelocityBaseInWorldFrame(desired_linear_velocity_);
                 state->setAngularVelocityBaseInBaseFrame(desired_angular_velocity_);
               }
-//            ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<endl);
-//            ROS_WARN_STREAM("Desired in State Velocity :"<<state->getTargetLinearVelocityBaseInWorldFrame()<<endl);
             time = time + dt;
             for(int i=0;i<12;i++){
                 allJointStates_.position[i] = adapter->getState().getJointPositions()(i);
@@ -159,15 +151,7 @@ public:
               rosPublisher->publish(adapter->getState(), executor->getQueue());
               }
             lock.unlock();
-            } else{ // directly publish current state
-//              state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());
-//              state->setOrientationBaseToWorld(AdapterRos_.getAdapter().getOrientationBaseToWorld());
-//              state->setLinearVelocityBaseInWorldFrame(AdapterRos_.getAdapter().getLinearVelocityBaseInWorldFrame());
-//              state->setAngularVelocityBaseInBaseFrame(AdapterRos_.getAdapter().getAngularVelocityBaseInBaseFrame());
-//              if(!is_kinematics_control){
-//                  //! WSHY: publish robot state to balance controller
-//                rosPublisher->publish(*state);
-//                }
+            } else{
             }
 
           rate.sleep();
@@ -186,10 +170,10 @@ public:
 //        ROS_INFO("Gait Generate updated Once");
         if(is_start_gait){
             boost::recursive_mutex::scoped_lock lock(r_mutex_);
-            AdapterRos_.updateAdapterWithState();
-            gait_generate_client_.copyRobotState(AdapterRos_.getAdapter().getState());
-            gait_generate_client_.advance(dt);
-            gait_generate_client_.generateFootHolds("foot_print");
+            AdapterRos_.updateAdapterWithState();//sync /gazebo/robot_state and state
+            gait_generate_client_.copyRobotState(AdapterRos_.getAdapter().getState());//gait_generate_client_.state = /gazebo/robot_state
+            gait_generate_client_.advance(dt);//judge the phase
+            gait_generate_client_.generateFootHolds("foot_print");//generate footholds
             gait_generate_client_.updateBaseMotion(desired_linear_velocity_, desired_angular_velocity_);
 //            ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<endl);
             lock.unlock();
@@ -309,29 +293,7 @@ int main(int argc, char *argv[])
     ros::init(argc, argv, "action_server_test");
     ros::NodeHandle nh("~");
     ActionServerTest ac_test(nh);
-//    pause_service_server = nh.advertiseService("/free_gait/pause_execution_service", &ActionServerTest::PauseServiceCallback, &ac_test);
-
     ros::spin();
-//    pluginlib::ClassLoader<AdapterBase> adapter_loader("free_gait_ros", "free_gait::AdapterBase");
-//    std::unique_ptr<AdapterBase> adapter;
-//    adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
 
-
-//    double dt = 0.001;
-//    double time = 0.0;
-////    ros::Time t_start = ros::Time::now();
-//    ros::Rate rate(1000);
-//    ros::spin();
-
-//        while (!executor.getQueue().empty()) {
-//          executor.advance(dt, true);
-//          time = time + dt;
-//          rosPublisher.publish(adapter->getState());
-
-//        }
-
-//    ros::Time t_end = ros::Time::now();
-//    cout<<"end time : "<<time<<endl;
-//    cout<<"Real time costs is : "<<t_end-t_start<<endl;
     return 0;
 }

@@ -37,9 +37,12 @@ bool StepCompleter::complete(const State& state, const StepQueue& queue, Step& s
 {
   for (auto& legMotion : step.legMotions_) {
     setParameters(*legMotion.second);  //reset surface normal
+    //typedef std::unordered_map<LimbEnum, std::unique_ptr<LegMotionBase>, EnumClassHash> LegMotions;
     legMotion.second->hasContactAtStart_ = adapter_.isLegGrounded(legMotion.first);
     switch (legMotion.second->getType()) {
       case LegMotionBase::Type::Footstep:
+          //dynamic_cast <type-id> (expression),need the inherited relationships
+          //该运算符把expression转换成type-id类型的对象。Type-id 必须是类的指针、类的引用或者void*；
         setParameters(dynamic_cast<Footstep&>(*legMotion.second));
         break;
       case LegMotionBase::Type::EndEffectorTarget:

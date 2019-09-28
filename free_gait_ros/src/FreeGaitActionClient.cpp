@@ -31,7 +31,7 @@ FreeGaitActionClient::FreeGaitActionClient(ros::NodeHandle& nodeHandle)
   }
 
   // Initialize action client.
-  client_.reset(new actionlib::SimpleActionClient<free_gait_msgs::ExecuteStepsAction>(nodeHandle, actionServerTopic));
+  client_.reset(new actionlib::SimpleActionClient<free_gait_msgs::ExecuteStepsAction>(nodeHandle, actionServerTopic));//nodehandle, name
   state_ = ActionState::DONE;
 
   // Initialize preview publisher.

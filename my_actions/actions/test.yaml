@@ -77,3 +77,21 @@ actions:
      file: motion_scripts/leg_move.yaml
      type: yaml
      description: move four legs
+  - action:
+     id: "14"
+     name: leg wave
+     file: motion_scripts/leg_wave.yaml
+     type: yaml
+     description: wave one leg kp
+  # - action:
+  #    id: "14"
+  #    name: Leg_wave
+  #    file: motion_scripts/leg_wave.yaml
+  #    type: yaml
+  #    description: wave onr legs
+  # - action:
+  #    id: "15"
+  #    name: Leg wave Demo
+  #    file: motion_scripts/leg_wave_2.yaml
+  #    type: yaml
+  #    description: wave onr legs

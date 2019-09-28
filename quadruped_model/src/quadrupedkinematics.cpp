@@ -149,14 +149,10 @@ bool QuadrupedKinematics::FowardKinematicsSolve(const JointPositionsLimb& joint_
   for(int i = 0; i<number_of_joints; i++)
   {
     joints(i) = joint_position(i);
-//    cout<<"the "<<i<<"th joint: "<<joints(i)<<endl;
   }
-//  cout<<LF_Chain.getNrOfSegments()<<endl;
-//  cout<<joints.data<<endl;
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
-//        cout<<"LF : "<<LF_Chain.getSegment(0).getFrameToTip()<<endl;
         KDL::ChainFkSolverPos_recursive lf_fk_solver(LF_Chain);
         if(lf_fk_solver.JntToCart(joints, cartisian_frame)<0)
         {
@@ -381,8 +377,8 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
 {
   double d,l1,l2,px,py,pz,alpha,beta1,beta2;
   d=0.1;
-  l1=0.25;
-  l2=0.25;
+  l1=0.35;
+  l2=0.35;
 //  cout<<"px in base = "<<foot_position(0)<<endl
 //      <<"py in base = "<<foot_position(1)<<endl
 //      <<"pz in base = "<<foot_position(2)<<endl;

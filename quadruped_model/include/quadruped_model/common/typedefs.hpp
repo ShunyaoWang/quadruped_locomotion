@@ -10,7 +10,7 @@ namespace romo
 //    romo(/* args */);
 //    ~romo();
 
-    typedef kindr::HomTransformQuatD Pose;
+    typedef kindr::HomTransformQuatD Pose;//6D, position and rotation
 //    typedef kindr::TwistGlobalD Twist;
     typedef kindr::TwistLinearVelocityLocalAngularVelocityD Twist;
     typedef kindr::RotationQuaternionD RotationQuaternion;

@@ -25,17 +25,12 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "step_test");
   ros::NodeHandle nh("~");
   AdapterRos adapterRos_(nh, free_gait::AdapterRos::AdapterType::Preview);
-  pluginlib::ClassLoader<AdapterBase> adapter_loader("free_gait_ros", "free_gait::AdapterBase");
+  pluginlib::ClassLoader<AdapterBase> adapter_loader("free_gait_ros", "free_gait::AdapterBase");//package_name, base_class
   std::unique_ptr<AdapterBase> adapter;
-  adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
+  adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));//create an instance of free_gait_ros/AdapterDummy
 
-//  const AdapterDummy& adapter = dynamic_cast<AdapterDummy&>(adapterRos_.getAdapter());
-//  AdapterDummy adapter;
-//  AdapterBase& adapter = adapterRos_.getAdapter();
+
   JointPositionsLeg joints(0,0,0);
-//  Position end(0.4,0.25,-0.5);
-//  State testState;
-//  testState.getPositionBaseToFootInBaseFrame(LimbEnum::LF_LEG,joints);
   Position end = adapter->getPositionBaseToFootInBaseFrame(LimbEnum::LF_LEG,joints);
   cout<<end<<endl;
   adapter->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(end,LimbEnum::LF_LEG,joints);
@@ -91,9 +86,6 @@ int main(int argc, char **argv)
   step2.setId("02");
   // Footstep
   free_gait_msgs::Footstep footstep_msg;
-  //  Position start(0.0, 0.0, 0.0);
-//  Position target(0.3, 0.0, 0.0);
-//  Vector sufaceNormal(0, 0, 1);
   geometry_msgs::PointStamped target;
   geometry_msgs::Vector3Stamped surface_normal;
   target.point.x = 0.5;

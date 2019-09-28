@@ -16,8 +16,6 @@ namespace rqt_control_panel_plugin {
   {
     widget = new rqt_control_panel_plugin_widget(getNodeHandle());
     context.addWidget(widget);
-
-
   }
 
   void rqt_control_panel_plugin::control_panel_plugin::shutdownPlugin()

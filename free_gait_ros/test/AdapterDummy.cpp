@@ -17,8 +17,6 @@ AdapterDummy::AdapterDummy()
 {
   state_.reset(new State());
   state_->initialize(getLimbs(), getBranches());
-//  state_->LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
-//  std::cout<<state_->LF_Chain.getNrOfJoints()<<std::endl;
   std::cout<<"Constructing AdapterDummy"<<std::endl;
   limbs_.push_back(LimbEnum::LF_LEG);
   limbs_.push_back(LimbEnum::RF_LEG);
@@ -196,6 +194,7 @@ Position AdapterDummy::getPositionBaseToFootInBaseFrame(
 {
   // TODO(Shunyao): solve the single limb Kinematics
 //  state_->FowardKinematicsSolve()
+  std::cout << "what? " << std::endl;
   return state_->getPositionBaseToFootInBaseFrame(limb,jointPositions);
   throw std::runtime_error("AdapterDummy::getPositionBaseToFootInBaseFrame() is not implemented.");
 }

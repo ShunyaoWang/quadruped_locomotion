@@ -29,6 +29,7 @@
 #include "geometry_msgs/Wrench.h"
 
 #include "algorithm"
+#include "new_quadruped_model_kp/joint_state.h"
 
 
 namespace balance_controller {

@@ -23,12 +23,7 @@ using namespace free_gait;
     velocity_command_sub_ = nodeHandle_.subscribe("/cmd_vel", 1, &GaitGenerateClient::velocityCommandCallback, this);
     foot_marker_pub_ = nodeHandle_.advertise<visualization_msgs::MarkerArray>("desired_footholds", 1);
 
-    action_client_ptr.reset(new free_gait::FreeGaitActionClient(nodeHandle_));
-//    free_gait::FreeGaitActionClient actionClient(nodeHandle_);
-
-//    actionClient.registerCallback(std::bind(&GaitGenerateClient::activeCallback, this),
-//                                  std::bind(&GaitGenerateClient::feedbackCallback, this, std::placeholders::_1),
-//                                  std::bind(&GaitGenerateClient::doneCallback, this, std::placeholders::_1, std::placeholders::_2));
+    action_client_ptr.reset(new free_gait::FreeGaitActionClient(nodeHandle_));//FreeGaitActionClient
 
     action_client_ptr->registerCallback(boost::bind(&GaitGenerateClient::activeCallback, this),
                                   boost::bind(&GaitGenerateClient::feedbackCallback, this, _1),
@@ -206,14 +201,9 @@ using namespace free_gait;
 
   bool GaitGenerateClient::copyRobotState(const free_gait::State& state)
   {
-    robot_state_ = state;
+    robot_state_ = state;//state = /gazebo/robot_state
 
     desired_linear_velocity_world_ = robot_state_.getOrientationBaseToWorld().rotate(desired_linear_velocity_);
-//    EulerAnglesZyx EulerZYXBaseInWorld = EulerAnglesZyx(robot_state_.getOrientationBaseToWorld());
-//    RotationQuaternion orientaionBaseInWorld = RotationQuaternion(EulerAnglesZyx(EulerZYXBaseInWorld.setUnique().vector()(0), 0, 0));
-//    desired_linear_velocity_world_ = orientaionBaseInWorld.rotate(desired_linear_velocity_);
-
-//    foothold_in_support_.clear();
     Position foot_sum;
     for(int i = 0;i<4;i++)
       {
@@ -222,7 +212,7 @@ using namespace free_gait;
           {
             foothold_in_support_[limb] = robot_state_.getPositionWorldToFootInWorldFrame(limb);
             stanceForOrientation_[limb] = foothold_in_support_[limb];
-            foot_sum += foothold_in_support_[limb];
+            foot_sum += foothold_in_support_[limb];//get the sum of all support legs
           }
       }
     if(robot_state_.getNumberOfSupportLegs()>0)

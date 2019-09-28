@@ -49,7 +49,9 @@ void BaseTarget::updateStartPose(const Pose& startPose)
 
 bool BaseTarget::prepareComputation(const State& state, const Step& step, const StepQueue& queue, const AdapterBase& adapter)
 {
-  computeDuration(step, adapter);
+   //! compute the time of base motion
+  computeDuration(step, adapter);  
+  //update the trajectory
   return isComputed_ = computeTrajectory();
 }
 
@@ -80,6 +82,7 @@ const std::string& BaseTarget::getFrameId(const ControlLevel& controlLevel) cons
   return frameId_;
 }
 
+//the pose in time t
 Pose BaseTarget::evaluatePose(const double time) const
 {
   double timeInRange = time <= duration_ ? time : duration_;
@@ -100,12 +103,13 @@ Twist BaseTarget::evaluateTwist(const double time) const
 
 void BaseTarget::computeDuration(const Step& step, const AdapterBase& adapter)
 {
+    //! ignore the motion of leg
   if (!step.hasLegMotion() || ignoreTimingOfLegMotion_) {
-    double distance = (target_.getPosition() - start_.getPosition()).norm();
+    double distance = (target_.getPosition() - start_.getPosition()).norm();//fanshu of a vector
     double translationDuration = distance / averageLinearVelocity_;
     double angle = fabs(target_.getRotation().getDisparityAngle(start_.getRotation()));
     double rotationDuration = angle / averageAngularVelocity_;
-    duration_ = translationDuration > rotationDuration ? translationDuration : rotationDuration;
+    duration_ = translationDuration > rotationDuration ? translationDuration : rotationDuration;//motion time and angular time, return the bigger one
   } else {
     for (const auto& limb : adapter.getLimbs()) {
       if (step.hasLegMotion(limb)) {
@@ -121,8 +125,8 @@ void BaseTarget::computeDuration(const Step& step, const AdapterBase& adapter)
 
 bool BaseTarget::computeTrajectory()
 {
-  std::vector<Time> times;
-  std::vector<ValueType> values;
+  std::vector<Time> times;//a series of double
+  std::vector<ValueType> values;// the value type of trajectory
 
   times.push_back(0.0);
   values.push_back(start_);
@@ -130,7 +134,7 @@ bool BaseTarget::computeTrajectory()
   times.push_back(duration_);
   values.push_back(target_);
 
-  trajectory_.fitCurve(times, values);
+  trajectory_.fitCurve(times, values);//! need to be have example!!!!!!!20190830
 
   // Curves implementation provides velocities.
   controlSetup_[ControlLevel::Velocity] = true;

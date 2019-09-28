@@ -30,17 +30,17 @@ std::unique_ptr<CustomCommand> CustomCommand::clone() const
 
 void CustomCommand::setType(const std::string& type)
 {
-  type_ = type;
+  type_ = type;//string
 }
 
 void CustomCommand::setDuration(const double duration)
 {
-  duration_ = duration;
+  duration_ = duration;//double
 }
 
 void CustomCommand::setCommand(const std::string& command)
 {
-  command_ = command;
+  command_ = command;//string
 }
 
 const std::string& CustomCommand::getType() const

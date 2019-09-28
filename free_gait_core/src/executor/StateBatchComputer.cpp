@@ -122,6 +122,7 @@ void StateBatchComputer::computeStepIds(StateBatch& stateBatch)
       stateBatch.stepIds_[state.first] = stepId;
       continue;
     }
+    //Returns an iterator pointing to the element that it would be pointing to if advanced -n positions.
     if (std::prev(stateBatch.stepIds_.end())->second != stepId) {
       stateBatch.stepIds_[state.first] = stepId;
       continue;

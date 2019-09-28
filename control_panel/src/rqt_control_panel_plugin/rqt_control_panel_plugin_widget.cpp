@@ -24,7 +24,7 @@ rqt_control_panel_plugin_widget::rqt_control_panel_plugin_widget(const ros::Node
 
   trotSwitchClient_ = nodehandle_.serviceClient<std_srvs::SetBool>("/gait_generate_switch", false);
 
-  paceSwitchClient_ = nodehandle_.serviceClient<std_srvs::SetBool>("pace_switch",false);
+  paceSwitchClient_ = nodehandle_.serviceClient<std_srvs::SetBool>("/pace_switch",false);
 
   eStopPublisher_ = nodehandle_.advertise<std_msgs::Bool>("/e_stop", 1);
 
@@ -175,17 +175,25 @@ void rqt_control_panel_plugin_widget::on_Controllers_currentChanged(int index)
       e_stop_msg.data = false;
       eStopPublisher_.publish(e_stop_msg);
       std::cout<<"Balance"<<std::endl;
-      controller_switch.request.start_controllers.push_back("base_balance_controller");
-      controller_switch.request.stop_controllers.push_back(current_controller.c_str());
+      controller_switch.request.start_controllers.push_back("base_balance_controller");//the name to start
+      controller_switch.request.stop_controllers.push_back(current_controller.c_str());//the name to stop
       controller_switch.request.strictness = controller_switch.request.STRICT;
+      /**
+         the strictness (BEST_EFFORT or STRICT)
+        #    * STRICT means that switching will fail if anything goes wrong (an invalid
+        #      controller name, a controller that failed to start, etc. )
+        #    * BEST_EFFORT means that even when something goes wrong with on controller,
+        #      the service will still try to start/stop the remaining controllers
+
+        */
       switchControllerClient_.call(controller_switch.request, controller_switch.response);
 
-      control_method.request.configure = tab_name.toStdString();
-      switchControlMethodClient_.call(control_method.request, control_method.response);
+      control_method.request.configure = tab_name.toStdString();//Qstring to std::string, balance means what?
+      switchControlMethodClient_.call(control_method.request, control_method.response);//SwitchControllerMethod, balance
 
       if(controller_switch.response.ok && control_method.response.result)
         {
-          control_method_ = BALANCE;
+          control_method_ = BALANCE;// the whole body controller method
           displayOutputInfos("green", "Switch to Balance Controller");
         }
 
