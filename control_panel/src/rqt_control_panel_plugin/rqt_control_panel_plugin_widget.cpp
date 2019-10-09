@@ -466,20 +466,20 @@ void rqt_control_panel_plugin_widget::on_stopSingleLegController_clicked()
 void rqt_control_panel_plugin_widget::on_resetJointPostionButton_clicked()
 {
   ui->lf_joint_positon_1->setValue(0);
-  ui->lf_joint_positon_2->setValue(0);
-  ui->lf_joint_positon_3->setValue(0);
+  ui->lf_joint_positon_2->setValue(1.2);
+  ui->lf_joint_positon_3->setValue(-2.4);
 
   ui->rf_joint_positon_1->setValue(0);
-  ui->rf_joint_positon_2->setValue(0);
-  ui->rf_joint_positon_3->setValue(0);
+  ui->rf_joint_positon_2->setValue(-1.2);
+  ui->rf_joint_positon_3->setValue(2.4);
 
   ui->rh_joint_positon_1->setValue(0);
-  ui->rh_joint_positon_2->setValue(0);
-  ui->rh_joint_positon_3->setValue(0);
+  ui->rh_joint_positon_2->setValue(1.2);
+  ui->rh_joint_positon_3->setValue(-2.4);
 
   ui->lh_joint_positon_1->setValue(0);
-  ui->lh_joint_positon_2->setValue(0);
-  ui->lh_joint_positon_3->setValue(0);
+  ui->lh_joint_positon_2->setValue(-1.2);
+  ui->lh_joint_positon_3->setValue(2.4);
 
 
 }
