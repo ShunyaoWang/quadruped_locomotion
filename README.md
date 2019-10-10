@@ -1,4 +1,5 @@
 # quadruped_locomoton
+this is branch EdisonKun_dev
 package for quadruped locomotion
 
 ## Dependencies
