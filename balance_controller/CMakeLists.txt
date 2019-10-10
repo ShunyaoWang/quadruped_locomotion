@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   free_gait_core
   quadruped_model
+  quadruped_odom
   free_gait_ros
   controller_interface
   pluginlib
@@ -29,6 +30,7 @@ find_package(catkin REQUIRED COMPONENTS
   ooqp_eigen_interface
   single_leg_test
   ros_ethercat_driver
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -106,10 +108,11 @@ find_package(catkin REQUIRED COMPONENTS
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
+ generate_dynamic_reconfigure_options(
 #   cfg/DynReconf1.cfg
 #   cfg/DynReconf2.cfg
-# )
+  cfg/controller_gains.cfg
+ )
 
 ###################################
 ## catkin specific configuration ##
@@ -128,6 +131,7 @@ catkin_package(
   roscpp
   free_gait_core
   quadruped_model
+  quadruped_odom
   free_gait_ros
   controller_interface
   pluginlib
@@ -183,7 +187,23 @@ add_library(robot_state_gazebo_ros_control_plugin
     src/ros_controller/robot_state_gazebo_ros_control_plugin.cpp
   )
 target_link_libraries(robot_state_gazebo_ros_control_plugin
-  ${catkin_LIBRARIES})
+  ${catkin_LIBRARIES}
+  gazebo_state_hardware_interface
+  )
+
+add_library(state_estimate_controller
+  src/ros_controller/state_estimate_controller.cpp
+  )
+target_link_libraries(state_estimate_controller
+  ${catkin_LIBRARIES}
+  )
+
+  add_library(single_leg_controller
+    src/ros_controller/single_leg_controller.cpp
+    )
+  target_link_libraries(single_leg_controller
+    ${catkin_LIBRARIES}
+    )
 
 #add_library(joint_torque_controller src/ros_controller/joint_torque_controller.cpp)
 #target_link_libraries(joint_torque_controller

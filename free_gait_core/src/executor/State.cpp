@@ -8,7 +8,7 @@
 #include <free_gait_core/executor/State.hpp>
 #include <free_gait_core/TypePrints.hpp>
 
-#include <stdexcept>
+#include <stdexcept>//stl error lib
 
 namespace free_gait {
 
@@ -21,6 +21,7 @@ State::State()
 State::~State()
 {
 }
+
 
 void State::initialize(const std::vector<LimbEnum>& limbs, const std::vector<BranchEnum>& branches)
 {
@@ -226,12 +227,17 @@ const JointEffortsLeg State::getJointEffortsForLimb(const LimbEnum& limb) const
 
 const JointEfforts& State::getAllJointEfforts() const
 {
-  return jointEfforts_;
+  return quadruped_model::QuadrupedState::getJointTorques();
+//  return jointEfforts_;
 }
 
 void State::setJointEffortsForLimb(const LimbEnum& limb, const JointEffortsLeg& jointEfforts)
 {
-  jointEfforts_.setSegment<3>(QD::getLimbStartIndexInJ(limb), jointEfforts);
+  //! WSHY: command
+  quadruped_model::QuadrupedState::getJointTorques().setSegment<3>(
+      QD::getLimbStartIndexInJ(limb), jointEfforts);
+//  jointEfforts_.setSegment<3>(QD::getLimbStartIndexInJ(limb), jointEfforts);
+
 //  jointEfforts_.getSegment<QD::getNumDofLimb()>(QD::getLimbStartIndexInJ(limb)) = jointEfforts;
 }
 

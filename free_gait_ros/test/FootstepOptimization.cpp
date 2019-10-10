@@ -63,7 +63,7 @@ bool FootstepOptimization::getOptimizedFoothold(free_gait::Position& nominal_foo
 
 //  Position nominal_foothold_in_map = robot_state_.getOrientationBaseToWorld().inverseRotate(nominal_foothold - robot_state.getPositionWorldToBaseInWorldFrame());
   Eigen::Vector2d center(nominal_foothold_in_map(0), nominal_foothold_in_map(1));
-
+//    return true;
   double radius = 0.08;
   int i = 0;
     for(grid_map::CircleIterator iterator(traversability_map_, center, radius); !iterator.isPastEnd(); ++iterator)
@@ -118,7 +118,7 @@ double FootstepOptimization::getMaxObstacleHeight(free_gait::Position& nominal_f
           max_height = height;
         }
     }
-  return max_height;
+  return max_height - 0.5*(end_foot_position(2) + start_foot_position(2));
 
 }
 
@@ -149,9 +149,9 @@ free_gait::Vector FootstepOptimization::getSurfaceNormal(const free_gait::Positi
   traversability_map_.getIndex(position, index);
 
   free_gait::Vector surface_normal;
-  surface_normal(0) = traversability_map_.at("normal_vectors_x", index);
-  surface_normal(1) = traversability_map_.at("normal_vectors_y", index);
-  surface_normal(2) = traversability_map_.at("normal_vectors_z", index);
+  surface_normal(0) = 0;//traversability_map_.at("normal_vectors_x", index);
+  surface_normal(1) = 0;//traversability_map_.at("normal_vectors_y", index);
+  surface_normal(2) = 1;//traversability_map_.at("normal_vectors_z", index);
 
   return surface_normal;
 }

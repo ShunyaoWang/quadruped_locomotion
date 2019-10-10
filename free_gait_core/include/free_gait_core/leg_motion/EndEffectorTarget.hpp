@@ -24,10 +24,22 @@ namespace free_gait {
 class EndEffectorTarget : public EndEffectorMotionBase
 {
  public:
+  /**
+   * @brief ValueType is eigen 3Dvector, means position
+   */
   typedef typename curves::CubicHermiteE3Curve::ValueType ValueType;
+  /**
+   * @brief DerivativeType is eigrn 3D vector, means velocity
+   */
   typedef typename curves::CubicHermiteE3Curve::DerivativeType DerivativeType;
+  /**
+   * @brief Time means double
+   */
   typedef typename curves::Time Time;
-
+  /**
+   * @brief EndEffectorTarget
+   * @param limb means LF_LEG/RF_LEG/RH_LEG/LH_LEG
+   */
   EndEffectorTarget(LimbEnum limb);
   virtual ~EndEffectorTarget();
 
@@ -93,7 +105,16 @@ class EndEffectorTarget : public EndEffectorMotionBase
   friend class StepRosConverter;
 
  private:
+  /**
+   * @brief computeDuration
+   * using the targetposition and startposition to calcaulate the locomotion time.
+   */
   void computeDuration();
+  /**
+   * @brief computeTrajectory
+   * @return
+   * get the time and the corresponding velocity.
+   */
   bool computeTrajectory();
 
   bool ignoreContact_;

@@ -19,6 +19,7 @@
 
 #include "free_gait_ros/FootstepOptimization.hpp"
 #include "free_gait_ros/RosVisualization.hpp"
+#include "free_gait_msgs/SetStepParameter.h"
 
 class GaitGenerateClient
 {
@@ -75,6 +76,9 @@ public:
 
   bool advance(double dt);
 
+//  bool updateBaseVelocity(LinearVelocity& desired_linear_velocity,
+//                          LocalAngularVelocity& desired_angular_velocity);
+
 
 
 
@@ -84,14 +88,15 @@ public:
 private:
   ros::NodeHandle nodeHandle_;
   ros::Subscriber velocity_command_sub_;
-  ros::ServiceServer gaitSwitchServer_;
-  ros::Publisher foot_marker_pub_;
+  ros::ServiceServer gaitSwitchServer_, stepParameterServer_;
+  ros::Publisher foot_marker_pub_, com_proj_marker_pub_, desired_base_com_marker_pub_;
 
   free_gait::State robot_state_;
   Pose base_pose;
-  bool is_updated, is_done, is_active;
+  bool is_updated, is_done, is_active, use_terrian_map;
   std::unique_ptr<free_gait::FreeGaitActionClient> action_client_ptr;
-  double height_, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
+  double height_, profile_height, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
+  std::string profile_type;
   int step_number;
   Position LF_nominal, RF_nominal, LH_nominal, RH_nominal, P_CoM_desired_;
   Position footholds_in_stance, footprint_center_in_base, footprint_center_in_world;
@@ -110,7 +115,7 @@ private:
 //  std::unique_ptr<free_gait::PoseOptimizationGeometric> poseOptimizationGeometric_;
 //  const free_gait::StepParameters& parameters_;
   free_gait::PlanarStance nominalPlanarStanceInBaseFrame;
-  free_gait::Stance nominalStanceInBaseFrame_, stanceForOrientation_;
+  free_gait::Stance nominalStanceInBaseFrame_, stanceForOrientation_, hip_dispacement;
 
   free_gait_msgs::ExecuteStepsGoal motion_goal_;
   free_gait_msgs::Step step_msg_;
@@ -123,6 +128,8 @@ private:
 
   void doneCallback(const actionlib::SimpleClientGoalState& state,
                     const free_gait_msgs::ExecuteStepsResult& result);
+  bool setStepParameterCallback(free_gait_msgs::SetStepParameterRequest& req,
+                                free_gait_msgs::SetStepParameterResponse& res);
 
   std::unique_ptr<FootstepOptimization> footstepOptimization;
 

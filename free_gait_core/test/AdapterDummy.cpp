@@ -105,6 +105,7 @@ bool AdapterDummy::getLimbJointPositionsFromPositionBaseToFootInBaseFrame(
 Position AdapterDummy::getPositionBaseToFootInBaseFrame(
     const LimbEnum& limb, const JointPositionsLeg& jointPositions) const
 {
+    std::cout <<"what" <<std::endl;
   throw std::runtime_error("AdapterDummy::getPositionBaseToFootInBaseFrame() is not implemented.");
 }
 
@@ -112,13 +113,13 @@ Position AdapterDummy::getPositionBaseToHipInBaseFrame(const LimbEnum& limb) con
 {
   switch (limb) {
     case LimbEnum::LF_LEG:
-      return Position(0.3, 0.2, 0.0);
+      return Position(0.42, 0.075, 0.0);
     case LimbEnum::RF_LEG:
-      return Position(0.3, -0.2, 0.0);
+      return Position(0.42, -0.075, 0.0);
     case LimbEnum::LH_LEG:
-      return Position(-0.3, 0.2, 0.0);
+      return Position(-0.42, 0.075, 0.0);
     case LimbEnum::RH_LEG:
-      return Position(-0.3, -0.2, 0.0);
+      return Position(-0.42, -0.075, 0.0);
     default:
       throw std::runtime_error("AdapterDummy::getPositionBaseToHipInBaseFrame() something went wrong.");
   }

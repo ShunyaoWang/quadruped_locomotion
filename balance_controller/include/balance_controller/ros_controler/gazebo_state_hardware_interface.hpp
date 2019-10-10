@@ -47,7 +47,8 @@ namespace balance_controller {
 class SimRobotStateHardwareInterface : public gazebo_ros_control::RobotHWSim//public hardware_interface::RobotHW, public hardware_interface::HardwareInterface
 {
 public:
-//  SimRobotStateHardwareInterface(){};
+  SimRobotStateHardwareInterface();
+  ~SimRobotStateHardwareInterface();
   virtual bool initSim(
       const std::string& robot_namespace,
       ros::NodeHandle model_nh,
@@ -64,6 +65,7 @@ public:
   void readJoints();
   void writeJoints();
   void readStates();
+  bool setControlMethod(const std::string& method);
 protected:
   // Methods used to control a joint.
   enum ControlMethod {EFFORT, POSITION, POSITION_PID, VELOCITY, VELOCITY_PID, STANCE_LEG};
@@ -132,8 +134,12 @@ protected:
   // e_stop_active_ is true if the emergency stop is active.
   bool e_stop_active_, last_e_stop_active_;
 
+  double real_time_factor;
+  bool use_gazebo_feedback;
+
   double pos_read[12], pos_write[12], vel_read[12], vel_write[12], eff_read[12],eff_write[12];
   double position[3], orinetation[4], linear_vel[3], angular_vel[3];
+  int foot_contact[4], motor_status_word[12];
   free_gait_msgs::RobotState actual_robot_state_;
 };
 

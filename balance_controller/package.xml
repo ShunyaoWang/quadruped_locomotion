@@ -55,6 +55,7 @@
   <build_export_depend>roscpp</build_export_depend> -->
   <build_depend>free_gait_core</build_depend>
   <build_depend>quadruped_model</build_depend>
+  <build_depend>quadruped_odom</build_depend>
   <build_depend>free_gait_ros</build_depend>
   <build_depend>controller_interface</build_depend>
   <build_depend>pluginlib</build_depend>
@@ -64,6 +65,7 @@
   <exec_depend>controller_interface</exec_depend>
   <exec_depend>free_gait_ros</exec_depend>
   <exec_depend>quadruped_model</exec_depend>
+  <exec_depend>quadruped_odom</exec_depend>
   <exec_depend>free_gait_core</exec_depend>
   <exec_depend>qp_solver</exec_depend>
   <exec_depend>roscpp</exec_depend>
@@ -80,6 +82,7 @@
   <depend>ooqp_eigen_interface</depend>
   <depend>single_leg_test</depend>
   <depend>ros_ethercat_driver</depend>
+  <depend>dynamic_reconfigure</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

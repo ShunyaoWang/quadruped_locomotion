@@ -14,6 +14,7 @@ namespace free_gait {
  * @brief StepCompleter::StepCompleter, set parameters for base and leg motions
  * @param parameters
  * @param adapter
+ * something is b
  */
 StepCompleter::StepCompleter(const StepParameters& parameters, const AdapterBase& adapter)
     : parameters_(parameters),
@@ -36,9 +37,12 @@ bool StepCompleter::complete(const State& state, const StepQueue& queue, Step& s
 {
   for (auto& legMotion : step.legMotions_) {
     setParameters(*legMotion.second);  //reset surface normal
+    //typedef std::unordered_map<LimbEnum, std::unique_ptr<LegMotionBase>, EnumClassHash> LegMotions;
     legMotion.second->hasContactAtStart_ = adapter_.isLegGrounded(legMotion.first);
     switch (legMotion.second->getType()) {
       case LegMotionBase::Type::Footstep:
+          //dynamic_cast <type-id> (expression),need the inherited relationships
+          //该运算符把expression转换成type-id类型的对象。Type-id 必须是类的指针、类的引用或者void*；
         setParameters(dynamic_cast<Footstep&>(*legMotion.second));
         break;
       case LegMotionBase::Type::EndEffectorTarget:
@@ -109,7 +113,7 @@ bool StepCompleter::complete(const State& state, const Step& step, EndEffectorMo
         endEffectorMotion.getLimb());//, state.getJointPositionsForLimb(endEffectorMotion.getLimb()));
 //    std::cout<<"Step completer, foot_pose_in_base is : "<<startPositionInBaseFrame<<std::endl;
     Position startPosition = adapter_.transformPosition("base_link", frameId, startPositionInBaseFrame);
-//    std::cout<<"Step completer, foot_pose_in_world is : "<<startPosition<<std::endl;
+//    std::cout<<"Step completer, foot_pose in "<<frameId.c_str()<<" is : "<<startPosition<<std::endl;
 
     endEffectorMotion.updateStartPosition(startPosition);
   }
@@ -304,4 +308,3 @@ void StepCompleter::setParameters(BaseTrajectory& baseTrajectory) const
 }
 
 } /* namespace */
-

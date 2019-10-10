@@ -44,8 +44,12 @@ namespace rqt_free_gait {
 FreeGaitActionPlugin::FreeGaitActionPlugin()
     : rqt_gui_cpp::Plugin()
     , widget_(0) {
-
-  qRegisterMetaType<free_gait_msgs::ExecuteActionResult>(
+    /**
+   * @brief qRegisterMetaType<free_gait_msgs::ExecuteActionResult>
+   * 注册方法：在当前类的顶部包含：#include <QMetaType>，构造函数中加入代码：qRegisterMetaType<MyClass>("Myclass")；
+   *
+   */
+  qRegisterMetaType<free_gait_msgs::ExecuteActionResult>(//self define
       "free_gait_msgs::ExecuteActionResult");
   qRegisterMetaType<std_srvs::TriggerResponse>(
       "std_srvs::TriggerResponse");
@@ -109,6 +113,7 @@ void FreeGaitActionPlugin::initPlugin(qt_gui_cpp::PluginContext& context) {
       controller_manager_msgs::SwitchController>("/controller_manager/switch_controller", false);
   trotSwitchClient_ = getNodeHandle().serviceClient<std_srvs::SetBool>("/gait_generate_switch", false);
 
+  paceSwitchClient_ = getNodeHandle().serviceClient<std_srvs::SetBool>("/pace_switch",false);
   // Connect signals to slots.
   connect(ui_.pushButtonSend, SIGNAL(clicked()),
           this, SLOT(onSendActionClicked()));
@@ -629,7 +634,7 @@ void FreeGaitActionPlugin::onSwitchControllerClicked()
 {
   controller_manager_msgs::SwitchControllerRequest request;
   request.start_controllers.push_back("base_balance_controller");
-  request.stop_controllers.push_back("all_joints_position_group_controller");
+  request.stop_controllers.push_back("all_joints_position_effort_group_controller");
   request.strictness = request.STRICT;
 
 
@@ -650,7 +655,7 @@ void FreeGaitActionPlugin::onSwitchControllerClicked()
 void FreeGaitActionPlugin::onSwitchBackControllerClicked()
 {
   controller_manager_msgs::SwitchControllerRequest request;
-  request.start_controllers.push_back("all_joints_position_group_controller");
+  request.start_controllers.push_back("all_joints_position_effort_group_controller");
   request.stop_controllers.push_back("base_balance_controller");
   request.strictness = request.STRICT;
 
@@ -686,7 +691,6 @@ void FreeGaitActionPlugin::onTrotClicked()
 {
   std_srvs::SetBoolRequest request;
   request.data = true;
-
 
   WorkerThreadSetBool *workerThreadSetBool = new WorkerThreadSetBool;
   connect(workerThreadSetBool,
@@ -819,7 +823,23 @@ void FreeGaitActionPlugin::onFavoriteButtonResult(
   isSendingFavoriteAction_ = false;
 }
 
+void rqt_free_gait::FreeGaitActionPlugin::on_Pace_clicked()
+{
+  ROS_INFO("Pace Button Clicked");
+  std_srvs::SetBool pace_switch;
+  pace_switch.request.data = true;
+  paceSwitchClient_.call(pace_switch.request, pace_switch.response);
+  if(pace_switch.response.success)
+    {
+      ROS_INFO("Call pace switch service successfully");
+    } else{
+      ROS_WARN("Failed to CAll pace switch service");
+    }
+
+}
+
 } // namespace
 
 PLUGINLIB_EXPORT_CLASS(rqt_free_gait::FreeGaitActionPlugin, rqt_gui_cpp::Plugin)
+
 

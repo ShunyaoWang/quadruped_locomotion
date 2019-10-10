@@ -56,7 +56,7 @@ class BaseMotionBase
    */
   BaseMotionBase::Type getType() const;
 
-  virtual const ControlSetup getControlSetup() const;
+  virtual const ControlSetup getControlSetup() const;//control level typedef std::unordered_map<ControlLevel, bool, EnumClassHash> ControlSetup;
 
   /*!
    * Update the trajectory with the base start pose.
@@ -90,8 +90,9 @@ class BaseMotionBase
 
   /*!
    * Evaluate the base pose at a given time.
-   * @param time the time evakyate the pose at.
+   * @param time the time evaluate the pose at.
    * @return the pose of the base in the defined frame id.
+   * six dimensions, position and posture.@kp
    */
   virtual Pose evaluatePose(const double time) const;
 
@@ -115,7 +116,7 @@ class BaseMotionBase
 
  private:
 
-  //! Type of the base motion.
+  //! Type of the base motion.auto.target or trajectory
   Type type_;
 };
 

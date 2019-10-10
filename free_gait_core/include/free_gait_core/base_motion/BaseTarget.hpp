@@ -20,8 +20,8 @@ namespace free_gait {
 class BaseTarget : public BaseMotionBase
 {
  public:
-  typedef typename curves::CubicHermiteSE3Curve::ValueType ValueType;
-  typedef typename curves::Time Time;
+  typedef typename curves::CubicHermiteSE3Curve::ValueType ValueType;// the value type of CubicHermiteSE3Curve
+  typedef typename curves::Time Time;// typedef double time
 
   BaseTarget();
   virtual ~BaseTarget();
@@ -55,7 +55,7 @@ class BaseTarget : public BaseMotionBase
   double getDuration() const;
 
   /*!
-   * Returns the frame id base motion.
+   * Returns the frame id base motion, the motion of base is relative to....
    * @return the frame id.
    */
   const std::string& getFrameId(const ControlLevel& controlLevel) const;

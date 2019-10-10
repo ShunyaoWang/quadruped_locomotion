@@ -23,6 +23,15 @@ double clamp(const double val, const double min_val, const double max_val)
 namespace balance_controller
 {
 
+SimRobotStateHardwareInterface::SimRobotStateHardwareInterface()
+{
+
+}
+
+SimRobotStateHardwareInterface::~SimRobotStateHardwareInterface()
+{
+
+}
 
 bool SimRobotStateHardwareInterface::initSim(
   const std::string& robot_namespace,
@@ -54,6 +63,8 @@ bool SimRobotStateHardwareInterface::initSim(
   robot_state_data_.joint_velocity_write = vel_write;
   robot_state_data_.joint_effort_read = eff_read;
   robot_state_data_.joint_effort_write = eff_write;
+  robot_state_data_.foot_contact = foot_contact;
+  robot_state_data_.motor_status_word = motor_status_word;
   //! WSHY: registerhandle pass the data point to the hardwareResourseManager and then
   //! the read() method update data which the pointer points to or write() the
   //! updated commmand
@@ -62,6 +73,17 @@ bool SimRobotStateHardwareInterface::initSim(
   // getJointLimits() searches joint_limit_nh for joint limit parameters. The format of each
   // parameter's name is "joint_limits/<joint name>". An example is "joint_limits/axle_joint".
   const ros::NodeHandle joint_limit_nh(model_nh);
+
+  if(!model_nh.getParam("/real_time_factor", real_time_factor))
+    {
+      ROS_ERROR("Can't find parameter of 'real_time_factor'");
+      return false;
+    }
+  if(!model_nh.getParam("/use_gazebo_feedback", use_gazebo_feedback))
+    {
+      ROS_ERROR("Can't find parameter of 'use_gazebo_feedback'");
+      return false;
+    }
 
   // Resize vectors to our DOF
   n_dof_ = transmissions.size();
@@ -146,8 +168,8 @@ bool SimRobotStateHardwareInterface::initSim(
 
     // Decide what kind of command interface this actuator/joint has
     hardware_interface::JointHandle joint_handle;
-    if(hardware_interface == "EffortJointInterface" || hardware_interface == "hardware_interface/EffortJointInterface")
-    {
+//    if(hardware_interface == "EffortJointInterface" || hardware_interface == "hardware_interface/EffortJointInterface")
+//    {
       // Create effort joint interface
       joint_control_methods_[j] = EFFORT;
       joint_handle = hardware_interface::JointHandle(js_interface_.getHandle(joint_names_[j]),
@@ -156,29 +178,29 @@ bool SimRobotStateHardwareInterface::initSim(
 //                                                                   &joint_effort_command_[j]));
       robot_state_interface_.joint_effort_interfaces_.registerHandle(joint_handle);
       ej_interface_.registerHandle(joint_handle);
-    }
-    else if(hardware_interface == "PositionJointInterface" || hardware_interface == "hardware_interface/PositionJointInterface")
-    {
+//    }
+//    else if(hardware_interface == "PositionJointInterface" || hardware_interface == "hardware_interface/PositionJointInterface")
+//    {
       // Create position joint interface
-      joint_control_methods_[j] = POSITION;
+//      joint_control_methods_[j] = POSITION;
       joint_handle = hardware_interface::JointHandle(js_interface_.getHandle(joint_names_[j]),
                                                      &joint_position_command_[j]);
       pj_interface_.registerHandle(joint_handle);
-    }
-    else if(hardware_interface == "VelocityJointInterface" || hardware_interface == "hardware_interface/VelocityJointInterface")
-    {
+//    }
+//    else if(hardware_interface == "VelocityJointInterface" || hardware_interface == "hardware_interface/VelocityJointInterface")
+//    {
       // Create velocity joint interface
-      joint_control_methods_[j] = VELOCITY;
+//      joint_control_methods_[j] = VELOCITY;
       joint_handle = hardware_interface::JointHandle(js_interface_.getHandle(joint_names_[j]),
                                                      &joint_velocity_command_[j]);
       vj_interface_.registerHandle(joint_handle);
-    }
-    else
-    {
-      ROS_FATAL_STREAM_NAMED("gazebo_robot_state_hw","No matching hardware interface found for '"
-        << hardware_interface << "' while loading interfaces for " << joint_names_[j] );
-      return false;
-    }
+//    }
+//    else
+//    {
+//      ROS_FATAL_STREAM_NAMED("gazebo_robot_state_hw","No matching hardware interface found for '"
+//        << hardware_interface << "' while loading interfaces for " << joint_names_[j] );
+//      return false;
+//    }
 
     if(hardware_interface == "EffortJointInterface" || hardware_interface == "PositionJointInterface" || hardware_interface == "VelocityJointInterface") {
       ROS_WARN_STREAM("Deprecated syntax, please prepend 'hardware_interface/' to '" << hardware_interface << "' within the <hardwareInterface> tag in joint '" << joint_names_[j] << "'.");
@@ -218,12 +240,13 @@ bool SimRobotStateHardwareInterface::initSim(
                         joint_limit_nh, urdf_model,
                         &joint_types_[j], &joint_lower_limits_[j], &joint_upper_limits_[j],
                         &joint_effort_limits_[j]);
+    pid_controllers_[j].init(ros::NodeHandle(model_nh, "all_joints_position_group_controller/" + joint_names_[j] + "/pid"));
+//    ROS_ERROR("%s",model_nh.getNamespace().c_str());
     if (joint_control_methods_[j] != EFFORT)
     {
       // Initialize the PID controller. If no PID gain values are found, use joint->SetAngle() or
       // joint->SetParam("vel") to control the joint.
-      const ros::NodeHandle nh(robot_namespace + "/gazebo_ros_control/pid_gains/" +
-                               joint_names_[j]);
+      const ros::NodeHandle nh("all_joints_position_group_controller/" + joint_names_[j] + "/pid");
       if (pid_controllers_[j].init(nh))
       {
         switch (joint_control_methods_[j])
@@ -263,13 +286,14 @@ bool SimRobotStateHardwareInterface::initSim(
   e_stop_active_ = false;
   last_e_stop_active_ = false;
 
+  ROS_WARN("Init Gazebo hardware interface");
   return true;
 }
 
 void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration period)
 {
-  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
-  real_time_factor = 0.55;
+//  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
+//  real_time_factor = 0.55;
   for(unsigned int j=0; j < n_dof_; j++)
   {
     // Gazebo has an interesting API...
@@ -293,7 +317,7 @@ void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration perio
 //    ROS_INFO("ReadSim: for joint states once");
     robot_state_data_.joint_position_read[j] = joint_position_[j];
 //    ROS_INFO("ReadSim: for joint states once");
-    robot_state_data_.joint_velocity_read[j] = joint_velocity_[j];
+    robot_state_data_.joint_velocity_read[j] = real_time_factor * joint_velocity_[j];
     robot_state_data_.joint_effort_read[j] = joint_effort_[j];
   }
   //! WSHY: for sim, read from gazebo, for real, read the joint information and
@@ -301,26 +325,31 @@ void SimRobotStateHardwareInterface::readSim(ros::Time time, ros::Duration perio
 //  robot_state_data_.position = &base_link_ptr_->GetWorldCoGPose().pos;
 //  ROS_INFO("ReadSim: for base pose once");
 //ROS_WARN_STREAM("Real Time Factor :"<<real_time_factor<<std::endl);
-//  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
-  robot_state_data_.position[0] = base_link_ptr_->GetWorldCoGPose().pos.x;
-  robot_state_data_.position[1] = base_link_ptr_->GetWorldCoGPose().pos.y;
-  robot_state_data_.position[2] = base_link_ptr_->GetWorldCoGPose().pos.z;
-//  ROS_INFO("Base position: x=%f,y=%f,z=%f",robot_state_data_.position[0],
-//      robot_state_data_.position[1],robot_state_data_.position[2]);
-  robot_state_data_.orientation[0] = base_link_ptr_->GetWorldCoGPose().rot.w;
-  robot_state_data_.orientation[1] = base_link_ptr_->GetWorldCoGPose().rot.x;
-  robot_state_data_.orientation[2] = base_link_ptr_->GetWorldCoGPose().rot.y;
-  robot_state_data_.orientation[3] = base_link_ptr_->GetWorldCoGPose().rot.z;
 
-  robot_state_data_.linear_velocity[0] = real_time_factor * base_link_ptr_->GetWorldLinearVel().x;
-  robot_state_data_.linear_velocity[1] = real_time_factor * base_link_ptr_->GetWorldLinearVel().y;
-  robot_state_data_.linear_velocity[2] = real_time_factor * base_link_ptr_->GetWorldLinearVel().z;
-//  ROS_INFO("Base linear velocity: x=%f,y=%f,z=%f",robot_state_data_.linear_velocity[0],
-//      robot_state_data_.linear_velocity[1],robot_state_data_.linear_velocity[2]);
-  robot_state_data_.angular_velocity[0] = real_time_factor * base_link_ptr_->GetWorldAngularVel().x;
-  robot_state_data_.angular_velocity[1] = real_time_factor * base_link_ptr_->GetWorldAngularVel().y;
-  robot_state_data_.angular_velocity[2] = real_time_factor * base_link_ptr_->GetWorldAngularVel().z;
-  /****************
+  //  double real_time_factor = base_link_ptr_->GetParentModel()->GetWorld()->GetPhysicsEngine()->GetTargetRealTimeFactor();
+if(use_gazebo_feedback)
+  {
+    robot_state_data_.position[0] = base_link_ptr_->GetWorldCoGPose().pos.x;
+    robot_state_data_.position[1] = base_link_ptr_->GetWorldCoGPose().pos.y;
+    robot_state_data_.position[2] = base_link_ptr_->GetWorldCoGPose().pos.z;
+    //  ROS_INFO("Base position: x=%f,y=%f,z=%f",robot_state_data_.position[0],
+    //      robot_state_data_.position[1],robot_state_data_.position[2]);
+    robot_state_data_.orientation[0] = base_link_ptr_->GetWorldCoGPose().rot.w;
+    robot_state_data_.orientation[1] = base_link_ptr_->GetWorldCoGPose().rot.x;
+    robot_state_data_.orientation[2] = base_link_ptr_->GetWorldCoGPose().rot.y;
+    robot_state_data_.orientation[3] = base_link_ptr_->GetWorldCoGPose().rot.z;
+
+    robot_state_data_.linear_velocity[0] = real_time_factor * base_link_ptr_->GetWorldLinearVel().x;
+    robot_state_data_.linear_velocity[1] = real_time_factor * base_link_ptr_->GetWorldLinearVel().y;
+    robot_state_data_.linear_velocity[2] = real_time_factor * base_link_ptr_->GetWorldLinearVel().z;
+    //  ROS_INFO("Base linear velocity: x=%f,y=%f,z=%f",robot_state_data_.linear_velocity[0],
+    //      robot_state_data_.linear_velocity[1],robot_state_data_.linear_velocity[2]);
+
+  }
+robot_state_data_.angular_velocity[0] = real_time_factor * base_link_ptr_->GetWorldAngularVel().x;
+robot_state_data_.angular_velocity[1] = real_time_factor * base_link_ptr_->GetWorldAngularVel().y;
+robot_state_data_.angular_velocity[2] = real_time_factor * base_link_ptr_->GetWorldAngularVel().z;
+/****************
 * TODO(Shunyao) : update Imu data
 ****************/
 
@@ -353,6 +382,7 @@ void SimRobotStateHardwareInterface::writeSim(ros::Time time, ros::Duration peri
   {
     last_e_stop_active_ = false;
   }
+//  ROS_ERROR("State Estimate Position in X : %f",robot_state_data_.position[0]);
 
   ej_sat_interface_.enforceLimits(period);
   ej_limits_interface_.enforceLimits(period);
@@ -449,6 +479,32 @@ void SimRobotStateHardwareInterface::writeSim(ros::Time time, ros::Duration peri
 void SimRobotStateHardwareInterface::eStopActive(const bool active)
 {
   e_stop_active_ = active;
+}
+
+bool SimRobotStateHardwareInterface::setControlMethod(const std::string& method)
+{
+
+  if(method == "Joint Position")
+    {
+      for(int i = 0;i<joint_control_methods_.size();i++)
+        {
+          joint_control_methods_[i] = POSITION_PID;
+        }
+      return true;
+    }else if (method == "Joint Velocity") {
+      for(int i = 0;i<joint_control_methods_.size();i++)
+        {
+          joint_control_methods_[i] = VELOCITY_PID;
+        }
+      return true;
+    }else if (method == "Joint Effort" || method == "Balance") {
+      for(int i = 0;i<joint_control_methods_.size();i++)
+        {
+          joint_control_methods_[i] = EFFORT;
+        }
+      return true;
+    }
+  return false;
 }
 
 // Register the limits of the joint specified by joint_name and joint_handle. The limits are

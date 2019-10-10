@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com)
+     Commit Version: 1.5.0-0-g9aa0fdb  Build Version: 1.5.7004.21443
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot name="quadruped_model">
+
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.006699 -0.000736 0.001288"
+        rpy="0 0 0" />
+      <mass
+        value="27.801" />
+      <inertia
+        ixx="0.263893"
+        ixy="0"
+        ixz="0"
+        iyy="2.018032"
+        iyz="0"
+        izz="2.056458" />
+    </inertial>
+  </link>
+  <link
+    name="front_left_1_Link">
+    <inertial>
+      <origin
+        xyz="0.000688 0.10488 -0.003776"
+        rpy="0 0 0" />
+      <mass
+        value="2.9231" />
+      <inertia
+        ixx="0.004820"
+        ixy="0"
+        ixz="0"
+        iyy="0.007868"
+        iyz="0"
+        izz="0.008241" />
+    </inertial>
+  </link>
+  <joint
+    name="front_left_1_joint"
+    type="revolute">
+    <origin
+      xyz="0.427 0.075 -0.0095"
+      rpy="0 1.5708 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="front_left_1_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="front_left_2_Link">
+    <inertial>
+      <origin
+        xyz="0.18475 3.2E-05 0.12906"
+        rpy="0 0 0" />
+      <mass
+        value="4.2164" />
+      <inertia
+        ixx="0.006286"
+        ixy="0"
+        ixz="0"
+        iyy="0.028156"
+        iyz="0"
+        izz="0.029242" />
+    </inertial>
+  </link>
+  <joint
+    name="front_left_2_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="front_left_1_Link" />
+    <child
+      link="front_left_2_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="front_left_3_Link">
+    <inertial>
+      <origin
+        xyz="0.20231 0.000199 0.22543"
+        rpy="0 0 0" />
+      <mass
+        value="0.44457" />
+      <inertia
+        ixx="0.000385"
+        ixy="0"
+        ixz="0"
+        iyy="0.006223"
+        iyz="0"
+        izz="0.006502" />
+    </inertial>
+  </link>
+  <joint
+    name="front_left_3_joint"
+    type="revolute">
+    <origin
+      xyz="0.308 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="front_left_2_Link" />
+    <child
+      link="front_left_3_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="lf_foot_Link">
+    <inertial>
+      <origin
+        xyz="0.022126 -1.2357E-13 0.00049896"
+        rpy="0 0 0" />
+      <mass
+        value="0.03332" />
+      <inertia
+        ixx="0.000014"
+        ixy="0"
+        ixz="0"
+        iyy="0.000014"
+        iyz="0"
+        izz="0.000019" />
+    </inertial>
+  </link>
+  <joint
+    name="lf_foot_joint"
+    type="fixed">
+    <origin
+      xyz="0.308 0 0.23"
+      rpy="0 0 0" />
+    <parent
+      link="front_left_3_Link" />
+    <child
+      link="lf_foot_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="front_right_1_Link">
+    <inertial>
+      <origin
+        xyz="-0.000688 0.104882 0.003776"
+        rpy="0 0 0" />
+      <mass
+        value="2.923111" />
+      <inertia
+        ixx="0.004820"
+        ixy="0"
+        ixz="0"
+        iyy="0.007868"
+        iyz="0"
+        izz="0.008241" />
+    </inertial>
+  </link>
+  <joint
+    name="front_right_1_joint"
+    type="revolute">
+    <origin
+      xyz="0.427 -0.075 -0.0095"
+      rpy="3.1416 1.5708 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="front_right_1_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="front_right_2_Link">
+    <inertial>
+      <origin
+        xyz="0.184747 3.2E-05 0.129056"
+        rpy="0 0 0" />
+      <mass
+        value="4.216358" />
+      <inertia
+        ixx="0.006286"
+        ixy="0"
+        ixz="0"
+        iyy="0.028156"
+        iyz="0"
+        izz="0.029242" />
+    </inertial>
+  </link>
+  <joint
+    name="front_right_2_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="front_right_1_Link" />
+    <child
+      link="front_right_2_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="front_right_3_Link">
+    <inertial>
+      <origin
+        xyz="0.202313 0.000199 0.225432"
+        rpy="0 0 0" />
+      <mass
+        value="0.444569" />
+      <inertia
+        ixx="0.000385"
+        ixy="0"
+        ixz="0"
+        iyy="0.006223"
+        iyz="0"
+        izz="0.006502" />
+    </inertial>
+  </link>
+  <joint
+    name="front_right_3_joint"
+    type="revolute">
+    <origin
+      xyz="0.308 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="front_right_2_Link" />
+    <child
+      link="front_right_3_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rf_foot_Link">
+    <inertial>
+      <origin
+        xyz="0.022126 -4.4892E-13 -1.0375E-06"
+        rpy="0 0 0" />
+      <mass
+        value="0.03332" />
+      <inertia
+        ixx="0.000014"
+        ixy="0"
+        ixz="0"
+        iyy="0.000014"
+        iyz="0"
+        izz="0.000019" />
+    </inertial>
+  </link>
+  <joint
+    name="rf_foot_joint"
+    type="fixed">
+    <origin
+      xyz="0.308 0 0.23"
+      rpy="0 0 0" />
+    <parent
+      link="front_right_3_Link" />
+    <child
+      link="rf_foot_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="rear_left_1_Link">
+    <inertial>
+      <origin
+        xyz="-0.000688 0.10488 0.003776"
+        rpy="0 0 0" />
+      <mass
+        value="2.9231" />
+      <inertia
+        ixx="0.004820"
+        ixy="0"
+        ixz="0"
+        iyy="0.007868"
+        iyz="0"
+        izz="0.008241" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_left_1_joint"
+    type="revolute">
+    <origin
+      xyz="-0.427 0.075 -0.0095"
+      rpy="0 1.5708 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rear_left_1_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_left_2_Link">
+    <inertial>
+      <origin
+        xyz="0.184717 3.2E-05 0.129056"
+        rpy="0 0 0" />
+      <mass
+        value="4.216358" />
+      <inertia
+        ixx="0.006286"
+        ixy="0"
+        ixz="0"
+        iyy="0.028156"
+        iyz="0"
+        izz="0.029242" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_left_2_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="rear_left_1_Link" />
+    <child
+      link="rear_left_2_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_left_3_Link">
+    <inertial>
+      <origin
+        xyz="0.202313 0.000199 0.225432"
+        rpy="0 0 0" />
+      <mass
+        value="0.444569" />
+      <inertia
+        ixx="0.000385"
+        ixy="0"
+        ixz="0"
+        iyy="0.006223"
+        iyz="0"
+        izz="0.006502" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_left_3_joint"
+    type="revolute">
+    <origin
+      xyz="0.308 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="rear_left_2_Link" />
+    <child
+      link="rear_left_3_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="lh_foot_Link">
+    <inertial>
+      <origin
+        xyz="0.022126 -7.7827E-14 0.00049896"
+        rpy="0 0 0" />
+      <mass
+        value="0.03332" />
+      <inertia
+        ixx="0.000014"
+        ixy="0"
+        ixz="0"
+        iyy="0.000014"
+        iyz="0"
+        izz="0.000019" />
+    </inertial>
+  </link>
+  <joint
+    name="lh_foot_joint"
+    type="fixed">
+    <origin
+      xyz="0.308 0 0.23"
+      rpy="0 0 0" />
+    <parent
+      link="rear_left_3_Link" />
+    <child
+      link="lh_foot_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="rear_right_1_Link">
+    <inertial>
+      <origin
+        xyz="0.000688 0.104882 0.003776"
+        rpy="0 0 0" />
+      <mass
+        value="2.923111" />
+      <inertia
+        ixx="0.004820"
+        ixy="0"
+        ixz="0"
+        iyy="0.007868"
+        iyz="0"
+        izz="0.008241" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_right_1_joint"
+    type="revolute">
+    <origin
+      xyz="-0.427 -0.075 -0.0095"
+      rpy="3.1416 1.5708 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rear_right_1_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_right_2_Link">
+    <inertial>
+      <origin
+        xyz="0.184747 3.2E-05 0.129056"
+        rpy="0 0 0" />
+      <mass
+        value="4.216358" />
+      <inertia
+        ixx="0.006286"
+        ixy="0"
+        ixz="0"
+        iyy="0.028156"
+        iyz="0"
+        izz="0.029242" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_right_2_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 0 0" />
+    <parent
+      link="rear_right_1_Link" />
+    <child
+      link="rear_right_2_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rear_right_3_Link">
+    <inertial>
+      <origin
+        xyz="0.202313 0.000199 0.225432"
+        rpy="0 0 0" />
+      <mass
+        value="0.444569" />
+      <inertia
+        ixx="0.000385"
+        ixy="0"
+        ixz="0"
+        iyy="0.006223"
+        iyz="0"
+        izz="0.006502" />
+    </inertial>
+  </link>
+  <joint
+    name="rear_right_3_joint"
+    type="revolute">
+    <origin
+      xyz="0.308 0 0"
+      rpy="0 0 0" />
+    <parent
+      link="rear_right_2_Link" />
+    <child
+      link="rear_right_3_Link" />
+    <axis
+      xyz="0 0 1" />
+      <limit
+      effort="300"
+      velocity="10"
+      lower="-3.0"
+      upper="3.0"/>
+  </joint>
+  <link
+    name="rh_foot_Link">
+    <inertial>
+      <origin
+        xyz="0.022126 -1.6187E-13 -1E-06"
+        rpy="0 0 0" />
+      <mass
+        value="0.03332" />
+      <inertia
+        ixx="0.000014"
+        ixy="0"
+        ixz="0"
+        iyy="0.000014"
+        iyz="0"
+        izz="0.000019" />
+    </inertial>
+  </link>
+  <joint
+    name="rh_foot_joint"
+    type="fixed">
+    <origin
+      xyz="0.308 0 0.23"
+      rpy="0 0 0" />
+    <parent
+      link="rear_right_3_Link" />
+    <child
+      link="rh_foot_Link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>

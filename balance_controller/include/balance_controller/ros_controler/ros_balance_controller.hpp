@@ -38,10 +38,14 @@
 #include "std_msgs/Int8MultiArray.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "nav_msgs/Odometry.h"
+#include "geometry_msgs/Wrench.h"
+#include "std_msgs/Time.h"
+
 #include "Eigen/Dense"
 #include "Eigen/LU"
 
 namespace balance_controller {
+
   class RosBalanceController : public controller_interface::Controller<hardware_interface::RobotStateInterface>
   {
   typedef std::unordered_map<free_gait::LimbEnum, std::unique_ptr<StateSwitcher>, EnumClassHash> LimbState;
@@ -104,12 +108,12 @@ namespace balance_controller {
     std::vector<free_gait::LimbEnum> limbs_;
     std::vector<free_gait::BranchEnum> branches_;
 
-    LimbState limbs_state, limbs_desired_state;
-    LimbFlag real_contact_, is_cartisian_motion_;
+    LimbState limbs_state, limbs_desired_state, limbs_last_state;
+    LimbFlag real_contact_, is_cartisian_motion_, is_footstep_, is_legmode_;
     LimbDuration t_sw0, t_st0;
     LimbFlag sw_flag, st_flag;
     LimbPhase sw_phase, st_phase;
-    LimbVector foot_positions, foot_velocities, foot_accelerations;
+    LimbVector foot_positions, foot_velocities, foot_accelerations, real_contact_force_;
     /**
      * @brief contact_distribution_ , pointer to contact force optimaziton
      */
@@ -135,6 +139,8 @@ namespace balance_controller {
     void enforceJointLimits(double &command, unsigned int index);
     double computeTorqueFromPositionCommand(double command, int i, const ros::Duration& period);
 
+    void contactStateMachine();
+    bool jointTorquesLimit(free_gait::JointEffortsLeg& joint_torque, double max_torque);
     /**
      * @brief r_mutex_
      */
@@ -143,13 +149,16 @@ namespace balance_controller {
      * @brief joint_command_pub_, for debug to monitor
      */
     ros::Publisher joint_command_pub_, base_command_pub_, base_actual_pub_, joint_actual_pub_,
-    leg_state_pub_, contact_desired_pub_, leg_phase_pub_, desired_robot_state_pub_, actual_robot_state_pub_;
+    leg_state_pub_, contact_desired_pub_, leg_phase_pub_, desired_robot_state_pub_, actual_robot_state_pub_, motor_status_word_pub_, vmc_info_pub_, desired_vmc_info_pub_;
     std::vector<nav_msgs::Odometry> base_command_pose_, base_actual_pose_;
     std::vector<sensor_msgs::JointState> joint_command_, joint_actual_;
     std::vector<std_msgs::Int8MultiArray> leg_states_;
     std::vector<sim_assiants::FootContacts> foot_desired_contact_;
     std::vector<std_msgs::Float64MultiArray> leg_phases_;
     std::vector<free_gait_msgs::RobotState> desired_robot_state_, actual_robot_state_;
+    std::vector<geometry_msgs::Wrench> vitual_force_torque_, desired_vitual_force_torque_;
+    std::vector<std_msgs::Time> log_time_;
+    std::vector<std_msgs::Int8MultiArray> motor_status_word_;
     ros::ServiceServer log_data_srv_;
 
     int log_length_, log_index_;
@@ -160,6 +169,10 @@ namespace balance_controller {
     LimbVector surface_normals;
 //    std::vector<double> stored_limb_joint_position_;
     free_gait::JointPositions stored_limb_joint_position_;
+
+    int delay_counts[4];
+
+    bool real_robot, ignore_contact_sensor;
   };
 
 }

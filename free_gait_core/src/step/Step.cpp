@@ -86,6 +86,7 @@ Step& Step::operator=(const Step& other)
   legMotions_.clear();
   for (const auto& legMotion : other.legMotions_) {
     legMotions_[legMotion.first] = std::move(legMotion.second->clone());
+    //if legmotion.first matches an element in the container, then function returns a reference to its mapped value.
   }
   return *this;
 }
@@ -98,22 +99,28 @@ std::unique_ptr<Step> Step::clone() const
   std::unique_ptr<Step> pointer(new Step(*this));
   return pointer;
 }
-/**
+/**gggggggggg
  * @brief Step::addLegMotion, add a LegMotionBase class to legMotions_ unorder map data type
- * @param legMotion
+ * @param legMotion test the stom
  */
 void Step::addLegMotion(const LegMotionBase& legMotion)
 {
   if (hasLegMotion(legMotion.getLimb())) {
     legMotions_.erase(legMotion.getLimb());
-  }
+  }//remove this leg motion and insert
+  /**
+    map<int, int> maps;
+    maps.insert(pair<int, int> (10, 15));
+    std::pair<LimbEnum, std::unique_ptr<LegMotionBase>> pair
+    ????
+    */
   legMotions_.insert(std::pair<LimbEnum, std::unique_ptr<LegMotionBase>>(legMotion.getLimb(), std::move(legMotion.clone())));
   isUpdated_ = false;
   isComputed_ = false;
 }
 /**
  * @brief Step::addBaseMotion, add a BaseMotionBase to baseMotion_
- * @param baseMotion
+ * @param baseMotion yes
  */
 void Step::addBaseMotion(const BaseMotionBase& baseMotion)
 {
@@ -130,13 +137,15 @@ void Step::addCustomCommand(const CustomCommand& customCommand)
 }
 /**
  * @brief Step::needsComputation, check each in legMotions_ and baseMotion if need computed
+ * typedef std::unordered_map<LimbEnum, std::unique_ptr<LegMotionBase>, EnumClassHash> LegMotions;
+ * about the definition of auto
  * @return needsComputation
  */
 bool Step::needsComputation() const
 {
   bool needsComputation = false;
   for (auto& legMotion : legMotions_) {
-    if (legMotion.second->needsComputation())
+    if (legMotion.second->needsComputation())//the second term of legMotion is a ptr
       needsComputation = true;
   }
 
@@ -150,9 +159,17 @@ bool Step::needsComputation() const
 /**
  * @brief Step::compute, call the compute method in legMotions_ and baseMotion
  * @return true if successed
- */
+ * 1 unordered_map<Key,T>::iterator it;
+2 (*it).first;             // the key value (of type Key)
+3 (*it).second;            // the mapped value (of type T), legmotions is a class of legmotion
+4 (*it);                   // the "element value" (of type pair<const Key,T>)
+https://www.cnblogs.com/evidd/p/8823092.html
+*/
 bool Step::compute()
 {
+  /**
+    bianli legMotions_
+    */
   for (const auto& legMotion : legMotions_) {
     if (legMotion.second->needsComputation()) {
       if (!legMotion.second->compute()) return false;
@@ -226,14 +243,23 @@ bool Step::advance(double dt)
 
 bool Step::hasLegMotion() const
 {
-  return !legMotions_.empty();
+  return !legMotions_.empty();//true if the legmotions_ is empty
 }
 
 bool Step::hasLegMotion(const LimbEnum& limb) const
 {
-  return !(legMotions_.find(limb) == legMotions_.end());
+    /**
+      means if it not found the leg motion, it is true.
+      */
+  return !(legMotions_.find(limb) == legMotions_.end());//find an element with limb and returns an iterator to it if found,
+                                                        //otherwise it returns an iterator to unordered_map::end
 }
 
+/**
+ * @brief Step::getLegMotion std::unordered_map<LimbEnum, std::unique_ptr<LegMotionBase>, EnumClassHash> LegMotions
+ * @param limb
+ * @return return the legmotionbase.
+ */
 const LegMotionBase& Step::getLegMotion(const LimbEnum& limb) const
 {
   if (!hasLegMotion(limb)) throw std::out_of_range("No leg motion for this limb in this step!");

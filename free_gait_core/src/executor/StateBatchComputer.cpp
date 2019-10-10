@@ -20,6 +20,10 @@ StateBatchComputer::~StateBatchComputer()
 
 void StateBatchComputer::computeEndEffectorTargetsAndSurfaceNormals(StateBatch& stateBatch)
 {
+  /**
+    const std::map<double, State>& getStates() const;
+    std::map<double, State> states_;
+    */
   stateBatch.endEffectorTargets_.clear();
   stateBatch.endEffectorTargets_.resize(adapter_.getLimbs().size());
   stateBatch.surfaceNormals_.clear();
@@ -118,6 +122,7 @@ void StateBatchComputer::computeStepIds(StateBatch& stateBatch)
       stateBatch.stepIds_[state.first] = stepId;
       continue;
     }
+    //Returns an iterator pointing to the element that it would be pointing to if advanced -n positions.
     if (std::prev(stateBatch.stepIds_.end())->second != stepId) {
       stateBatch.stepIds_[state.first] = stepId;
       continue;

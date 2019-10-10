@@ -17,8 +17,6 @@ AdapterDummy::AdapterDummy()
 {
   state_.reset(new State());
   state_->initialize(getLimbs(), getBranches());
-//  state_->LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
-//  std::cout<<state_->LF_Chain.getNrOfJoints()<<std::endl;
   std::cout<<"Constructing AdapterDummy"<<std::endl;
   limbs_.push_back(LimbEnum::LF_LEG);
   limbs_.push_back(LimbEnum::RF_LEG);
@@ -196,6 +194,7 @@ Position AdapterDummy::getPositionBaseToFootInBaseFrame(
 {
   // TODO(Shunyao): solve the single limb Kinematics
 //  state_->FowardKinematicsSolve()
+  std::cout << "what? " << std::endl;
   return state_->getPositionBaseToFootInBaseFrame(limb,jointPositions);
   throw std::runtime_error("AdapterDummy::getPositionBaseToFootInBaseFrame() is not implemented.");
 }
@@ -204,13 +203,13 @@ Position AdapterDummy::getPositionBaseToHipInBaseFrame(const LimbEnum& limb) con
 {
   switch (limb) {
     case LimbEnum::LF_LEG:
-      return Position(0.3, 0.2, 0.0);
+      return Position(0.42, 0.075, 0.0);
     case LimbEnum::RF_LEG:
-      return Position(0.3, -0.2, 0.0);
+      return Position(0.42, -0.075, 0.0);
     case LimbEnum::LH_LEG:
-      return Position(-0.3, 0.2, 0.0);
+      return Position(-0.42, 0.075, 0.0);
     case LimbEnum::RH_LEG:
-      return Position(-0.3, -0.2, 0.0);
+      return Position(-0.42, -0.075, 0.0);
     default:
       throw std::runtime_error("AdapterDummy::getPositionBaseToHipInBaseFrame() something went wrong.");
   }

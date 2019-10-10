@@ -1,0 +1,55 @@
+<?xml version="1.0"?>    
+<launch> 
+		
+	<!-- <param name="/use_sim_time" value="true" />  -->
+	<!-- imu-40hz-200?
+	joint_state-10-?
+	foot_contact_state-352-400
+	gazebo_odom-100-100 -->
+
+   	<arg name="model" default="$(find simpledog)/urdf/quadruped_model.urdf.xacro" />
+   	<param name="/robot_description" command="$(find xacro)/xacro --inorder $(arg model)" />
+
+
+	<node pkg="quadruped_odom" type="legodom" name="legodom" output="screen">
+  	<!-- <node pkg="quadruped_odom" type="legodom" name="legodom" > -->
+
+		<!--position  -->
+		<!--FromInit*****EveryStep*****EveryTime*****FootStep-->
+		<!-- <param name="cal_fator_x" value="1.3"/> -->
+		<!-- <param name="cal_fator_y" value="1.2"/> -->
+
+		<param name="cal_fator_x" value="1.0"/>
+		<param name="cal_fator_y" value="1.0"/>
+		<param name="cal_position_way" value="everytime"/>
+		<!-- <param name="cal_position_way" value="everystep"/> -->
+		<!-- <param name="cal_position_way" value="frominit"/> -->
+		<!-- <param name="cal_position_way" value="footstep"/> -->
+		<!--vel-->
+		<!--dpdtvel*****jacobvel-->
+		<param name="cal_vel_way" value="dpdtvel"/>
+		<!-- <param name="cal_vel_way" value="jacobvel"/> -->
+		<!-- <param name="cal_vel_way" value="dpdt0vel"/> -->
+		<param name="vel_set_T" value="10.0"/>
+		<param name="odom_dt" value="0.02"/>
+		<!--orientation-->
+		<!--imu_way*****kin_way-->
+		<param name="orientation_way" value="imu_way"/>
+
+	</node>
+
+	<!-- ekf_robot_localization -->
+	<include file="$(find robot_localization)/launch/starthit_3d_rl.launch"/>
+	<!-- ekf_robot_pose_ekf -->
+	<include file="$(find robot_pose_ekf)/starthit_3d_rpe.launch"/>
+
+	<!-- show path -->
+	<node pkg="quadruped_simshow" type="quadruped_util" name="quadruped_util" />
+
+    <!--show-->
+     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find quadruped_odom)/rviz/odom.rviz"/> 
+
+</launch>
+
+
+

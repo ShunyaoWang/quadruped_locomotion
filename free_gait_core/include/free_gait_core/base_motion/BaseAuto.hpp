@@ -63,7 +63,7 @@ class BaseAuto : public BaseMotionBase
 
   const std::string& getFrameId(const ControlLevel& controlLevel) const;
 
-  void setNominalStanceInBaseFrame(const PlanarStance& nominalPlanarStanceInBaseFrame);
+  void setNominalStanceInBaseFrame(const PlanarStance& nominalPlanarStanceInBaseFrame);//what is that?
   void setHeight(const double height);
   double getHeight() const;
   void setAverageLinearVelocity(const double averageLinearVelocity);
@@ -126,8 +126,9 @@ class BaseAuto : public BaseMotionBase
   curves::CubicHermiteSE3Curve trajectory_;
 
   // In world frame.
+  //typedef std::unordered_map<LimbEnum, Position, EnumClassHash> Stance;
   Stance footholdsToReach_, footholdsInSupport_, footholdsForOrientation_, footholdsOfNextLegMotion_;
-  // In base frame.
+  // In base frame.  
   Stance nominalStanceInBaseFrame_;
 
   //! If trajectory is updated.
