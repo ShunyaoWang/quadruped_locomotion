@@ -116,7 +116,7 @@ bool VirtualModelController::computeError()
 //                                                                                         orinetationWorldToBase.setUnique().vector()(1),
 //                                                                                         orinetationWorldToBase.setUnique().vector()(2)));
 //  const RotationQuaternion& orientationWorldToControl = RotationQuaternion(orinetationWorldToBase) * orientationControlToBase.inverted();
-
+//control = world
    const RotationQuaternion& orientationControlToBase = robot_state_->getTargetOrientationBaseToWorld().inverted();//torso_->getMeasuredState().getOrientationControlToBase();
    positionErrorInControlFrame_ = robot_state_->getTargetPositionWorldToBaseInWorldFrame() //torso_->getDesiredState().getPositionControlToBaseInControlFrame()
        - robot_state_->getPositionWorldToBaseInWorldFrame();//torso_->getMeasuredState().getPositionControlToBaseInControlFrame();

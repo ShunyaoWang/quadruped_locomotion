@@ -74,7 +74,7 @@ namespace balance_controller{
     virtual_model_controller_.reset(new VirtualModelController(node_handle, robot_state, contact_distribution_));
     //! WSHY: single leg controller
     single_leg_solver_.reset(new MyRobotSolver(node_handle, robot_state));
-    single_leg_solver_->model_initialization();
+//    single_leg_solver_->model_initialization();
     if(!single_leg_solver_->loadLimbModelFromURDF())
       {
         ROS_ERROR("Failed to load model from URDF file");
