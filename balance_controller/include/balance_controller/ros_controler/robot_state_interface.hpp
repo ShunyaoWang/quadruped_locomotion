@@ -41,7 +41,8 @@ public:
         joint_velocity_write(0),
         joint_effort_read(0),
         joint_effort_write(0),
-        foot_contact(0){}
+        foot_contact(0),
+        motor_status_word(0){}
 
     std::string name;                       ///< The name of the sensor
     std::string frame_id;                   ///< The reference frame to which this sensor is associated
@@ -56,7 +57,8 @@ public:
     double* joint_velocity_write;
     double* joint_effort_read;
     double* joint_effort_write;
-    bool* foot_contact;            ///< A pointer to store if a leg is contact [LF,RF,RH,LH]
+    int* foot_contact;
+    int* motor_status_word;///< A pointer to store if a leg is contact [LF,RF,RH,LH], 0-swing,1-stance,2-early,3-late
 //    double* lf_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //    double* rf_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //    double* rh_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
@@ -78,25 +80,26 @@ public:
       joint_velocity_write_(data.joint_velocity_write),
       joint_effort_read_(data.joint_effort_read),
       joint_effort_write_(data.joint_effort_write),
-      foot_contact_(data.foot_contact)
+      foot_contact_(data.foot_contact),
+      motor_status_word_(data.motor_status_word)
   {}
 
   RobotStateHandle(
         const std::string& name,                      ///< The name of the sensor
         const std::string& frame_id,                  ///< The reference frame to which this sensor is associated
-        const double* orientation,                    ///< A pointer to the storage of the orientation value: a quaternion (x,y,z,w)
+        double* orientation,                    ///< A pointer to the storage of the orientation value: a quaternion (x,y,z,w)
         double* position,         ///< A pointer to the storage of the orientation covariance value: a row major 3x3 matrix about (x,y,z)
-        const double* angular_velocity,               ///< A pointer to the storage of the angular velocity value: a triplet (x,y,z)
-        const double* linear_acceleration,            ///< A pointer to the storage of the linear acceleration value: a triplet (x,y,z)
-        const double* linear_velocity,  ///< A pointer to the storage of the linear acceleration covariance value: a row major 3x3 matrix about (x,y,z)
+        double* angular_velocity,               ///< A pointer to the storage of the angular velocity value: a triplet (x,y,z)
+        double* linear_acceleration,            ///< A pointer to the storage of the linear acceleration value: a triplet (x,y,z)
+        double* linear_velocity,  ///< A pointer to the storage of the linear acceleration covariance value: a row major 3x3 matrix about (x,y,z)
         const double* joint_position_read,
         double* joint_position_write,
         const double* joint_velocity_read,
         double* joint_velocity_write,
         const double* joint_effort_read,
         double* joint_effort_write,
-        const bool* foot_contact            ///< A pointer to store if a leg is contact [LF,RF,RH,LH]
-
+        int* foot_contact,            ///< A pointer to store if a leg is contact [LF,RF,RH,LH]
+        int* motor_status_word
       )
     : name_(name),
       frame_id_(frame_id),
@@ -111,23 +114,25 @@ public:
       joint_velocity_write_(joint_velocity_write),
       joint_effort_read_(joint_effort_read),
       joint_effort_write_(joint_effort_write),
-      foot_contact_(foot_contact)
+      foot_contact_(foot_contact),
+      motor_status_word_(motor_status_word)
   {}
 
   std::string getName()                           const {return name_;}
   std::string getFrameId()                        const {return frame_id_;}
-  const double* getOrientation()                  const {return orientation_;}
-  const double* getPosition()                     const {return position_;}
-  const double* getAngularVelocity()              const {return angular_velocity_;}
-  const double* getLinearAcceleration()           const {return linear_acceleration_;}
-  const double* getLinearVelocity()               const {return linear_velocity_;}
+  double* getOrientation()                  const {return orientation_;}
+  double* getPosition()                     const {return position_;}
+  double* getAngularVelocity()              const {return angular_velocity_;}
+  double* getLinearAcceleration()           const {return linear_acceleration_;}
+  double* getLinearVelocity()               const {return linear_velocity_;}
   const double* getJointPositionRead()            const {return joint_position_read_;}
   double* getJointPositionWrite()                       {return joint_position_write_;}
   const double* getJointVelocityRead()            const {return joint_velocity_read_;}
   double* getJointVelocityWrite()                       {return joint_velocity_write_;}
   const double* getJointEffortRead()              const {return joint_effort_read_;}
   double* getJointEffortWrite()                         {return joint_effort_write_;}
-  const bool* getFootContact()                    const {return foot_contact_;}
+  int* getFootContact()                    const {return foot_contact_;}
+  void setFootContact(int state, int leg_index)  {foot_contact_[leg_index] = state;}
   void setPosition(double x, double y, double z) {position_[0] = x;position_[1] =y;position_[2]=z;}
   //  void setJointPositionWrite(double* cmd)
 //  {
@@ -135,23 +140,25 @@ public:
 //    joint_position_write_[i] = cmd[i];
 //  }
 //  hardware_interface::JointCommandInterface joint_effort_interfaces_;
+  double* orientation_;
   double* position_;
+  double* angular_velocity_;
+  double* linear_acceleration_;
+  double* linear_velocity_;
+  int* foot_contact_;
+  int* motor_status_word_;///< A pointer to store if a leg is contact [LF,RF,RH,LH]
 private:
   std::string name_;
   std::string frame_id_;
 
-  const double* orientation_;
-//  double* position_;
-  const double* angular_velocity_;
-  const double* linear_acceleration_;
-  const double* linear_velocity_;
+
   const double* joint_position_read_;
   double* joint_position_write_;
   const double* joint_velocity_read_;
   double* joint_velocity_write_;
   const double* joint_effort_read_;
   double* joint_effort_write_;
-  const bool* foot_contact_;            ///< A pointer to store if a leg is contact [LF,RF,RH,LH]
+//  int* foot_contact_;            ///< A pointer to store if a leg is contact [LF,RF,RH,LH]
 //  const double* lf_leg_phase_;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //  const double* rf_leg_phase_;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //  const double* rh_leg_phase_;       ///< A pointer store the phase(0~1) of leg [sw,st]

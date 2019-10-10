@@ -33,6 +33,7 @@ class StateRosPublisher
   void setTfPrefix(const std::string tfPrefix);
   bool publish(const State& state, const StepQueue& step_queue);
   bool publish(const State& state);
+  bool publish();
  private:
   bool initializeRobotStatePublisher();
 

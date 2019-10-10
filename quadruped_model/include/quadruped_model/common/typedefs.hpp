@@ -29,6 +29,8 @@ namespace romo
     typedef kindr::Force3D Force;
     typedef kindr::Torque3D Torque;
     typedef kindr::VectorTypeless3D Vector;
+
+
 };
 
 //romo::romo(/* args */)

@@ -42,6 +42,7 @@ add_service_files(
   SendAction.srv
   SendActionSequence.srv
   SetLimbConfigure.srv
+  SetStepParameter.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -5,6 +5,18 @@
  *  Created on: Mar 26, 2019
  *  Author: Shunyao Wang
  *  Institute: Harbin Institute of Technology, Shenzhen
+ *
+ *
+//  __/\\\______________/\\\_____/\\\\\\\\\\\____/\\\________/\\\__/\\\________/\\\_
+//   _\/\\\_____________\/\\\___/\\\/////////\\\_\/\\\_______\/\\\_\///\\\____/\\\/__
+//    _\/\\\_____________\/\\\__\//\\\______\///__\/\\\_______\/\\\___\///\\\/\\\/____
+//     _\//\\\____/\\\____/\\\____\////\\\_________\/\\\\\\\\\\\\\\\_____\///\\\/______
+//      __\//\\\__/\\\\\__/\\\________\////\\\______\/\\\/////////\\\_______\/\\\_______
+//       ___\//\\\/\\\/\\\/\\\____________\////\\\___\/\\\_______\/\\\_______\/\\\_______
+//        ____\//\\\\\\//\\\\\______/\\\______\//\\\__\/\\\_______\/\\\_______\/\\\_______
+//         _____\//\\\__\//\\\______\///\\\\\\\\\\\/___\/\\\_______\/\\\_______\/\\\_______
+//          ______\///____\///_________\///////////_____\///________\///________\///________
+
  */
 #include "free_gait_ros/gait_generate_client.hpp"
 
@@ -14,14 +26,30 @@ using namespace free_gait;
     : nodeHandle_(node_handle),
       is_done(false),
       is_active(false),
-      is_updated(false)
+      is_updated(false),
+      use_terrian_map(false),
+      profile_height(0.18),
+      profile_type("triangle")
 //      actionClient_(nodeHandle_)
   {
+    if(!nodeHandle_.getParam("/use_terrian_map", use_terrian_map))
+      {
+        ROS_ERROR("Can't get parameter '/use_terrian_map', nodehandle namespace is %s", nodeHandle_.getNamespace().c_str());
+      }
+    if(!nodeHandle_.getParam("/step_height", profile_height))
+      {
+        ROS_ERROR("Can't get parameter '/step_height', nodehandle namespace is %s", nodeHandle_.getNamespace().c_str());
+      }
+
     initialize();
     footstepOptimization.reset(new FootstepOptimization(nodeHandle_));
 
     velocity_command_sub_ = nodeHandle_.subscribe("/cmd_vel", 1, &GaitGenerateClient::velocityCommandCallback, this);
     foot_marker_pub_ = nodeHandle_.advertise<visualization_msgs::MarkerArray>("desired_footholds", 1);
+    com_proj_marker_pub_ = nodeHandle_.advertise<visualization_msgs::MarkerArray>("base_center_projection", 1);
+    desired_base_com_marker_pub_ = nodeHandle_.advertise<visualization_msgs::Marker>("desired_base_center", 1);
+
+    stepParameterServer_ = nodeHandle_.advertiseService("/step_parameters", &GaitGenerateClient::setStepParameterCallback, this);
 
     action_client_ptr.reset(new free_gait::FreeGaitActionClient(nodeHandle_));//FreeGaitActionClient
 
@@ -72,6 +100,12 @@ using namespace free_gait;
     nominalPlanarStanceInBaseFrame.emplace(LimbEnum::LH_LEG, Position2(Eigen::Vector2d(-position(0), position(1))));
     nominalPlanarStanceInBaseFrame.emplace(LimbEnum::RH_LEG, Position2(Eigen::Vector2d(-position(0), -position(1))));
 
+
+    hip_dispacement.emplace(LimbEnum::LF_LEG, Position(0,0.2,0));
+    hip_dispacement.emplace(LimbEnum::RF_LEG, Position(0,-0.2,0));
+    hip_dispacement.emplace(LimbEnum::LH_LEG, Position(0,0.2,0));
+    hip_dispacement.emplace(LimbEnum::RH_LEG, Position(0,-0.2,0));
+
   }
 
   bool GaitGenerateClient::initializeTrot(const double t_swing, const double t_stance)
@@ -116,8 +150,8 @@ using namespace free_gait;
   {
     t_swing_ = t_swing;
     t_stance_ = t_stance;
-//    step_msg_.base_auto.resize(1);
-    step_msg_.base_target.resize(1);
+    step_msg_.base_auto.resize(1);
+//    step_msg_.base_target.resize(1);
     limb_phase[LimbEnum::LF_LEG].swing_phase = 0;
     limb_phase[LimbEnum::LF_LEG].stance_phase = 0;
     limb_phase[LimbEnum::LF_LEG].swing_status = true;
@@ -141,8 +175,8 @@ using namespace free_gait;
     limb_phase[LimbEnum::LH_LEG].swing_status = false;
     limb_phase[LimbEnum::LH_LEG].stance_status = true;
     limb_phase[LimbEnum::LH_LEG].ready_to_swing = false;
-    base_auto_flag = false;
-    base_target_flag = true;
+    base_auto_flag = true;
+    base_target_flag = false;
     pace_flag =true;
     trot_flag = false;
     return true;
@@ -171,18 +205,18 @@ using namespace free_gait;
   {
     is_active = true;
     is_done = false;
-    ROS_INFO("Goal just went active");
+    ROS_DEBUG("Goal just went active");
   }
 
   void GaitGenerateClient::feedbackCallback(const free_gait_msgs::ExecuteStepsFeedbackConstPtr& feedback)
   {
-    ROS_INFO("step time is : %f", feedback->phase);
+    ROS_DEBUG("step time is : %f", feedback->phase);
   }
 
   void GaitGenerateClient::doneCallback(const actionlib::SimpleClientGoalState& state,
                     const free_gait_msgs::ExecuteStepsResult& result)
   {
-    ROS_INFO("Finished in state [%s]", state.toString().c_str());
+    ROS_DEBUG("Finished in state [%s]", state.toString().c_str());
     is_done = true;
     is_active = false;
   }
@@ -197,6 +231,17 @@ using namespace free_gait;
     desired_angular_velocity_(0) = twist->angular.x;
     desired_angular_velocity_(1) = twist->angular.y;
     desired_angular_velocity_(2) = twist->angular.z;
+  }
+
+  bool GaitGenerateClient::setStepParameterCallback(free_gait_msgs::SetStepParameterRequest& req,
+                                                    free_gait_msgs::SetStepParameterResponse& res)
+  {
+    profile_type = req.profile_type;
+    profile_height = req.profile_height;
+    ROS_INFO("Request to Change foot step profile type to '%s' with height %f", profile_type.c_str(), profile_height);
+    res.result = true;
+    return true;
+
   }
 
   bool GaitGenerateClient::copyRobotState(const free_gait::State& state)
@@ -226,6 +271,7 @@ using namespace free_gait;
     footholds_in_stance.setZero();
 //    double t_stance = 0.4;
     double height = robot_state_.getPositionWorldToBaseInWorldFrame()(2);
+//    double profile_height = 0.18;
     LinearVelocity current_vel_in_base = robot_state_.getOrientationBaseToWorld().inverseRotate(robot_state_.getLinearVelocityBaseInWorldFrame());
     Position displace_in_footprint;
     Stance stance_to_reach;
@@ -243,19 +289,29 @@ using namespace free_gait;
             current_vel2D = current_vel_in_base;
             current_vel2D(2) = 0.0;
             double z_hip = height - footprint_center_in_world(2);
-//            if(pace_flag){
-//                displace_in_footprint = Position(0.33*t_stance_*desired_vel2D
-//                                                   + sqrt(z_hip/9.8) * (current_vel2D - desired_vel2D));
-//              }
-            displace_in_footprint = Position(0.5*t_stance_*desired_vel2D
-                                                 + sqrt(z_hip/9.8) * (current_vel2D - desired_vel2D));
-            displace_in_footprint(2) = 0.02;
-            Position displace_in_baselink = displace_in_footprint;
-//            displace_in_baselink(2) = -height_+ 0.025;
+//            ROS_INFO("relative base height is : %f", z_hip);
             double yaw_angle;
             EulerAnglesZyx ypr(robot_state_.getOrientationBaseToWorld());
             yaw_angle = ypr.setUnique().vector()(0);
             RotationQuaternion orinetationFootprintToWorld = RotationQuaternion(EulerAnglesZyx(yaw_angle,0,0));
+            RotationQuaternion orinetationFootprintToBase = robot_state_.getOrientationBaseToWorld().inverted() * orinetationFootprintToWorld;
+//            if(pace_flag){
+//                displace_in_footprint = Position(0.33*t_stance_*desired_vel2D
+//                                                   + sqrt(z_hip/9.8) * (current_vel2D - desired_vel2D));
+//              }
+//            displace_in_footprint = Position(0.5*t_stance_*desired_vel2D);
+            displace_in_footprint = Position(0.5*t_stance_*desired_vel2D
+                                                 + sqrt(z_hip/9.8) * (current_vel2D - desired_vel2D));
+
+            if(pace_flag)
+              {
+                displace_in_footprint = Position(0.25*t_stance_*desired_vel2D);
+
+              }
+            displace_in_footprint(2) = 0.02;
+            Position displace_in_baselink = displace_in_footprint;
+//            displace_in_baselink(2) = -height_+ 0.025;
+
             Position displace_in_odom = orinetationFootprintToWorld.rotate(displace_in_footprint + Position(t_stance_*desired_vel2D));
             displace_in_odom(2) = 0.02;
 //            Position target_in_base = Position(robot_state_.getPositionBaseToHipInBaseFrame(limb).toImplementation()
@@ -265,9 +321,11 @@ using namespace free_gait;
                 robot_state_.getOrientationBaseToWorld().rotate(robot_state_.getPositionBaseToHipInBaseFrame(limb));
             hip_in_odom(2) = 0.0; //project to floor plane
 
-            Position hip_in_footprint = robot_state_.getPositionBaseToHipInBaseFrame(limb);
-            Position hip_in_baselink = robot_state_.getPositionBaseToHipInBaseFrame(limb)
+//            Position foot_in_base = robot_state_.getPositionBaseToFootInBaseFrame(limb);
+            Position hip_in_footprint = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb);
+            Position hip_in_baselink = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb)
                 + robot_state_.getOrientationBaseToWorld().inverseRotate(Position(0,0,-height_-0.03));
+
 
             Position target_in_footprint = hip_in_footprint + displace_in_footprint;
             Position target_in_baselink = displace_in_baselink + hip_in_baselink;
@@ -275,8 +333,8 @@ using namespace free_gait;
             Position target_in_odom = hip_in_odom + displace_in_odom;
             Position target_in_base =robot_state_.getOrientationBaseToWorld().inverseRotate(target_in_odom - robot_state_.getPositionWorldToBaseInWorldFrame());
 
-            RotationQuaternion orinetationFootprintToBase = robot_state_.getOrientationBaseToWorld().inverted() * orinetationFootprintToWorld;
             target_in_footprint = Position(0,0,height) + orinetationFootprintToBase.inverseRotate(target_in_baselink);
+//            target_in_footprint.z() -= 0.03;
 //            target_in_odom = robot_state_.getPositionWorldToBaseInWorldFrame()
 //                + robot_state_.getOrientationBaseToWorld().rotate(target_in_baselink);
 
@@ -288,15 +346,18 @@ using namespace free_gait;
             if(frame=="odom")
               {
 
-                if(!footstepOptimization->getOptimizedFoothold(target_optimized,
-                                                           robot_state_,
-                                                           limb, "odom"))
+                if(use_terrian_map)
                   {
-                    ROS_ERROR("Failed to Find a optimized foothold");
-                    kindr_ros::convertToRosGeometryMsg(target_in_odom,
-                                                       footstep_msg_.target.point);
-                    kindr_ros::convertToRosGeometryMsg(Vector(0,0,1), footstep_msg_.surface_normal.vector);
+                    if(!footstepOptimization->getOptimizedFoothold(target_optimized,
+                                                                   robot_state_,
+                                                                   limb, "odom"))
+                      {
+                        ROS_ERROR("Failed to Find a optimized foothold");
+                        kindr_ros::convertToRosGeometryMsg(target_in_odom,
+                                                           footstep_msg_.target.point);
+                        kindr_ros::convertToRosGeometryMsg(Vector(0,0,1), footstep_msg_.surface_normal.vector);
 
+                      }
                   }else{
                     kindr_ros::convertToRosGeometryMsg(target_optimized,
                                                        footstep_msg_.target.point);
@@ -317,34 +378,43 @@ using namespace free_gait;
               }
             if(frame=="foot_print")
               {
-                ROS_WARN_STREAM("target before optimized :"<<target_in_footprint<<std::endl);
+//                ROS_WARN_STREAM("target before optimized :"<<target_in_footprint<<std::endl);
                 target_optimized = robot_state_.getPositionWorldToBaseInWorldFrame() + Position(0,0,-height) +
                     orinetationFootprintToWorld.rotate(target_in_footprint + Position(t_stance_*current_vel2D));
-                stance_to_reach[limb] = target_optimized;
-                if(!footstepOptimization->getOptimizedFoothold(target_optimized,
-                                                           robot_state_,
-                                                           limb, "odom"))
+                stance_to_reach[limb] = target_in_footprint;//target_optimized;
+                if(use_terrian_map)
                   {
-                    ROS_ERROR("Failed to Find a optimized foothold");
+                    kindr_ros::convertToRosGeometryMsg(target_in_footprint,
+                                                      footstep_msg_.target.point);
+                    kindr_ros::convertToRosGeometryMsg(Vector(0,0,1), footstep_msg_.surface_normal.vector);
+                    if(!footstepOptimization->getOptimizedFoothold(target_optimized,
+                                                                   robot_state_,
+                                                                   limb, "odom"))
+                      {
+                        ROS_ERROR("Failed to Find a optimized foothold");
+                      }else{
+                        ROS_WARN_STREAM("target before optimized :"<<target_in_footprint<<std::endl);
+                        target_in_footprint = orinetationFootprintToWorld.inverseRotate(target_optimized
+                            - robot_state_.getPositionWorldToBaseInWorldFrame() - Position(0,0,-height))- Position(t_stance_*current_vel2D);
+//                        target_in_footprint(2) = target_in_footprint(2) - 0.05;
+                        kindr_ros::convertToRosGeometryMsg(target_in_footprint,
+                                                           footstep_msg_.target.point);
+                        kindr_ros::convertToRosGeometryMsg(footstepOptimization->getSurfaceNormal(target_optimized),
+                                                           footstep_msg_.surface_normal.vector);
+
+                       footstep_msg_.profile_type = "square";
+//                       profile_height = footstepOptimization->getMaxObstacleHeight(target_optimized,robot_state_,limb);
+                       ROS_WARN_STREAM("target after optimized :"<<target_in_footprint<<std::endl);
+                      }
+                  }else{
                     kindr_ros::convertToRosGeometryMsg(target_in_footprint,
                                                        footstep_msg_.target.point);
                     kindr_ros::convertToRosGeometryMsg(Vector(0,0,1), footstep_msg_.surface_normal.vector);
-
-                  }else{
-                    target_in_footprint = orinetationFootprintToWorld.inverseRotate(target_optimized
-                        - robot_state_.getPositionWorldToBaseInWorldFrame() - Position(0,0,-height))- Position(t_stance_*current_vel2D);
-                    target_in_footprint(2) = target_in_footprint(2) - 0.05;
-                    kindr_ros::convertToRosGeometryMsg(target_in_footprint,
-                                                       footstep_msg_.target.point);
-                    kindr_ros::convertToRosGeometryMsg(footstepOptimization->getSurfaceNormal(target_optimized),
-                                                       footstep_msg_.surface_normal.vector);
-
-                   footstep_msg_.profile_type = "square";
                   }
 
 
-                kindr_ros::convertToRosGeometryMsg(target_in_footprint,
-                                                   footstep_msg_.target.point);
+//                kindr_ros::convertToRosGeometryMsg(target_in_footprint,
+//                                                   footstep_msg_.target.point);
     //            footstep_msg_.target.point.z = 0;
                 footstep_msg_.target.header.frame_id = "foot_print";
 
@@ -352,18 +422,66 @@ using namespace free_gait;
                 std_msgs::ColorRGBA color;
                 color.a = 1;
                 color.g = 1;
-                foot_markers = free_gait::RosVisualization::getFootholdsMarker(stance_to_reach, "odom", color, 0.08);
-                ROS_WARN_STREAM("target after optimized :"<<target_in_footprint<<std::endl);
+                foot_markers = free_gait::RosVisualization::getFootholdsMarker(stance_to_reach, frame, color, 0.08);
+
+              }
+            if(frame=="base_link")
+              {
+//                ROS_WARN_STREAM("target before optimized :"<<target_in_footprint<<std::endl);
+                target_optimized = robot_state_.getPositionWorldToBaseInWorldFrame() + Position(0,0,-height) +
+                    orinetationFootprintToWorld.rotate(target_in_footprint + Position(t_stance_*current_vel2D));
+                stance_to_reach[limb] = target_in_baselink;//target_optimized;
+                if(use_terrian_map)
+                  {
+                    kindr_ros::convertToRosGeometryMsg(target_in_footprint,
+                                                      footstep_msg_.target.point);
+                    kindr_ros::convertToRosGeometryMsg(Vector(0,0,1), footstep_msg_.surface_normal.vector);
+                    if(!footstepOptimization->getOptimizedFoothold(target_optimized,
+                                                                   robot_state_,
+                                                                   limb, "odom"))
+                      {
+                        ROS_ERROR("Failed to Find a optimized foothold");
+                      }else{
+                        ROS_WARN_STREAM("target before optimized :"<<target_in_footprint<<std::endl);
+                        target_in_footprint = orinetationFootprintToWorld.inverseRotate(target_optimized
+                            - robot_state_.getPositionWorldToBaseInWorldFrame() - Position(0,0,-height))- Position(t_stance_*current_vel2D);
+//                        target_in_footprint(2) = target_in_footprint(2) - 0.05;
+                        kindr_ros::convertToRosGeometryMsg(target_in_footprint,
+                                                           footstep_msg_.target.point);
+                        kindr_ros::convertToRosGeometryMsg(footstepOptimization->getSurfaceNormal(target_optimized),
+                                                           footstep_msg_.surface_normal.vector);
+
+                       footstep_msg_.profile_type = "square";
+//                       profile_height = footstepOptimization->getMaxObstacleHeight(target_optimized,robot_state_,limb);
+                       ROS_WARN_STREAM("target after optimized :"<<target_in_footprint<<std::endl);
+                      }
+                  }else{
+                    kindr_ros::convertToRosGeometryMsg(target_in_baselink,
+                                                       footstep_msg_.target.point);
+                    kindr_ros::convertToRosGeometryMsg(Vector(0,0,1), footstep_msg_.surface_normal.vector);
+                  }
+
+
+//                kindr_ros::convertToRosGeometryMsg(target_in_footprint,
+//                                                   footstep_msg_.target.point);
+    //            footstep_msg_.target.point.z = 0;
+                footstep_msg_.target.header.frame_id = "base_link";
+
+//                stance_to_reach[limb] = target_optimized;
+                std_msgs::ColorRGBA color;
+                color.a = 1;
+                color.g = 1;
+                foot_markers = free_gait::RosVisualization::getFootholdsMarker(stance_to_reach, frame, color, 0.08);
 
               }
 
-            footstep_msg_.average_velocity = sqrt(displace_in_odom.norm()*displace_in_odom.norm() + 0.15*0.15)*2/0.1;
-            footstep_msg_.profile_height = 0.15;
+            footstep_msg_.average_velocity = sqrt(displace_in_odom.norm()*displace_in_odom.norm() + profile_height*profile_height)*2/0.1;
+            footstep_msg_.profile_height = profile_height;
+            footstep_msg_.profile_type = profile_type;
             footstep_msg_.ignore_contact = false;
             footstep_msg_.ignore_for_pose_adaptation = false;
             kindr_ros::convertToRosGeometryMsg(robot_state_.getSurfaceNormal(limb),
                                                footstep_msg_.surface_normal.vector);
-
 //            step_msg_.footstep[i] = footstep_msg_;
             step_msg_.footstep.push_back(footstep_msg_);
 //            ROS_WARN("Generate foot hold position(%f, %f, %f) for %s ",footstep_msg_.target.point.x,footstep_msg_.target.point.y,footstep_msg_.target.point.z,
@@ -390,6 +508,8 @@ using namespace free_gait;
   {
 //    ROS_INFO("In update Base Motion");
 //    ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<std::endl);
+    visualization_msgs::Marker base_marker;
+    visualization_msgs::MarkerArray com_proj_markers;
     desired_linear_velocity = desired_linear_velocity_world_;
     desired_angular_velocity = desired_angular_velocity_;
     P_CoM_desired_.setZero();
@@ -469,9 +589,25 @@ using namespace free_gait;
 
       P_CoM_desired_ = 0.25 * P_CoM_desired_;
 
-//      P_CoM_desired_(2) = height_ + footprint_center_in_world(2) - 0.02;//robot_state_.getPositionWorldToBaseInWorldFrame()(2);
-      P_CoM_desired_(2) = height_ + optimized_base_pose.getPosition()(2) - 0.02;
+      LinearVelocity current_vel = robot_state_.getLinearVelocityBaseInWorldFrame();
+//      current_vel.z() = 0;
+      LinearVelocity vd = desired_linear_velocity_world_;
+      P_CoM_desired_ = P_CoM_desired_ + Position(t_stance_*vd);
 
+      std_msgs::ColorRGBA color;
+      color.a = 1;
+      color.b = 1;
+      base_marker = free_gait::RosVisualization::getComMarker(P_CoM_desired_, "odom", color, 0.08);
+      desired_base_com_marker_pub_.publish(base_marker);
+      Position com_pos = robot_state_.getPositionWorldToBaseInWorldFrame();
+      color.g = 1;
+      com_proj_markers = free_gait::RosVisualization::getComWithProjectionMarker(com_pos,"odom",color,0.08,0.5,0.02);
+      com_proj_marker_pub_.publish(com_proj_markers);
+
+
+//      P_CoM_desired_(2) = height_ + footprint_center_in_world(2) - 0.02;//robot_state_.getPositionWorldToBaseInWorldFrame()(2);
+      P_CoM_desired_(2) = height_ + optimized_base_pose.getPosition()(2)+0.03;// - 0.02;// + t_stance_*current_vel.z();
+//      P_CoM_desired_(2) += robot_state_.getPositionWorldToBaseInWorldFrame()(2) - footprint_center_in_world(2);
 
       base_target_msg_.ignore_timing_of_leg_motion = false;
       base_target_msg_.average_linear_velocity = desired_linear_velocity_.norm();
@@ -514,10 +650,10 @@ using namespace free_gait;
 
       if(base_auto_flag)
         {
-          base_auto_msg_.average_linear_velocity = 2*desired_linear_velocity.norm();
-          base_auto_msg_.average_angular_velocity = 5*desired_angular_velocity.norm();
+          base_auto_msg_.average_linear_velocity = 1;//2*desired_linear_velocity.norm();
+          base_auto_msg_.average_angular_velocity = 1;//5*desired_angular_velocity.norm();
           base_auto_msg_.height = height_;
-          base_auto_msg_.ignore_timing_of_leg_motion = false;
+          base_auto_msg_.ignore_timing_of_leg_motion = true;
           base_auto_msg_.support_margin = 0.03;
           step_msg_.base_auto[0] = base_auto_msg_;
         }
@@ -602,7 +738,7 @@ using namespace free_gait;
     if(step_msg_.footstep.size()>0){
         steps_goal.steps.push_back(step_msg_);
         sendGoal(steps_goal);
-        ROS_INFO("Send Step Goal Once!!!!!!!!!!");
+        ROS_DEBUG("Send Step Goal Once!!!!!!!!!!");
         step_msg_.footstep.clear();
       }
 

@@ -41,19 +41,32 @@ public:
     nodeHandle_.getParam("/free_gait/stop_execution_service", stop_service_name_);
     nodeHandle_.getParam("/free_gait/pause_execution_service", pause_service_name_);
 //    nodeHandle_.getParam("/gait_generate/")
+//    ROS_ERROR("In action server thread");
     if(use_gazebo){
       adapter.reset(AdapterRos_.getAdapterPtr());
+<<<<<<< HEAD
       AdapterRos_.subscribeToRobotState();//moren parameters to /gazebo/robot_state, and update robot state.
+=======
+//      ROS_ERROR("In action server thread");
+      AdapterRos_.subscribeToRobotState();
+//      ROS_ERROR("In action server thread");
+>>>>>>> 157af038605185025808fe7c7ab73730ea5ac357
     } else {
       adapter.reset(adapter_loader.createUnmanagedInstance("free_gait_ros/AdapterDummy"));
     };
+//    ROS_ERROR("In action server thread");
     state.reset(new State());
     parameters.reset(new StepParameters());
     completer.reset(new StepCompleter(*parameters, *adapter));
     computer.reset(new StepComputer());
+<<<<<<< HEAD
 
     AdapterRos_.updateAdapterWithState();//this state is /gazebo/robot_state
     //in fact, this is to sync state and /gazebo/robot_state
+=======
+//    ROS_ERROR("In action server thread");
+    AdapterRos_.updateAdapterWithState();
+>>>>>>> 157af038605185025808fe7c7ab73730ea5ac357
     //! WSHY: get the initial pose and set to the fisrt pose command
     state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());
     state->setOrientationBaseToWorld(AdapterRos_.getAdapter().getOrientationBaseToWorld());
@@ -151,7 +164,20 @@ public:
               rosPublisher->publish(adapter->getState(), executor->getQueue());
               }
             lock.unlock();
+<<<<<<< HEAD
             } else{
+=======
+            } else{ // directly publish current state
+//              state->setPositionWorldToBaseInWorldFrame(AdapterRos_.getAdapter().getPositionWorldToBaseInWorldFrame());
+//              state->setOrientationBaseToWorld(AdapterRos_.getAdapter().getOrientationBaseToWorld());
+//              state->setLinearVelocityBaseInWorldFrame(AdapterRos_.getAdapter().getLinearVelocityBaseInWorldFrame());
+//              state->setAngularVelocityBaseInBaseFrame(AdapterRos_.getAdapter().getAngularVelocityBaseInBaseFrame());
+//              if(!is_kinematics_control){
+//                  //! WSHY: publish robot state to balance controller
+//                rosPublisher->publish(*state);
+//                }
+              rosPublisher->publish();
+>>>>>>> 157af038605185025808fe7c7ab73730ea5ac357
             }
 
           rate.sleep();
@@ -164,7 +190,7 @@ public:
     ROS_INFO("In GaitGenerateThread thread");
     ros::Rate rate(100);
     double dt = 0.01;
-    gait_generate_client_.initializeTrot(0.45, 0.45);
+//    gait_generate_client_.initializeTrot(0.45, 0.45);
 //    gait_generate_client_.initializePace(0.45, 3*0.5);
     while (ros::ok()) {
 //        ROS_INFO("Gait Generate updated Once");

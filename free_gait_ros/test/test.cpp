@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 
   executor.getQueue().add(steps);
   executor.setPreemptionType(Executor::PreemptionType::PREEMPT_IMMEDIATE);
-  double dt = 0.01;
+  double dt = 0.001;
   double time = 0.0;
   ros::Time t_start = ros::Time::now();
   ros::Rate rate(100);

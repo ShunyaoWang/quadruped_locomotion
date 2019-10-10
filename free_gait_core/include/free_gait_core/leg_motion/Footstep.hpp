@@ -111,6 +111,7 @@ class Footstep : public EndEffectorMotionBase
   void generateTriangleKnots();
   void generateSquareKnots();
   void generateTrapezoidKnots();
+  void generateSquareKnotsAbsolute();
 
   Position start_;
   Position target_;

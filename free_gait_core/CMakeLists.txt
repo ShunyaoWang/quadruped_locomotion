@@ -100,7 +100,7 @@ add_library(${PROJECT_NAME}
    src/pose_optimization/PoseOptimizationGeometric.cpp
    src/pose_optimization/PoseOptimizationQP.cpp
    src/pose_optimization/PoseOptimizationSQP.cpp
-   src/pose_optimization/poseparameterization.cpp
+   src/pose_optimization/PoseParameterization.cpp
    src/pose_optimization/PoseOptimizationObjectiveFunction.cpp
    src/pose_optimization/PoseOptimizationFunctionConstraints.cpp
    src/pose_optimization/PoseOptimizationProblem.cpp

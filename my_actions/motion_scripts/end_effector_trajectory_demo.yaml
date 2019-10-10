@@ -1,0 +1,36 @@
+adapt_coordinates:
+ - transform:
+    source_frame: foot_print
+    target_frame: odom
+
+steps:
+  - step:
+    - end_effector_trajectory:
+        name: LF_LEG
+        trajectory:
+          frame: foot_print
+          knots: [{time: 0.5, position: [0.42,0.2,0.1]},{time: 1.0, position: [0.52,0.2,0.1]},{time: 1.5, position: [0.52,0.2,0.0]}]
+        ignore_contact: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+    - end_effector_trajectory:
+        name: RH_LEG
+        trajectory:
+          frame: foot_print
+          knots: [{time: 0.5, position: [-0.42,-0.2,0.1]},{time: 1.0, position: [-0.52,-0.2,0.1]},{time: 1.5, position: [-0.52,-0.2,0.0]}]
+        ignore_contact: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+  - step:
+    - leg_mode:
+        name: LF_LEG
+        duration: 0.01
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+    - leg_mode:
+        name: RH_LEG
+        duration: 0.01
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false

@@ -90,8 +90,8 @@ bool Executor::advance(double dt, bool skipStateMeasurmentUpdate)
       std::cerr << "Executor::advance: Could not complete step." << std::endl;
       return false;
     }
-    std::cout<<"================================================"<<std::endl
-            <<currentStep<<std::endl;
+//    std::cout<<"================================================"<<std::endl
+//            <<currentStep<<std::endl;
     if (currentStep.needsComputation() && !computer_.isBusy()) {
       computer_.setStep(currentStep);
       addToFeedback("Starting computation of step.");
