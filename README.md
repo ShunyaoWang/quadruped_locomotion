@@ -1,10 +1,4 @@
 # quadruped_locomoton
-<<<<<<< HEAD
-this is branch EdisonKun_dev
-second push....
-=======
-this is the branch EdisonKun_dev
->>>>>>> 5e93f133ac1c537c0679d3e2ae83d859b7224989
 package for quadruped locomotion
 
 ## Dependencies
