@@ -118,7 +118,6 @@ bool ContactForceDistribution::computeForceDistribution(
     // Has to be called as last
     addDesiredLegLoadConstraints();
     isForceDistributionComputed_ = solveOptimization();
-
     if (isForceDistributionComputed_)
     {
       computeJointTorques();
@@ -201,6 +200,21 @@ bool ContactForceDistribution::prepareOptimization(
 
   W_.setIdentity(footDof_ * nLegsInForceDistribution_);
   W_ = W_ * groundForceWeight_;
+if(is_minForceDiff_)
+  {
+    int rowIndex = 0;
+    x_pre_.resize(footDof_ * nLegsInForceDistribution_);
+    for (auto& legInfo : legInfos_)
+    {
+      if (legInfo.second.isPartOfForceDistribution_)
+      {
+        x_pre_.segment(rowIndex, 3) =  legInfo.second.desiredContactForce_.vector();
+        rowIndex = rowIndex + 3;
+      }
+    }
+    H_.setIdentity(footDof_ * nLegsInForceDistribution_);
+    H_ = H_ * minForceDiffWeight_;
+  }
 
   return true;
 }
@@ -375,7 +389,7 @@ bool ContactForceDistribution::addDesiredLegLoadConstraints()
       C_rows.block(0, legInfo.second.startIndexInVectorX_, m, m) = MatrixXd::Identity(m, m);
       C_.middleRows(rowIndex, m) = C_rows.sparseView();
       Eigen::Matrix<double, 3, 1> fullForce = x_.segment(legInfo.second.startIndexInVectorX_, footDof_);
-      c_.segment(rowIndex, m) =  fullForce;//legInfo.first->getDesiredLoadFactor() * fullForce;
+      c_.segment(rowIndex, m) =  legInfo.second.loadFactor_ * fullForce;
       rowIndex = rowIndex + m;
     }
   }
@@ -487,10 +501,19 @@ bool ContactForceDistribution::solveOptimization()
 
 //  x_ = params;*/
 
-  if (!ooqpei::QuadraticProblemFormulation::solve(A_, S_, b_, W_, C_, c_, D_, d_, f_, x_))
+  if(!is_minForceDiff_)
     {
-      ROS_ERROR("Contact Force is Minus !!!!!!!!!!!!!!!!!!!!");
-      return false;
+      if (!ooqpei::QuadraticProblemFormulation::solve(A_, S_, b_, W_, C_, c_, D_, d_, f_, x_))
+        {
+          ROS_ERROR("Contact Force is Minus !!!!!!!!!!!!!!!!!!!!");
+          return false;
+        }
+    }else{
+      if (!ooqpei::QuadraticProblemFormulation::solve(A_, S_, b_, W_, H_, C_, c_, D_, d_, f_, x_pre_, x_))
+        {
+          ROS_ERROR("Contact Force is Minus !!!!!!!!!!!!!!!!!!!!");
+          return false;
+        }
     }
 
   for (auto& legInfo : legInfos_)
@@ -589,7 +612,8 @@ bool ContactForceDistribution::resetOptimization()
 
   for (auto& legInfo : legInfos_)
   {
-    legInfo.second.desiredContactForce_.setZero();
+    if(!is_minForceDiff_)
+      legInfo.second.desiredContactForce_.setZero();
   }
 
   return true;
@@ -863,6 +887,21 @@ bool ContactForceDistribution::loadParameters()
     ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/contact_force_distribution/weights/regularizer/value'.");
     return false;
   }
+
+  if (node_handle_.hasParam("/balance_controller/contact_force_distribution/weights/force_diff/value")) {
+    node_handle_.getParam("/balance_controller/contact_force_distribution/weights/force_diff/value", minForceDiffWeight_);
+  } else {
+    ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/contact_force_distribution/weights/force_diff/value'.");
+    return false;
+  }
+
+  if (node_handle_.hasParam("/balance_controller/contact_force_distribution/weights/force_diff/is_use")) {
+    node_handle_.getParam("/balance_controller/contact_force_distribution/weights/force_diff/is_use", is_minForceDiff_);
+  } else {
+    ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/contact_force_distribution/weights/force_diff/is_use'.");
+    return false;
+  }
+
   // Constraints
   double frictionCoefficient = 0.6;
   if (node_handle_.hasParam("/balance_controller/contact_force_distribution/constraints/friction_coefficient")) {
@@ -879,6 +918,18 @@ bool ContactForceDistribution::loadParameters()
   } else {
     ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/contact_force_distribution/constraints/minimal_normal_force'.");
     return false;
+  }
+
+  double load_factor = 1;
+  if (node_handle_.hasParam("/balance_controller/contact_force_distribution/constraints/load_factor")) {
+    node_handle_.getParam("/balance_controller/contact_force_distribution/constraints/load_factor", load_factor);
+  } else {
+    ROS_ERROR("Did not find ROS parameter for robot state topic '/balance_controller/contact_force_distribution/constraints/load_factor'.");
+    return false;
+  }
+
+  for (auto& legInfo : legInfos_) {
+    legInfo.second.loadFactor_ = load_factor;
   }
 
   isParametersLoaded_ = true;

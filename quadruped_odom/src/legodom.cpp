@@ -43,7 +43,7 @@ QuadrupedEstimation::QuadrupedEstimation(const ros::NodeHandle& _nodehandle,
     legodom_init_pub = nodeHandle_.advertise<nav_msgs::Odometry>("/legodom_init", 10);
     legPose_pub = nodeHandle_.advertise<geometry_msgs::PoseWithCovarianceStamped>("/legodom/base_pose", 10);
 
-    imuvel_pub = nodeHandle_.advertise<geometry_msgs::Twist>("/gazebo/imu_vel",10);
+    imuvel_pub = nodeHandle_.advertise<geometry_msgs::Twist>("/imu_vel",10);
 
 
 }
@@ -1087,10 +1087,16 @@ void QuadrupedEstimation::GetPositionAddEveryTimeInAllFoot(){
 //                    +foot_output.data[3]* (P_leg4_(2)))/number_of_contact + 0.03;
                 odom_position_tmp(2) = -_cal_fator_z*( foot_output.data[0]*(P_leg1_(2) - leg1_first(2)) + foot_output.data[1]*(P_leg2_(2)- leg2_first(2)) + foot_output.data[2]*(P_leg3_(2) - leg3_first(2))
                     +foot_output.data[3]* (P_leg4_(2) - leg4_first(2)))/number_of_contact;// + 0.03;
+
+                odom_position(0) += odom_position_tmp(0);
+                odom_position(1) += odom_position_tmp(1);
+                odom_position(2) += odom_position_tmp(2);
               }
-            odom_position(0) += odom_position_tmp(0);
-            odom_position(1) += odom_position_tmp(1);
-            odom_position(2) += odom_position_tmp(2);
+            //! WSHY: When there are unexpected large joint vel in the end of last stance, it will cause wrong position
+            //! estimate, consider using average stance vel
+//            odom_position(0) += odom_position_tmp(0);
+//            odom_position(1) += odom_position_tmp(1);
+//            odom_position(2) += odom_position_tmp(2);
         }
 
 }
@@ -2128,7 +2134,7 @@ LinearVelocity QuadrupedEstimation::GetLinearVelFilter(Eigen::Vector3d& v_filter
     Eigen::Vector3d sum_;
     sum_.setZero();
     vel_filter_buf.push_back(v_filter);
-    if(vel_filter_buf.size()>11){
+    if(vel_filter_buf.size()>10){
         vel_filter_buf.pop_front();
 //        vel_filter_vec.push_back(vel_filter_buf.front());
         vel_filter_vec = vel_filter_buf;
@@ -2240,22 +2246,26 @@ void QuadrupedEstimation::GetLinearVelFromJointvel() {
       {
         odom_vel_inodom = -(foots[0] * V_Jacob[0] + foots[1] * V_Jacob[1] + foots[2] * V_Jacob[2] + foots[3] * V_Jacob[3])
             /number_of_contact;
+    //    cout << "odom_vel_inodom: "<< odom_vel_inodom << endl;
+        LinearVelocity imu_ang_vel = GetLinearVelFromIMUAng();
+        odom_vel_inodom = odom_vel_inodom + imu_ang_vel;
       }
 
-//    cout << "odom_vel_inodom: "<< odom_vel_inodom << endl;
+
     GetVelInWorld(odom_vel_inodom);
 
 
     Eigen::Vector3d odom_tmp_v;
-    LinearVelocity imu_ang_vel = GetLinearVelFromIMUAng();
-    geometry_msgs::Twist imu_vel_msg;
-    imu_vel_msg.linear.x = imu_ang_vel(0);
-    imu_vel_msg.linear.y = imu_ang_vel(1);
-    imu_vel_msg.linear.z = imu_ang_vel(2);
-    imuvel_pub.publish(imu_vel_msg);
+
+//    geometry_msgs::Twist imu_vel_msg;
+//    imu_vel_msg.linear.x = imu_ang_vel(0);
+//    imu_vel_msg.linear.y = imu_ang_vel(1);
+//    imu_vel_msg.linear.z = imu_ang_vel(2);
+//    imuvel_pub.publish(imu_vel_msg);
 
 //    odom_tmp_v << odom_vel(0)+imu_ang_vel(0), odom_vel(1)+imu_ang_vel(1), odom_vel(2)+imu_ang_vel(2);
     odom_tmp_v << odom_vel(0), odom_vel(1), odom_vel(2);
+
     odom_vel = GetLinearVelFilter(odom_tmp_v);
 }
 
@@ -2308,31 +2318,49 @@ void QuadrupedEstimation::GetLinearVelFromIMUAcc(ros::Time current_time){
 
 LinearVelocity QuadrupedEstimation::GetLinearVelFromIMUAng(){
 
-    Eigen::Vector3d ImuAng,foot13,foot24,odom_;
+    Eigen::Vector3d ImuAng,ImuAngInWorld, foot13,foot24,odom_,net_vector,imu_vel;
     ImuAng(0) = imu_output.angular_velocity.x;
     ImuAng(1) = imu_output.angular_velocity.y;
     ImuAng(2) = imu_output.angular_velocity.z;
 
+//    ImuAngInWorld = robot_state_->getOrientationBaseToWorld().rotate(ImuAng);
 
-    if(foot_flag == 1111) {
-//        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[2] + V_Jacob[3] )/4  ;
-        odom_ << 0,0,0;
 
-    }
-    else if(foot_flag == 10101) {
-        foot13 = (robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::LF_LEG).vector()
-                + robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::RH_LEG).vector()) * 1/2;
-        odom_ = - ( ImuAng.cross(foot13));
 
-    }
-    else if(foot_flag == 1010) {
-        foot24 = (robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::LH_LEG).vector()
-                + robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::RF_LEG).vector()) * 1/2;
+    int num_of_contacts = foot_output.data[0]+foot_output.data[1]+foot_output.data[2]+foot_output.data[3];
+    if(num_of_contacts<=2 && num_of_contacts>0)
+      {
+        net_vector = (foot_output.data[0] * robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::LF_LEG).vector()
+            + foot_output.data[1] * robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::RF_LEG).vector()
+            + foot_output.data[2] * robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::RH_LEG).vector()
+            + foot_output.data[3] * robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::LH_LEG).vector())
+            /num_of_contacts;
+        imu_vel = -ImuAng.cross(net_vector);
+      }else {
+        imu_vel << 0,0,0;
+      }
 
-        odom_ = - ( ImuAng.cross(foot24));
 
-    }
-    return LinearVelocity(odom_);
+
+//    if(foot_flag == 1111) {
+////        odom_vel_inodom =  -(V_Jacob[0] + V_Jacob[1] + V_Jacob[2] + V_Jacob[3] )/4  ;
+//        odom_ << 0,0,0;
+
+//    }
+//    else if(foot_flag == 10101) {
+//        foot13 = (robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::LF_LEG).vector()
+//                + robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::RH_LEG).vector()) * 1/2;
+//        odom_ = - ( ImuAng.cross(foot13));
+
+//    }
+//    else if(foot_flag == 1010) {
+//        foot24 = (robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::LH_LEG).vector()
+//                + robot_state_->getPositionWorldToFootInWorldFrame(free_gait::LimbEnum::RF_LEG).vector()) * 1/2;
+
+//        odom_ = - ( ImuAng.cross(foot24));
+
+//    }
+    return LinearVelocity(imu_vel);
 }
 
 ///**

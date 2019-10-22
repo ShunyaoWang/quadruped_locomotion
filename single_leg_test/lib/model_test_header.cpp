@@ -27,6 +27,7 @@ MyRobotSolver::MyRobotSolver(const ros::NodeHandle& node_handle,
   VecTauerror.resize(3);
   VecQerror.resize(3);
   VecQDoterror.resize(3);
+  TauFeedForward.resize(3);
   std::queue<VectorNd> vector_queue;
   for(int i=0;i<4;i++)
     {
@@ -407,6 +408,10 @@ void MyRobotSolver::setDesiredPositionAndVelocity(const Eigen::Vector3d& positio
   desired_foot_positions = position;
   desired_foot_velocities = velocity;
 }
+const VectorNd& MyRobotSolver::getTauFeedForward()
+{
+  return TauFeedForward;
+}
 /**
  * @brief MyRobotSolver::update
  * @param time
@@ -501,6 +506,7 @@ bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
 //    if(limb == free_gait::LimbEnum::RF_LEG || limb == free_gait::LimbEnum::LH_LEG)
 //      VecTauAct = -VecTauAct;
     Tauacutal.row(0) = VecTauAct;
+    TauFeedForward = VecTauAct;
     Eigen::Vector3d position_error_in_base, velocity_error_in_base;
     position_error_in_base = robot_state_->getTargetFootPositionInBaseForLimb(limb).vector()
         - robot_state_->getPositionBaseToFootInBaseFrame(limb).vector();

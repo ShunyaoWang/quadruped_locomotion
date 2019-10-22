@@ -85,6 +85,7 @@ class ContactForceDistribution : public ContactForceDistributionBase
     Vector normalDirectionOfFrictionPyramidInWorldFrame_;
     //! Assumed friction coefficient (mu).
     double frictionCoefficient_;
+    double loadFactor_;
 
   };
 
@@ -165,17 +166,23 @@ class ContactForceDistribution : public ContactForceDistributionBase
 
   //! Diagonal element of the weighting matrix for the ground reaction forces (regularizer, for W).
   double groundForceWeight_;
+
+  double minForceDiffWeight_;
+  bool is_minForceDiff_;
   //! Minimal normal ground force (F_min^n, in N).
   double minimalNormalGroundForce_;
 
   //! Stacked contact forces (in base frame)
   Eigen::VectorXd x_;
+  Eigen::VectorXd x_pre_;
   //! The matrix A in the optimization formulation (nElementsInStackedVirtualForceTorqueVector_ x n).
   Eigen::SparseMatrix<double, Eigen::RowMajor> A_;
   //! The vector b in the optimization formulation (stacked vector of desired net virtual forces and torques).
   Eigen::VectorXd b_;
   //! Weighting matrix for the ground reaction forces (regularizer).
   Eigen::DiagonalMatrix<double, Eigen::Dynamic> W_;
+
+  Eigen::DiagonalMatrix<double, Eigen::Dynamic> H_;
   //! Weighting matrix for the desired virtual forces and torques.
   Eigen::DiagonalMatrix<double, Eigen::Dynamic> S_;
   //! Force inequality constraint matrix

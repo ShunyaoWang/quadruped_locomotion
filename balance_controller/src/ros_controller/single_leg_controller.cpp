@@ -277,9 +277,9 @@ namespace balance_controller {
                 for(int j = start_index;j<start_index +3;j++)
                   {
                     q_state.name.push_back("joint"+std::to_string(j));
-                    q_state.effort.push_back(single_leg_solver_->getVecQDDAct()[j - start_index]);
-                    q_state.velocity.push_back(single_leg_solver_->getVecQDAct()[j - start_index]);
-                    q_state.position.push_back(single_leg_solver_->getVecQAct()[j - start_index]);
+                    q_state.effort.push_back(single_leg_solver_->getTauFeedForward()[j - start_index]);
+                    q_state.velocity.push_back(single_leg_solver_->getVecQDDAct()[j - start_index]);
+                    q_state.position.push_back(single_leg_solver_->getVecQDAct()[j - start_index]);
 
                     double effort_command;
                     if(is_cartisian_motion_.at(limb))

@@ -34,6 +34,10 @@ set(rqt_control_panel_plugin_UIS
   ui/rqt_control_panel_plugin/rqt_control_panel_plugin_widget.ui
 )
 
+set(${PROJECT_NAME}_QRC
+  resource/resources.qrc
+)
+
 set(rqt_control_panel_plugin_INCLUDE_DIRECTORIES
   include
   ${CMAKE_CURRENT_BINARY_DIR}

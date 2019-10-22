@@ -330,7 +330,8 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
                                      robot_state_.base_pose.twist.twist);
 //  ROS_INFO("In ros state publisher");
   LegMotionBase::Type leg_motion_type;
-  if(state.isSupportLeg(LimbEnum::LF_LEG))
+
+  if(state.isSupportLeg(LimbEnum::LF_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::LF_LEG))
       {
         robot_state_.lf_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::LF_LEG)){
@@ -393,7 +394,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
         ****************/
 //        ROS_INFO("In ros state publisher");
     }
-    if(state.isSupportLeg(LimbEnum::RF_LEG))
+    if(state.isSupportLeg(LimbEnum::RF_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::RF_LEG))
       {
         robot_state_.rf_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::RF_LEG)){
@@ -449,7 +450,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
           }
 
     }
-    if(state.isSupportLeg(LimbEnum::RH_LEG))
+    if(state.isSupportLeg(LimbEnum::RH_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::RH_LEG))
       {
         robot_state_.rh_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::RH_LEG)){
@@ -505,7 +506,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
           }
 
     }
-    if(state.isSupportLeg(LimbEnum::LH_LEG))
+    if(state.isSupportLeg(LimbEnum::LH_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::LH_LEG))
       {
         robot_state_.lh_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::LH_LEG)){
@@ -561,6 +562,8 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
           }
 
       }
+
+
   robot_state_pub_.publish(robot_state_);
 //  ROS_INFO("Publised robot state once");
   return true;

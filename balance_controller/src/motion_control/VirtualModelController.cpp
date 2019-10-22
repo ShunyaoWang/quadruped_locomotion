@@ -210,9 +210,13 @@ bool VirtualModelController::computeGravityCompensation()
 
   for (const auto& leg : limbs_)
   {
-    const Force forceLeg = Force(-gravityCompensationForcePercentage_*robot_state_->getLegMass(leg) * gravitationalAccelerationInBaseFrame);
-    gravityCompensationForceInBaseFrame_ += forceLeg;
-    gravityCompensationTorqueInBaseFrame_ += Torque(robot_state_->getPositionLegBaseToCoMInBaseFrame(leg).cross(forceLeg));//Torque(leg->getProperties().getBaseToCenterOfMassPositionInBaseFrame().cross(forceLeg));
+
+        const Force forceLeg = Force(-gravityCompensationForcePercentage_*robot_state_->getLegMass(leg) * gravitationalAccelerationInBaseFrame);
+        gravityCompensationForceInBaseFrame_ += forceLeg;
+//        if(!robot_state_->isSupportLeg(leg))
+//          {
+            gravityCompensationTorqueInBaseFrame_ += Torque(robot_state_->getPositionLegBaseToCoMInBaseFrame(leg).cross(forceLeg));//Torque(leg->getProperties().getBaseToCenterOfMassPositionInBaseFrame().cross(forceLeg));
+//          }
 
   }
 //  Force gravityCompensationForceWorldFrame_ = torso_->getMeasuredState().getWorldToBaseOrientationInWorldFrame().inverseRotate(gravityCompensationForce_);
@@ -290,8 +294,8 @@ bool VirtualModelController::computeVirtualTorque()
 //                       + gravityCompensationTorqueInBaseFrame_;
 
   virtualTorqueInBaseFrame_ = Torque(proportionalGainRotation_.cwiseProduct(orientationError_))
-                       + Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation()))
-                       + Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame))
+                       +Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation()))
+                       +Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame))
                        + gravityCompensationTorqueInBaseFrame_;
 
 //  std::cout << "--------------------" << std::endl

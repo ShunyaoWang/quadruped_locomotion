@@ -14,7 +14,7 @@ namespace free_gait {
 PoseOptimizationObjectiveFunction::PoseOptimizationObjectiveFunction()
     : //NonlinearObjectiveFunction(),
       QuadraticObjectiveFunction(),
-      comWeight_(2.0)
+      comWeight_(10.0)
 {
 
 }

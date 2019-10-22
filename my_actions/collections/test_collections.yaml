@@ -5,6 +5,7 @@ collections:
       actions:
         - "1"
         - "2"
+        - "16"
       is_sequence: True
   - collection:
       id: "2"

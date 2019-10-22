@@ -99,11 +99,15 @@ bool PoseOptimizationSQP::optimize(Pose& pose)
   sqp_solver::SequenceQuadraticProblemSolver solver(quadratic_solver, 0.05, 30);
   PoseParameterization params;
   params.setPose(pose);
+
 //  double functionValue;
 //  if (!solver.minimize(&problem, params, functionValue)) return false;
   if(!solver.minimize(problem, params)) return false;
   pose = params.getPose();
-
+  EulerAnglesZyx eular_zyx(pose.getRotation());
+  std::cout<<"Pose Optiazation SQP solve result:"<<std::endl<<pose.getPosition()<<std::endl<<
+        "Rotation: "<<std::endl<<"Roll: "<<eular_zyx.roll()<<std::endl<<"Pitch: "<<
+        eular_zyx.pitch()<<std::endl<<"Yaw: "<<eular_zyx.yaw()<<std::endl;
   // TODO Fix unit quaternion?
 
   timer_.splitTime("total");

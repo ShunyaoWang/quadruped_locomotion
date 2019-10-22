@@ -1,20 +1,20 @@
 balance_controller:
   virtual_model_controller:
     heading:
-      kp: 300
-      kd: 40
+      kp: 600
+      kd: 90
       kff: 1
     lateral:
-      kp: 800
+      kp: 1000
       kd: 100
       kff: 1
     vertical:
-      kp: 800
+      kp: 1500
       kd: 100
       kff: 1
     roll:
-      kp: 250
-      kd: 100
+      kp: 200
+      kd: 50
       kff: 0.2
     pitch:
       kp: 400
@@ -24,7 +24,7 @@ balance_controller:
       kp: 200
       kd: 50
       kff: 1
-    gravity_compensation_percentage: 1.0
+    gravity_compensation_percentage: 1.08
   contact_force_distribution:
     weights:
       force:
@@ -37,9 +37,13 @@ balance_controller:
         yaw: 5
       regularizer:
         value: 0.0001
+      force_diff:
+        value: 1
+        is_use: false
     constraints:
       friction_coefficient: 0.6
       minimal_normal_force: 10
+      load_factor: 1
 single_leg_controller:
   x_direction:
     kp: 300

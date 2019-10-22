@@ -2,7 +2,7 @@ balance_controller:
   virtual_model_controller:
     heading:
       kp: 5000
-      kd: 5000
+      kd: 4000
       kff: 10
     lateral:
       kp: 5000
@@ -37,9 +37,13 @@ balance_controller:
         yaw: 5
       regularizer:
         value: 0.0001
+      force_diff:
+        value: 0.1
+        is_use: true
     constraints:
       friction_coefficient: 0.6
       minimal_normal_force: 10
+      load_factor: 1
 single_leg_controller:
   x_direction:
     kp: 3000

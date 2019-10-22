@@ -47,6 +47,7 @@ bool PoseOptimizationGeometric::optimize(Pose& pose)
   pose.getPosition() = center;
   for(auto vert:supportRegion_.getVertices())
     std::cout<<"vert : "<<vert<<std::endl;
+  std::cout<<"Pose Geomatric Stance"<<stance_<<std::endl;
   std::cout<<"center : "<<center<<std::endl;
   // Orientation: Squared error minimization (see sec. 4.2.2 from Bloesch, Technical
   // Implementations of the Sense of Balance, 2016).

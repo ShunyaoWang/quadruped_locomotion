@@ -87,13 +87,13 @@ Position QuadrupedState::getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb
 {
   switch (limb) {
     case LimbEnum::LF_LEG:
-      return Position(0.42, 0.075, 0.0) - CoM_in_base_;
+      return Position(0.42, 0.175, 0.0) - CoM_in_base_;
     case LimbEnum::RF_LEG:
-      return Position(0.42, -0.075, 0.0) - CoM_in_base_;
+      return Position(0.42, -0.175, 0.0) - CoM_in_base_;
     case LimbEnum::LH_LEG:
-      return Position(-0.42, 0.075, 0.0) - CoM_in_base_;
+      return Position(-0.42, 0.175, 0.0) - CoM_in_base_;
     case LimbEnum::RH_LEG:
-      return Position(-0.42, -0.075, 0.0) - CoM_in_base_;
+      return Position(-0.42, -0.175, 0.0) - CoM_in_base_;
     default:
       throw std::runtime_error("Position QuadrupedState::getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb) const something went wrong.");
   }

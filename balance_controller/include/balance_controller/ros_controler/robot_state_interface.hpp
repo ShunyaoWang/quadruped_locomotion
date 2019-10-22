@@ -42,6 +42,7 @@ public:
         joint_effort_read(0),
         joint_effort_write(0),
         foot_contact(0),
+        contact_pressure(0),
         motor_status_word(0){}
 
     std::string name;                       ///< The name of the sensor
@@ -58,6 +59,7 @@ public:
     double* joint_effort_read;
     double* joint_effort_write;
     int* foot_contact;
+    double* contact_pressure;
     int* motor_status_word;///< A pointer to store if a leg is contact [LF,RF,RH,LH], 0-swing,1-stance,2-early,3-late
 //    double* lf_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //    double* rf_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
@@ -81,6 +83,7 @@ public:
       joint_effort_read_(data.joint_effort_read),
       joint_effort_write_(data.joint_effort_write),
       foot_contact_(data.foot_contact),
+      contact_pressure_(data.contact_pressure),
       motor_status_word_(data.motor_status_word)
   {}
 
@@ -99,6 +102,7 @@ public:
         const double* joint_effort_read,
         double* joint_effort_write,
         int* foot_contact,            ///< A pointer to store if a leg is contact [LF,RF,RH,LH]
+        double* contact_pressure,
         int* motor_status_word
       )
     : name_(name),
@@ -115,6 +119,7 @@ public:
       joint_effort_read_(joint_effort_read),
       joint_effort_write_(joint_effort_write),
       foot_contact_(foot_contact),
+      contact_pressure_(contact_pressure),
       motor_status_word_(motor_status_word)
   {}
 
@@ -146,6 +151,7 @@ public:
   double* linear_acceleration_;
   double* linear_velocity_;
   int* foot_contact_;
+  double* contact_pressure_;
   int* motor_status_word_;///< A pointer to store if a leg is contact [LF,RF,RH,LH]
 private:
   std::string name_;

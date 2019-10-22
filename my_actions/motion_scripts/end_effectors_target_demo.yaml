@@ -5,8 +5,9 @@ adapt_coordinates:
 steps:
   - step:
     - base_auto:
-       height: 0.4
+       height: 0.5
        ignore_timing_of_leg_motion: false
+       support_margin: 0.075
   - step:
     - end_effector_target:
         name: LF_LEG
@@ -17,8 +18,9 @@ steps:
           position: [0.4,0.25,0.2]
   - step:
     - base_auto:
-       height: 0.25
+       height: 0.35
        ignore_timing_of_leg_motion: false
+       support_margin: 0.075
     - end_effector_target:
         name: LF_LEG
         ignore_contact: true
@@ -28,8 +30,9 @@ steps:
           position: [0.4,0.25,0.2]
   - step:
     - base_auto:
-       height: 0.4
+       height: 0.5
        ignore_timing_of_leg_motion: false
+       support_margin: 0.075
   - step:
     - footstep:
         name: LF_LEG
@@ -39,5 +42,5 @@ steps:
           position: [0.4,0.25,0]
   - step:
     - base_auto:
-       height: 0.4
+       height: 0.5
        ignore_timing_of_leg_motion: true

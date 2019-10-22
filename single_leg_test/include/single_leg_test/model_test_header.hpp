@@ -54,6 +54,7 @@ public:
     const MatrixNd& getQDotAcutal();
     const MatrixNd& getQDDotAcutal();
     const MatrixNd& getTauAcutal();
+    const VectorNd& getTauFeedForward();
 
     bool loadParameters();
     bool loadLimbModelFromURDF();
@@ -79,7 +80,7 @@ protected:
     Model QuadrupedRobotModel;
     LimbModel LimbRBDLModel;
     double Time_derta;
-    VectorNd VecQAct, VecQDotAct, VecQDDotAct, VecTauAct;
+    VectorNd VecQAct, VecQDotAct, VecQDDotAct, VecTauAct, TauFeedForward;
     VectorNd VecTauerror, VecQerror, VecQDoterror;
     Eigen::Vector3d kp_, kd_;
     Eigen::Vector3d desired_foot_positions, desired_foot_velocities;

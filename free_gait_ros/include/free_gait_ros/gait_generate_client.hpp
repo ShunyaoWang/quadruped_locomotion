@@ -32,6 +32,7 @@ public:
     double weight_to_CoM;
     Position virtual_point;
     bool ready_to_swing;
+    bool real_contact;
   };
 
    typedef std::unordered_map<free_gait::LimbEnum,
@@ -83,6 +84,7 @@ public:
 
 
 
+  std::vector<LinearVelocity> current_velocity_buffer_;
 
 
 private:
@@ -95,7 +97,7 @@ private:
   Pose base_pose;
   bool is_updated, is_done, is_active, use_terrian_map;
   std::unique_ptr<free_gait::FreeGaitActionClient> action_client_ptr;
-  double height_, profile_height, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
+  double height_, step_displacement, profile_height, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
   std::string profile_type;
   int step_number;
   Position LF_nominal, RF_nominal, LH_nominal, RH_nominal, P_CoM_desired_;
@@ -132,6 +134,8 @@ private:
                                 free_gait_msgs::SetStepParameterResponse& res);
 
   std::unique_ptr<FootstepOptimization> footstepOptimization;
+
+//  std::vector<LinearVelocity> current_velocity_buffer_;
 
 
 

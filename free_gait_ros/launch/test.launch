@@ -18,6 +18,8 @@
 
   <param name="/use_terrian_map" value="false" />
   <param name="/step_height" value="0.15" />
+  <param name="/profile_type" value="triangle" />
+  <param name="/step_displacement" value="0.2" />
 
   <node pkg="free_gait_ros"
     type="action_server_test_node"

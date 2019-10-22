@@ -138,7 +138,7 @@ protected:
   bool use_gazebo_feedback;
 
   double pos_read[12], pos_write[12], vel_read[12], vel_write[12], eff_read[12],eff_write[12];
-  double position[3], orinetation[4], linear_vel[3], angular_vel[3];
+  double position[3], orinetation[4], linear_vel[3], angular_vel[3], contact_pressure[4];
   int foot_contact[4], motor_status_word[12];
   free_gait_msgs::RobotState actual_robot_state_;
 };

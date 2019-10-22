@@ -553,7 +553,7 @@ bool MarkerManager::sendStepGoal()
       continue;
     free_gait_msgs::Step preStep;
     free_gait_msgs::BaseAuto baseMotion;
-    baseMotion.height = 0.35;
+    baseMotion.height = 0.45;
     preStep.base_auto.push_back(baseMotion);
     if(!ignoreBaseMotion_)
       goal.steps.push_back(preStep);

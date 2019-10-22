@@ -76,7 +76,9 @@ namespace balance_controller {
     free_gait_msgs::RobotState robot_state_;
     void footContactsCallback(const sim_assiants::FootContactsConstPtr& foot_contacts);
     int delay_counts[4];
-    bool use_gazebo_feedback, real_robot;
+    bool use_gazebo_feedback, ignore_contact_sensor, real_robot;
+    double initial_pressure[4];
+    double contact_pressure_bias;
 //    void IMUmsgCallback(const sensor_msgs::ImuConstPtr& imu_msg);
 
   };

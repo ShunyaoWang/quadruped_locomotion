@@ -173,6 +173,10 @@ namespace balance_controller {
     int delay_counts[4];
 
     bool real_robot, ignore_contact_sensor;
+
+    double initial_pressure[4];
+    double contact_pressure_bias;
+
   };
 
 }

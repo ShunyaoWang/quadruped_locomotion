@@ -64,6 +64,7 @@ bool SimRobotStateHardwareInterface::initSim(
   robot_state_data_.joint_effort_read = eff_read;
   robot_state_data_.joint_effort_write = eff_write;
   robot_state_data_.foot_contact = foot_contact;
+  robot_state_data_.contact_pressure = contact_pressure;
   robot_state_data_.motor_status_word = motor_status_word;
   //! WSHY: registerhandle pass the data point to the hardwareResourseManager and then
   //! the read() method update data which the pointer points to or write() the
@@ -402,7 +403,12 @@ void SimRobotStateHardwareInterface::writeSim(ros::Time time, ros::Duration peri
 ****************/
 //          joint_effort_command_[j] = robot_state_interface_.getHandle("base_controller").getJointEffortWrite()[j];
 //          ROS_INFO("Joint Torque of %d is %fN.m",j,joint_effort_command_[j]);
-          const double effort = e_stop_active_ ? 0 : joint_effort_command_[j];
+          double effort = e_stop_active_ ? 0 : joint_effort_command_[j];
+//          effort = effort + 5*(rand() / double(RAND_MAX) -0.5);
+//          if(effort >= 100)
+//            effort = 100;
+//          if(effort<= -100)
+//            effort = -100;
           sim_joints_[j]->SetForce(0, effort);
         }
         break;

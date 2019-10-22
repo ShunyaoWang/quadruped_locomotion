@@ -30,6 +30,10 @@ StateEstimateController::StateEstimateController()
     {
       real_contact_[limb] = true;
     }
+//  for(int i=0;i<4;i++)
+//    {
+//      initial_pressure[i] = 0;
+//    }
 
 };
 
@@ -66,6 +70,16 @@ bool StateEstimateController::init(hardware_interface::RobotStateInterface* hard
         ROS_ERROR("Can't find parameter of 'real_robot'");
         return false;
       }
+//    if(!node_handle.getParam("ignore_contact_sensor", ignore_contact_sensor))
+//      {
+//        ROS_ERROR("Can't find parameter of 'ignore_contact_sensor'");
+//        return false;
+//      }
+//    if(!node_handle.getParam("contact_pressure_bias", contact_pressure_bias))
+//      {
+//        ROS_ERROR("Can't find parameter of 'contact_pressure_bias'");
+//        return false;
+//      }
 
     //! WSHY: get joint handle from robot state handle
     std::string param_name = "joints";
@@ -84,6 +98,22 @@ bool StateEstimateController::init(hardware_interface::RobotStateInterface* hard
     robot_state_handle = hardware->getHandle("base_controller");
     for(int i = 0;i<4;i++)
       robot_state_handle.foot_contact_[i] = 1;
+//    int i = 0;
+//    ros::Duration delay(0.1);
+//    while(i<10)
+//      {
+//        for(int j =0;j<4;j++)
+//          {
+//            initial_pressure[j] += robot_state_handle.contact_pressure_[j];
+//          }
+//        delay.sleep();
+//        i++;
+//      }
+//    for(int i = 0;i<4;i++)
+//      {
+//        initial_pressure[i] = initial_pressure[i]/10;
+//        std::cout<<"Initial contact pressure for leg "<<i<<" is : "<<initial_pressure[i]<<std::endl;
+//      }
 
     //    imu_sub_ = node_handle.subscribe<sensor_msgs::Imu>("/imu", 1, &StateEstimateController::IMUmsgCallback, this);
 //    contact_sub_ = node_handle.subscribe<sim_assiants::FootContacts>("/bumper_sensor_filter_node/foot_contacts", 1, &StateEstimateController::footContactsCallback, this);
@@ -93,21 +123,25 @@ bool StateEstimateController::init(hardware_interface::RobotStateInterface* hard
     robot_state_.lf_leg_joints.position.resize(3);
     robot_state_.lf_leg_joints.velocity.resize(3);
     robot_state_.lf_leg_joints.effort.resize(3);
+    robot_state_.lf_target.target_force.resize(1);
 
     robot_state_.rf_leg_joints.name.resize(3);
     robot_state_.rf_leg_joints.position.resize(3);
     robot_state_.rf_leg_joints.velocity.resize(3);
     robot_state_.rf_leg_joints.effort.resize(3);
+    robot_state_.rf_target.target_force.resize(1);
 
     robot_state_.lh_leg_joints.name.resize(3);
     robot_state_.lh_leg_joints.position.resize(3);
     robot_state_.lh_leg_joints.velocity.resize(3);
     robot_state_.lh_leg_joints.effort.resize(3);
+    robot_state_.lh_target.target_force.resize(1);
 
     robot_state_.rh_leg_joints.name.resize(3);
     robot_state_.rh_leg_joints.position.resize(3);
     robot_state_.rh_leg_joints.velocity.resize(3);
     robot_state_.rh_leg_joints.effort.resize(3);
+    robot_state_.rh_target.target_force.resize(1);
 
     geometry_msgs::Vector3Stamped vector_z;
     vector_z.vector.x = 0;
@@ -147,6 +181,11 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
 //        ROS_INFO("Joint %d Position is : %f", i, all_joint_positions(i));
       }
 
+    robot_state_.lf_target.target_force[0].vector.z = robot_state_handle.contact_pressure_[0];
+    robot_state_.rf_target.target_force[0].vector.z = robot_state_handle.contact_pressure_[1];
+    robot_state_.rh_target.target_force[0].vector.z = robot_state_handle.contact_pressure_[2];
+    robot_state_.lh_target.target_force[0].vector.z = robot_state_handle.contact_pressure_[3];
+
 // TODO: call a state estimate method to calculate the pose estimate of robot.
     for(int i=0;i<12;++i){
         LegOdom->joints_output.position[i] = all_joint_positions(i);
@@ -155,7 +194,8 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
 
     robot_state_ptr->setCurrentLimbJoints(all_joint_positions);
     robot_state_ptr->setCurrentLimbJointVelocities(all_joint_velocities);
-//    std::vector<bool> real_c
+
+    //    std::vector<bool> real_c
     std_msgs::Float64MultiArray foot_msg;
     foot_msg.data.resize(4);
     for(int i = 0;i<4;i++)
@@ -182,6 +222,9 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
 //                real_contact_.at(limb) = true;
 //              }
 //          }
+
+        real_contact_.at(limb) = false;
+        foot_msg.data[i] = 0;
         if(foot_state == StateSwitcher::States::StanceNormal)
           {
             real_contact_.at(limb) = true;
@@ -192,6 +235,8 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
             real_contact_.at(limb) = false;
             foot_msg.data[i] = 0;
           }
+
+
 //        std::cout<<"foot "<<i<<" contact state "<<robot_state_handle.foot_contact_[i]<<std::endl;
 
       }
@@ -200,7 +245,6 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
       robot_state_.rf_leg_mode.support_leg = real_contact_.at(free_gait::LimbEnum::RF_LEG);
       robot_state_.rh_leg_mode.support_leg = real_contact_.at(free_gait::LimbEnum::RH_LEG);
       robot_state_.lh_leg_mode.support_leg = real_contact_.at(free_gait::LimbEnum::LH_LEG);
-
     //!!!频率控制，保证每秒钟处理的image不多于FREQ，这里将平率控制在10hz以内
 //    if (round(1.0 * pub_count / (img_msg->header.stamp.toSec() - first_image_time)) <= FREQ)
 //    {
@@ -246,6 +290,21 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
         robot_state_handle.angular_velocity_[1] = real_time_factor*LegOdom->imu_output.angular_velocity.y;
         robot_state_handle.angular_velocity_[2] = real_time_factor*LegOdom->imu_output.angular_velocity.z;
       }
+
+
+//    if(real_robot && !ignore_contact_sensor)
+//      {
+
+//        for(int i = 0;i<4;i++)
+//          {
+//            if(robot_state_handle.contact_pressure_[i] - initial_pressure[i] > contact_pressure_bias)
+//              {
+//                robot_state_handle.foot_contact_[i] = 1;
+//              }else {
+//                robot_state_handle.foot_contact_[i] = 0;
+//              }
+//          }
+//      }
 
 
 //    robot_state_.lf_leg_joints.header =
@@ -321,8 +380,11 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
   void StateEstimateController::starting(const ros::Time& time)
   {
     ROS_INFO("State Estimate Start Once");
+
     for(int i = 0;i<4;i++)
-      robot_state_handle.foot_contact_[i] = 1;
+      {
+        robot_state_handle.foot_contact_[i] = 1;
+      }
 
   }
 
