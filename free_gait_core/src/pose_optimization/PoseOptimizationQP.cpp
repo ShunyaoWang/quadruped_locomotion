@@ -132,10 +132,12 @@ bool PoseOptimizationQP::optimize(Pose& pose)
   x = params.getParams();
   std::cout << "x: " << std::endl << x << std::endl;*/
   Eigen::VectorXd params(P.cols());
+  params = pose.getPosition().vector();
   if (!solver_->minimize(*costFunction, *constraints, params)) return false;
   // Return optimized pose.
   std::cout << "quadratic solution is : " << std::endl << params << std::endl;
   pose.getPosition().vector() = params;
+  std::cout<<"Check constraints :"<<"Gx<=h"<<std::endl<<G*params<<" ? "<<h<<std::endl;
   return true;
 }
 

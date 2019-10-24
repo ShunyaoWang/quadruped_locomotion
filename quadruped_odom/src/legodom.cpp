@@ -775,8 +775,16 @@ void  QuadrupedEstimation::LegOdomOut(){
 //            "gazebo---Vy: " << gazebo_output.twist.twist.linear.y <<endl <<
 //            "gazebo---Vz: " << gazebo_output.twist.twist.linear.z <<endl ;
 //*********************odom--->baselink***************************//
-    Pose_stamped_.header = legodom_map_.header;
+//    Pose_stamped_.header = legodom_map_.header;
     Pose_stamped_.pose = legodom_map_.pose;
+    boost::array<double, 36> pose_covariance ={
+                               {1e-6, 0, 0, 0, 0, 0,
+                                0, 1e-6, 0, 0, 0, 0,
+                                0, 0, 1e-6, 0, 0, 0,
+                                0, 0, 0, 1e-9, 0, 0,
+                                0, 0, 0, 0, 1e-9, 0,
+                                0, 0, 0, 0, 0, 1e-9}};
+    Pose_stamped_.pose.covariance = pose_covariance;
     legPose_pub.publish(Pose_stamped_);
 
     Pose odom_pose;

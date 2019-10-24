@@ -347,7 +347,7 @@ namespace balance_controller{
               leg_state.data[i] = 0;
               store_current_joint_state_flag_.at(limb) = false;
               update_surface_normal_flag.at(limb) = false;
-              ROS_INFO("Leg '%d' is in SwingNormal mode", i);
+//              ROS_INFO("Leg '%d' is in SwingNormal mode", i);
               break;
             }
           case StateSwitcher::States::StanceNormal:
@@ -394,7 +394,7 @@ namespace balance_controller{
               //            robot_state->setSurfaceNormal(limb, robot_state_->getSurfaceNormal(limb));
 //              leg_state.data[i] = 1;
               store_current_joint_state_flag_.at(limb) = false;
-              ROS_INFO("Leg '%d' is in StanceNormal mode", i);
+//              ROS_INFO("Leg '%d' is in StanceNormal mode", i);
               break;
             }
           case StateSwitcher::States::SwingEarlyTouchDown:
@@ -420,7 +420,7 @@ namespace balance_controller{
               robot_state->setSurfaceNormal(limb, surface_normals.at(limb));
               //              robot_state->setSurfaceNormal(limb, robot_state_->getSurfaceNormal(limb));
               //! WSHY: keep end effort position when early touch down
-              ROS_WARN("Leg '%d' is in SwingEarlyTouchDown mode", i);
+//              ROS_WARN("Leg '%d' is in SwingEarlyTouchDown mode", i);
               leg_state.data[i] = 1;
               break;
             }
@@ -477,7 +477,7 @@ namespace balance_controller{
                   commands[3*i + 1] = stored_limb_joint_position_(3*i+1);
                   commands[3*i + 2] = stored_limb_joint_position_(3*i+2);
                 }
-              ROS_WARN("Leg '%d' is in SwingLatelyTouchDown mode", i);
+//              ROS_WARN("Leg '%d' is in SwingLatelyTouchDown mode", i);
               leg_state.data[i] = 3;
               break;
             }
@@ -523,7 +523,7 @@ namespace balance_controller{
               leg_state.data[i] = -1;
               robot_state->setSupportLeg(limb, false);
               robot_state->setSurfaceNormal(limb, surface_normals.at(limb));
-              ROS_WARN("Leg '%d' is in SwingLateLiftOff mode", i);
+//              ROS_WARN("Leg '%d' is in SwingLateLiftOff mode", i);
               break;
             }
           default:

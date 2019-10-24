@@ -63,7 +63,7 @@ class StepParameters
        * what is that?
        */
       Position2 position;
-      position << 0.4, 0.25;// the length and width of the robot
+      position << 0.42, 0.30;// the length and width of the robot
       /**
         map 容器的成员函数 emplace() 可以在适当的位置直接构造新元素，从而避免复制和移动操作
         */

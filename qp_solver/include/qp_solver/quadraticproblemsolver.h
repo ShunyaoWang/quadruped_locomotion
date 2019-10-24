@@ -11,6 +11,9 @@
 #define QUADRATICPROBLEMSOLVER_H
 
 #include "qp_solver/QuadProg++.h"
+#include "ooqp_eigen_interface/QuadraticProblemFormulation.hpp"
+#include "ooqp_eigen_interface/OoqpEigenInterface.hpp"
+#include "ros/ros.h"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -94,16 +97,27 @@ public:
   void setce0_(quadprogpp::Vector<double>& ce0);
   void setci0_(quadprogpp::Vector<double>& ci0);
   void setx_(quadprogpp::Vector<double>& x);
+
+  void setG_(Eigen::MatrixXd& G);
+  void setCE_(Eigen::MatrixXd& CE);
+  void setCI_(Eigen::MatrixXd& CI);
+  void setg0_(Eigen::VectorXd& g0);
+  void setce0_(Eigen::VectorXd& ce0);
+  void setci0_(Eigen::VectorXd& ci0);
+
+//  void toEigenMatrix(const quadprogpp::Matrix<double> mat_in, Eigen::MatrixXd& mat_out);
+//  void toEigenVector(const quadprogpp::Vector<double> vec_in, Eigen::VectorXd& vec_out);
+
   bool getCoefficients(quadprogpp::Matrix<double>& G, quadprogpp::Vector<double>& g0,
                        quadprogpp::Matrix<double>& CE, quadprogpp::Vector<double>& ce0,
                        quadprogpp::Matrix<double>& CI, quadprogpp::Vector<double>& ci0,
                        quadprogpp::Vector<double>& x);
-
+  Eigen::VectorXd jacobian_, b_, beq_;
+  Eigen::SparseMatrix<double, Eigen::RowMajor> hessian_, A_, Aeq_;
 private:
   quadprogpp::Matrix<double> G_, CE_, CI_;
   quadprogpp::Vector<double> g0_, ce0_, ci0_, x_;
-  Eigen::VectorXd jacobian_, b_, beq_;
-  Eigen::MatrixXd hessian_, A_, Aeq_;
+
   unsigned int variable_dimension_;
 
 };

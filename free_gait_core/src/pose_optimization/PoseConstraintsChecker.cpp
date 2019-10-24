@@ -31,8 +31,12 @@ bool PoseConstraintsChecker::check(const Pose& pose)
   // TODO(Shunyao): findout the useness of those lines
 //! state_ is a protected member in poseOptimizationBase, set it to AdapterBase,
 //! implemented in AdapterDummy
+//! 
     state_.setPoseBaseToWorld(pose); // this member function is in the quadrupedModel class, which is a parent class of State
-//  adapter_.setInternalDataFromState(state_, false, true, false, false); // To guide IK.
+
+    
+    
+    //  adapter_.setInternalDataFromState(state_, false, true, false, false); // To guide IK.
     adapter_.setInternalDataFromState(state_); // To guide IK.
 //  if (!updateJointPositionsInState(state_)) {
 //    return false;
@@ -44,6 +48,12 @@ bool PoseConstraintsChecker::check(const Pose& pose)
   supportRegionCopy.offsetInward(centerOfMassTolerance_);
 //  for(auto vert:supportRegion_.getVertices())
 //    std::cout<<"vert : "<<vert<<std::endl;
+
+//  if (!supportRegion_.isInside(pose.getPosition().vector().head(2))) {
+//    std::cout<<"Target Center of mass: "<<pose.getPosition()<<" is out of support region"<<std::endl;
+//    return false;
+//  }
+
   if (!supportRegion_.isInside(adapter_.getCenterOfMassInWorldFrame().vector().head(2))) {
     std::cout<<"Center of mass: "<<adapter_.getCenterOfMassInWorldFrame()<<" is out of support region"<<std::endl;
     return false;

@@ -112,7 +112,7 @@ bool BaseAuto::prepareComputation(const State& state, const Step& step, const St
 
   for (auto foothold : footholdsOrdered) {
     supportRegion.addVertex(foothold.vector().head<2>());
-//    std::cout<<"footholds ordered is "<<foothold.vector().head<2>()<<std::endl;
+    std::cout<<"footholds ordered is "<<foothold.vector().head<2>()<<std::endl;
   }
   bool isLinePolygon = false;
   // if there are only 2 stance leg, treat as a line with 0.001m witdth
@@ -393,6 +393,20 @@ bool BaseAuto::generateFootholdLists(const State& state, const Step& step, const
 
 bool BaseAuto::optimizePose(Pose& pose)
 {
+//  Pose pose_temp;
+
+//  if (!poseOptimizationGeometric_->optimize(pose));
+//  pose_temp = pose;
+//  if (!poseOptimizationQP_->optimize(pose)) return false;
+//  if (constraintsChecker_->check(pose)) return true;
+//  if(poseOptimizationSQP_->optimize(pose_temp))
+//    {
+//      pose = pose_temp;
+//      return true;
+//    }
+//  pose = pose_temp;
+//  return true;
+
   if (!poseOptimizationGeometric_->optimize(pose));
   if (!poseOptimizationQP_->optimize(pose)) return false;
   if (constraintsChecker_->check(pose)) return true;

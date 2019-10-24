@@ -5,6 +5,10 @@
 #include "free_gait_core/pose_optimization/PoseOptimizationFunctionConstraints.hpp"
 #include "free_gait_core/pose_optimization/PoseOptimizationObjectiveFunction.hpp"
 #include "free_gait_core/pose_optimization/poseparameterization.h"
+
+#include "ooqp_eigen_interface/QuadraticProblemFormulation.hpp"
+#include "ooqp_eigen_interface/OoqpEigenInterface.hpp"
+
 #include <memory>
 namespace sqp_solver {
 using namespace free_gait;

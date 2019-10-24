@@ -21,9 +21,10 @@ bool SequenceQuadraticProblemSolver::minimize(const PoseOptimizationProblem& pro
   std::cout<<"Sequence Quadratic minimizing......"<<std::endl;
   int k = 0;
   Eigen::MatrixXd H, A;
-  Eigen::VectorXd G, b, b_max;
+  Eigen::VectorXd G, b, b_max,d;
   Eigen::MatrixXd Aeq(params.getLocalSize(), 1);
   Eigen::VectorXd beq(1);
+  Eigen::SparseMatrix<double, Eigen::RowMajor> Q, C, D;
   qp_solver::QuadraticProblemSolver::parameters result, p;
   qp_solver::QuadraticProblemSolver::Delta dp(params.getLocalSize());
 //  free_gait::PoseOptimizationObjectiveFunction function = &problem.objectiveFunction_;
@@ -64,12 +65,43 @@ bool SequenceQuadraticProblemSolver::minimize(const PoseOptimizationProblem& pro
   double cost = 1.0;
   while (k<max_iteration_) {
     k = k+1;
-    quadratic_solver_->minimize(*problem.objectiveFunction_, *problem.functionConstraints_, dp);
+/**
+  for QuadProg++
+    min 0.5 * x H x + G x
+    s.t.
+        CE^T x + ce0 = 0
+        CI^T x + ci0 >= 0
+
+        CI = -A^T;
+        ci0 = b;
+        CE = Aeq;
+        ce0 = beq;
+        **/
+//    quadratic_solver_->minimize(*problem.objectiveFunction_, *problem.functionConstraints_, dp);
+
+    /**
+      1/2 x'Qx + g'x,
+      such that Cx = c and d <= Dx <= f
+      C = Aeq^T
+      c =-beq
+      D =A;
+      f =b
+      **/
+    Q = H.sparseView();
+    C = Aeq.setZero().transpose().sparseView();
+    D = A.sparseView();
+    d = Eigen::VectorXd::Constant(b.size(), std::numeric_limits<double>::min());
+
+    if(!ooqpei::OoqpEigenInterface::solve(Q, G, D, b, dp))
+      {
+        ROS_ERROR("Failed to Solve QP Subproblem With OOQP");
+        return false;
+      }
     params.plus(result, result, dp);
     params.setPose(Pose(Position(result.head(3)), RotationQuaternion(result.tail(4))));
     problem.objectiveFunction_->computeValue(cost, params, true);
     cout<<"dp norm at "<<k<<"iteration is : "<<dp.norm()<<endl;
-    if(dp.norm() < tolerance_)
+    if(dp.norm() < 0.005)//tolerance_)
     {
       cout<<"Final cost :"<<cost<<endl;
       break;

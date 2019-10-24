@@ -72,6 +72,7 @@ bool PoseOptimizationSQP::optimize(Pose& pose)
   constraints_->setLimbLengthConstraints(minLimbLenghts_, maxLimbLenghts_);
 
   state_.setPoseBaseToWorld(pose);
+
 //  adapter_.setInternalDataFromState(state_);
   adapter_.setInternalDataFromState(state_, false, true, false, false); // To guide IK.
   updateJointPositionsInState(state_); // For CoM calculation.
@@ -82,7 +83,7 @@ bool PoseOptimizationSQP::optimize(Pose& pose)
                                  adapter_.getCenterOfMassInWorldFrame()));
   objective_->setCenterOfMass(centerOfMassInBaseFrame);
   constraints_->setCenterOfMass(centerOfMassInBaseFrame);
-  callExternalOptimizationStepCallback(0);
+//  callExternalOptimizationStepCallback(0);
 
   // Optimize.
 

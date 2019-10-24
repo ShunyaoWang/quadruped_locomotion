@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_core
   std_utils
   quadruped_model
+  ooqp_eigen_interface
 )
 
 ## System dependencies are found with CMake's conventions
@@ -113,6 +114,7 @@ catkin_package(
     roscpp
     grid_map_core
     std_utils
+    ooqp_eigen_interface
 #  DEPENDS system_lib
 )
 
