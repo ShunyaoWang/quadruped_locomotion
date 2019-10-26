@@ -70,6 +70,8 @@ private slots:
 
   void on_setInitialJointPosition_clicked();
 
+  void on_crawlButton_clicked();
+
 private:
   Ui::rqt_control_panel_plugin_widget *ui;
   ros::NodeHandle nodehandle_;
@@ -81,6 +83,7 @@ private:
   ros::ServiceClient listControllerClient_;
   ros::ServiceClient trotSwitchClient_;
   ros::ServiceClient paceSwitchClient_;
+  ros::ServiceClient crawlSwitchClient_;
 
   ros::Publisher eStopPublisher_;
   ros::Publisher jointPositionCommandPublisher_;

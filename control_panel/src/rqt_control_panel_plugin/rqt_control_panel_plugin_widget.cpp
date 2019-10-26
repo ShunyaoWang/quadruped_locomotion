@@ -26,6 +26,8 @@ rqt_control_panel_plugin_widget::rqt_control_panel_plugin_widget(const ros::Node
 
   paceSwitchClient_ = nodehandle_.serviceClient<std_srvs::SetBool>("pace_switch",false);
 
+  crawlSwitchClient_ = nodehandle_.serviceClient<std_srvs::SetBool>("crawl_switch",false);
+
   eStopPublisher_ = nodehandle_.advertise<std_msgs::Bool>("/e_stop", 1);
 
   baseVelocityCommandPublisher_ = nodehandle_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
@@ -531,4 +533,15 @@ void rqt_control_panel_plugin_widget::on_setInitialJointPosition_clicked()
   ui->lh_joint_positon_1->setValue(0);
   ui->lh_joint_positon_2->setValue(-1.4);
   ui->lh_joint_positon_3->setValue(2.4);
+}
+
+void rqt_control_panel_plugin_widget::on_crawlButton_clicked()
+{
+  std_srvs::SetBool crawl_switch;
+  crawl_switch.request.data = true;
+  crawlSwitchClient_.call(crawl_switch.request, crawl_switch.response);
+  if(crawl_switch.response.success)
+    {
+      displayOutputInfos("green", "Starting Crawling......");
+    }
 }

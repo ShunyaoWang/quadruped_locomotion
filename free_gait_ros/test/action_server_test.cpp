@@ -82,6 +82,7 @@ public:
     gait_start_server_ = nodeHandle_.advertiseService("/gait_generate_switch", &ActionServerTest::GaitGenerateSwitchCallback, this);
     pace_start_server_ = nodeHandle_.advertiseService("/pace_switch", &ActionServerTest::PaceSwitchCallback, this);
     joy_control_server_ = nodeHandle_.advertiseService("/joy_control_switch", &ActionServerTest::joyControlSwitchCallback, this);
+    crawl_start_server_ = nodeHandle_.advertiseService("/crawl_switch", &ActionServerTest::CrawlSwitchCallback, this);
 
     limb_configure_switch_server_ = nodeHandle_.advertiseService("/limb_configure", &ActionServerTest::SwitchLimbConfigureCallback, this);
 
@@ -103,8 +104,8 @@ public:
   void ActionServerThread()//(const FreeGaitActionServer& server)
   {
       ROS_INFO("In action server thread");
-      parameters->footstepParameters.minimumDuration_ = 0.45;
-      parameters->baseTargetParameters.minimumDuration = 0.45;
+      parameters->footstepParameters.minimumDuration_ = 0.3;
+      parameters->baseTargetParameters.minimumDuration = 0.3;
       double dt = 0.01;// change dt cause problem?
       double time = 0.0;
       ros::Rate rate(100);
@@ -189,6 +190,8 @@ public:
     ROS_INFO("In GaitGenerateThread thread");
     ros::Rate rate(100);
     double dt = 0.01;
+    gait_generate_client_.copyRobotState(AdapterRos_.getAdapter().getState());
+
 //    gait_generate_client_.initializeTrot(0.45, 0.45);
 //    gait_generate_client_.initializePace(0.45, 3*0.5);
     while (ros::ok()) {
@@ -245,7 +248,7 @@ public:
       }
     if(request.data == true){
         is_start_gait = true;
-        gait_generate_client_.initializeTrot(0.45,0.45);
+        gait_generate_client_.initializeTrot(0.3,0.3);
 //        gait_generate_client_.initializePace(0.45, 3*0.5);
       ROS_INFO("START GAIT....");
       }
@@ -264,6 +267,24 @@ public:
     if(request.data == true){
         is_start_gait = true;
         gait_generate_client_.initializePace(0.45,0.45*3);
+//        gait_generate_client_.initializePace(0.45, 3*0.5);
+      ROS_INFO("START GAIT....");
+      }
+    response.success = true;
+    return true;
+  }
+
+  bool CrawlSwitchCallback(std_srvs::SetBool::Request& request,
+                                  std_srvs::SetBool::Response& response)
+  {
+    if(request.data == false){
+        is_start_gait = false;
+        gait_generate_client_.current_velocity_buffer_.clear();
+        ROS_INFO("STOP GAIT....");
+      }
+    if(request.data == true){
+        is_start_gait = true;
+        gait_generate_client_.initializeCrawl(1,0.45*3);
 //        gait_generate_client_.initializePace(0.45, 3*0.5);
       ROS_INFO("START GAIT....");
       }
@@ -317,7 +338,7 @@ private:
   sensor_msgs::JointState allJointStates_;
   ros::Publisher joint_state_pub_;
   ros::ServiceServer pause_service_server_, stop_service_server_,
-  gait_start_server_, limb_configure_switch_server_, pace_start_server_, joy_control_server_;
+  gait_start_server_, limb_configure_switch_server_, pace_start_server_, joy_control_server_, crawl_start_server_;
   std::string pause_service_name_, stop_service_name_;
   bool use_gazebo, is_pause, is_stop, is_kinematics_control, is_start_gait, is_joy_control;
   /**

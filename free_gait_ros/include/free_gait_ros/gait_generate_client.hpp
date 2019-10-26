@@ -50,6 +50,8 @@ public:
 
   bool initializePace(const double t_swing, const double t_stance);
 
+  bool initializeCrawl(const double t_swing, const double t_stance);
+
 
   bool sendGoal(const free_gait_msgs::ExecuteStepsGoal& goal);
 
@@ -124,7 +126,9 @@ private:
   free_gait_msgs::BaseAuto base_auto_msg_;
   free_gait_msgs::BaseTarget base_target_msg_;
   free_gait_msgs::Footstep footstep_msg_;
-  bool base_auto_flag, base_target_flag, pace_flag, trot_flag;
+  bool base_auto_flag, base_target_flag, pace_flag, trot_flag, crawl_flag, crawl_leg_switched;
+
+  std::vector<int> crawl_leg_order;
 
   void feedbackCallback(const free_gait_msgs::ExecuteStepsFeedbackConstPtr& feedback);
 
@@ -134,6 +138,8 @@ private:
                                 free_gait_msgs::SetStepParameterResponse& res);
 
   std::unique_ptr<FootstepOptimization> footstepOptimization;
+
+  Pose optimized_base_pose;
 
 //  std::vector<LinearVelocity> current_velocity_buffer_;
 

@@ -30,7 +30,8 @@ using namespace free_gait;
       use_terrian_map(false),
       profile_height(0.18),
       step_displacement(0.2),
-      profile_type("triangle")
+      profile_type("triangle"),
+      crawl_flag(false)
 //      actionClient_(nodeHandle_)
   {
     if(!nodeHandle_.getParam("/use_terrian_map", use_terrian_map))
@@ -125,6 +126,8 @@ using namespace free_gait;
 
   bool GaitGenerateClient::initializeTrot(const double t_swing, const double t_stance)
   {
+    optimized_base_pose.getPosition() = robot_state_.getPositionWorldToBaseInWorldFrame();
+    optimized_base_pose.getRotation() = robot_state_.getOrientationBaseToWorld();
     t_swing_ = t_swing;
     t_stance_ = t_stance;
     step_msg_.base_target.resize(1);
@@ -161,6 +164,7 @@ using namespace free_gait;
     base_target_flag = true;
     pace_flag =false;
     trot_flag = true;
+    crawl_flag = false;
     return true;
 
   }
@@ -202,6 +206,51 @@ using namespace free_gait;
     base_target_flag = true;
     pace_flag =true;
     trot_flag = false;
+    crawl_flag = false;
+    return true;
+  }
+
+  bool GaitGenerateClient::initializeCrawl(const double t_swing, const double t_stance)
+  {
+    t_swing_ = t_swing;
+    t_stance_ = t_stance;
+//    step_msg_.base_auto.resize(1);
+//    step_msg_.base_target.resize(1);
+    limb_phase[LimbEnum::LF_LEG].swing_phase = 0;
+    limb_phase[LimbEnum::LF_LEG].stance_phase = 0;
+    limb_phase[LimbEnum::LF_LEG].swing_status = true;
+    limb_phase[LimbEnum::LF_LEG].stance_status = false;
+    limb_phase[LimbEnum::LF_LEG].ready_to_swing = true;
+    limb_phase[LimbEnum::LF_LEG].real_contact = false;
+
+    limb_phase[LimbEnum::RF_LEG].swing_phase = 0;
+    limb_phase[LimbEnum::RF_LEG].stance_phase = 0;
+    limb_phase[LimbEnum::RF_LEG].swing_status = false;
+    limb_phase[LimbEnum::RF_LEG].stance_status = true;
+    limb_phase[LimbEnum::RF_LEG].ready_to_swing = false;
+    limb_phase[LimbEnum::RF_LEG].real_contact = true;
+
+    limb_phase[LimbEnum::RH_LEG].swing_phase = 0;
+    limb_phase[LimbEnum::RH_LEG].stance_phase = 2*t_stance_/3;
+    limb_phase[LimbEnum::RH_LEG].swing_status = false;
+    limb_phase[LimbEnum::RH_LEG].stance_status = true;
+    limb_phase[LimbEnum::RH_LEG].ready_to_swing = false;
+    limb_phase[LimbEnum::RH_LEG].real_contact = true;
+
+    limb_phase[LimbEnum::LH_LEG].swing_phase = 0;
+    limb_phase[LimbEnum::LH_LEG].stance_phase = t_stance_/3;
+    limb_phase[LimbEnum::LH_LEG].swing_status = false;
+    limb_phase[LimbEnum::LH_LEG].stance_status = true;
+    limb_phase[LimbEnum::LH_LEG].ready_to_swing = false;
+    limb_phase[LimbEnum::LH_LEG].real_contact = true;
+    crawl_flag = true;
+    crawl_leg_order.resize(4);
+    crawl_leg_order[0] = 0;
+    crawl_leg_order[1] = 2;
+    crawl_leg_order[2] = 1;
+    crawl_leg_order[3] = 3;
+    crawl_leg_switched = true;
+    is_done = false;
     return true;
   }
 
@@ -228,18 +277,18 @@ using namespace free_gait;
   {
     is_active = true;
     is_done = false;
-    ROS_DEBUG("Goal just went active");
+//    ROS_INFO("Goal just went active");
   }
 
   void GaitGenerateClient::feedbackCallback(const free_gait_msgs::ExecuteStepsFeedbackConstPtr& feedback)
   {
-    ROS_DEBUG("step time is : %f", feedback->phase);
+//    ROS_INFO("step time is : %f", feedback->phase);
   }
 
   void GaitGenerateClient::doneCallback(const actionlib::SimpleClientGoalState& state,
                     const free_gait_msgs::ExecuteStepsResult& result)
   {
-    ROS_DEBUG("Finished in state [%s]", state.toString().c_str());
+//    ROS_INFO("Finished in state [%s]", state.toString().c_str());
     is_done = true;
     is_active = false;
   }
@@ -343,7 +392,7 @@ using namespace free_gait;
             displace_in_footprint = Position(0.5*t_stance_*desired_vel2D
                                                  + sqrt(z_hip/9.8) * (current_vel2D - desired_vel2D));
 
-            if(pace_flag)
+            if(pace_flag || crawl_flag)
               {
                 displace_in_footprint = Position(0.25*t_stance_*desired_vel2D);
 
@@ -361,14 +410,23 @@ using namespace free_gait;
                 robot_state_.getOrientationBaseToWorld().rotate(robot_state_.getPositionBaseToHipInBaseFrame(limb));
             hip_in_odom(2) = 0.0; //project to floor plane
 
-//            Position foot_in_base = robot_state_.getPositionBaseToFootInBaseFrame(limb);
+            Position foot_in_base = robot_state_.getPositionBaseToFootInBaseFrame(limb);
+//            Position hip_in_base = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb);
+
             Position hip_in_footprint = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb);
             Position hip_in_baselink = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb)
-                + robot_state_.getOrientationBaseToWorld().inverseRotate(Position(0,0,-height_-0.02));//in sim set 0.03
+                 + robot_state_.getOrientationBaseToWorld().inverseRotate(Position(0,0,-height_-0.02));//in sim set 0.03
+            Position foothold_in_base = foot_in_base;
+            foot_in_base.z() = hip_in_baselink.z();
+            foot_in_base.y() = hip_in_baselink.y();
+//            Position position_delta = robot_state_.getOrientationBaseToWorld().inverseRotate(
+//                  optimized_base_pose.getPosition() - robot_state_.getPositionWorldToBaseInWorldFrame());
 
-
+//            position_delta.z() = 0;
             Position target_in_footprint = hip_in_footprint + displace_in_footprint;
-            Position target_in_baselink = displace_in_baselink + hip_in_baselink;
+            Position target_in_baselink = displace_in_baselink + hip_in_baselink;// + position_delta;
+//            if(crawl_flag)
+//              target_in_baselink = 2*displace_in_baselink + foot_in_base;
             //            target_in_footprint(2) = 0.0;
             Position target_in_odom = hip_in_odom + displace_in_odom;
             Position target_in_base =robot_state_.getOrientationBaseToWorld().inverseRotate(target_in_odom - robot_state_.getPositionWorldToBaseInWorldFrame());
@@ -515,11 +573,14 @@ using namespace free_gait;
 
               }
 
+
             footstep_msg_.average_velocity = sqrt(displace_in_odom.norm()*displace_in_odom.norm() + profile_height*profile_height)*2/0.1;
             footstep_msg_.profile_height = profile_height;
             footstep_msg_.profile_type = profile_type;
             footstep_msg_.ignore_contact = false;
             footstep_msg_.ignore_for_pose_adaptation = false;
+            if(crawl_flag)
+              footstep_msg_.average_velocity = 0.3;
 //            if(pace_flag)
 //              footstep_msg_.ignore_for_pose_adaptation = true;
 
@@ -627,7 +688,7 @@ using namespace free_gait;
 ////          + robot_state_.getOrientationBaseToWorld().rotate(footprint_center_in_base);
 //      footprint_center_in_world = foot_sum/foothold_in_support_.size();//robot_state_.getNumberOfSupportLegs();
 //      ROS_WARN_STREAM("Stance in support :"<<foothold_in_support_<<std::endl);
-      Pose optimized_base_pose;
+//      Pose optimized_base_pose;
       optimizePose(optimized_base_pose);
 
       P_CoM_desired_ = 0.25 * P_CoM_desired_;
@@ -640,8 +701,7 @@ using namespace free_gait;
       std_msgs::ColorRGBA color;
       color.a = 1;
       color.b = 1;
-      base_marker = free_gait::RosVisualization::getComMarker(P_CoM_desired_, "odom", color, 0.08);
-      desired_base_com_marker_pub_.publish(base_marker);
+
       Position com_pos = robot_state_.getPositionWorldToBaseInWorldFrame();
       color.g = 1;
       com_proj_markers = free_gait::RosVisualization::getComWithProjectionMarker(com_pos,"odom",color,0.08,0.5,0.02);
@@ -651,6 +711,8 @@ using namespace free_gait;
 //      P_CoM_desired_(2) = height_ + footprint_center_in_world(2) - 0.02;//robot_state_.getPositionWorldToBaseInWorldFrame()(2);
       P_CoM_desired_(2) = height_ + optimized_base_pose.getPosition()(2) - 0.03;// + t_stance_*vd.z();// - 0.02;// + t_stance_*current_vel.z();
 //      P_CoM_desired_(2) += robot_state_.getPositionWorldToBaseInWorldFrame()(2) - footprint_center_in_world(2);
+      base_marker = free_gait::RosVisualization::getComMarker(P_CoM_desired_, "odom", color, 0.08);
+      desired_base_com_marker_pub_.publish(base_marker);
 
       base_target_msg_.ignore_timing_of_leg_motion = false;
       base_target_msg_.average_linear_velocity = desired_linear_velocity_.norm();
@@ -688,10 +750,10 @@ using namespace free_gait;
 //      base_auto_msg_.ignore_timing_of_leg_motion = false;
 //      step_msg_.base_auto[0] =base_auto_msg_;
 
-      if(base_target_flag)
+      if(base_target_flag && !crawl_flag)
         step_msg_.base_target[0] = base_target_msg_;
 
-      if(base_auto_flag)
+      if(base_auto_flag && !crawl_flag)
         {
           base_auto_msg_.average_linear_velocity = 1;//2*desired_linear_velocity.norm();
           base_auto_msg_.average_angular_velocity = 1;//5*desired_angular_velocity.norm();
@@ -778,13 +840,35 @@ using namespace free_gait;
     /****************
 * TODO(Shunyao) : decide if the step is empty to send
 ****************/
-    if(step_msg_.footstep.size()>0){
+    if(step_msg_.footstep.size()>0 && !crawl_flag){
         steps_goal.steps.push_back(step_msg_);
         steps_goal.preempt = steps_goal.PREEMPT_NO;
         sendGoal(steps_goal);
         ROS_DEBUG("Send Step Goal Once!!!!!!!!!!");
         step_msg_.footstep.clear();
         current_velocity_buffer_.clear();
+      }
+    if(crawl_flag && crawl_leg_switched)
+      {
+        crawl_leg_switched = false;
+        free_gait_msgs::Step preStep;
+        free_gait_msgs::BaseAuto baseMotion;
+        baseMotion.height = 0.45;
+        baseMotion.average_linear_velocity = 0.15;//2*desired_linear_velocity.norm();
+        baseMotion.average_angular_velocity = 0.2;//5*desired_angular_velocity.norm();
+        baseMotion.ignore_timing_of_leg_motion = true;
+        baseMotion.support_margin = 0.07;
+
+        preStep.base_auto.push_back(baseMotion);
+        steps_goal.steps.push_back(preStep);
+
+        steps_goal.steps.push_back(step_msg_);
+        steps_goal.preempt = steps_goal.PREEMPT_NO;
+        sendGoal(steps_goal);
+        ROS_DEBUG("Send Step Goal Once!!!!!!!!!!");
+        step_msg_.footstep.clear();
+//        action_client_ptr->waitForResult(3);
+
       }
 
 
@@ -799,70 +883,115 @@ using namespace free_gait;
   {
     //! WSHY: this to generate periodical swing and stance situation for each leg
     //! TODO : Test it via a topic?
-    int number_of_swing_contacted = 0;
-    bool is_contact = false;
-    for(int i = 0;i<4;i++)
+    if(crawl_flag)
       {
-        LimbEnum limb = static_cast<LimbEnum>(i);
-        if(limb_phase.at(limb).swing_status && limb_phase.at(limb).swing_phase>t_swing_/2 && limb_phase.at(limb).real_contact)
+        if(is_done)
           {
-            number_of_swing_contacted++;
-          }
-      }
-    if(trot_flag && number_of_swing_contacted == 2)
-      is_contact = true;
-    if(pace_flag && number_of_swing_contacted == 1)
-      is_contact = true;
-
-    is_contact = true;
-    for(int i =0;i<4;i++)
-      {
-        LimbEnum limb = static_cast<LimbEnum>(i);
-
-        if(limb_phase.at(limb).swing_status){
-          limb_phase.at(limb).swing_phase = limb_phase.at(limb).swing_phase + dt;
-//          ROS_INFO("Leg %s is in swing phase : %f/%f\n", getLimbStringFromLimbEnum(limb).c_str(),
-//                   limb_phase.at(limb).swing_phase, t_swing_);
-          if(limb_phase.at(limb).swing_phase>t_swing_ && is_contact)
-            {
-              //! WSHY: normal contacted
-              limb_phase.at(limb).swing_phase = 0;
-              limb_phase.at(limb).swing_status = false;
-              limb_phase.at(limb).stance_status = true;
-            }/* else if (limb_phase.at(limb).swing_phase>t_swing_ && !is_contact) {
-              //! WSHY: late contacted
-              limb_phase.at(limb).swing_status = true;
-              limb_phase.at(limb).stance_status = false;
-            } else if (limb_phase.at(limb).swing_phase>0.5*t_swing_ &&
-                       limb_phase.at(limb).swing_phase<t_swing_ && is_contact) {
-              //! WSHY: early contacted
-//              for(int i=0;i<4;i++)
-//              {
-//                free_gait::LimbEnum stance_limb = static_cast<free_gait::LimbEnum>(i);
-//                if(limb_phase.at(stance_limb).stance_status)
-//                  limb_phase.at(stance_limb).stance_phase = t_swing_ - limb_phase.at(limb).swing_phase;
-//              }
-              limb_phase.at(limb).swing_phase = 0;
-              limb_phase.at(limb).swing_status = false;
-              limb_phase.at(limb).stance_status = true;
-
-
-            }*/
-          } else if (limb_phase.at(limb).stance_status) {
-            limb_phase.at(limb).stance_phase = limb_phase.at(limb).stance_phase + dt;
-  //          ROS_INFO("Leg %s is in stance phase : %f/%f\n", getLimbStringFromLimbEnum(limb).c_str(),
-  //                   limb_phase.at(limb).stance_phase, t_stance_);
-            if(limb_phase.at(limb).stance_phase>t_stance_ && is_contact)
+            ROS_INFO("Switch to Next Step");
+            is_done = false;
+            LimbEnum current_swing_leg, next_swing_leg;
+            //! WSHY: switch leg
+            for(int i = 0; i<4; i++)
               {
-                limb_phase.at(limb).stance_phase = 0;
-                limb_phase.at(limb).stance_status = false;
-                limb_phase.at(limb).swing_status = true;
-                limb_phase.at(limb).ready_to_swing = true;
+                LimbEnum limb = static_cast<LimbEnum>(i);
+                if(limb_phase.at(limb).swing_status == true)
+                  {
+                    current_swing_leg = limb;
+                    limb_phase.at(limb).swing_status = false;
+                    limb_phase.at(limb).stance_status = true;
+                  }
               }
+            int next_index = 0;
+            int current_leg = static_cast<int>(current_swing_leg);
+            for(int i = 0; i<4; i++)
+              {
+                if(crawl_leg_order[i] == current_leg)
+                  {
+                    next_index = i+1;
+                    if(next_index>3)
+                      next_index = next_index - 4;
+                  }
+              }
+            next_swing_leg = static_cast<LimbEnum>(crawl_leg_order[next_index]);
+            limb_phase.at(next_swing_leg).ready_to_swing = true;
+            limb_phase.at(next_swing_leg).swing_status = true;
+            limb_phase.at(next_swing_leg).stance_status = false;
+            crawl_leg_switched = true;
+          }
+          for(int i = 0;i<4;i++)
+            {
+              LimbEnum limb = static_cast<LimbEnum>(i);
+              robot_state_.setSupportLeg(limb, limb_phase.at(limb).stance_status);
+            }
+          }else{
 
-        };
-      robot_state_.setSupportLeg(limb, limb_phase.at(limb).stance_status);
+        int number_of_swing_contacted = 0;
+        bool is_contact = false;
+        for(int i = 0;i<4;i++)
+          {
+            LimbEnum limb = static_cast<LimbEnum>(i);
+            if(limb_phase.at(limb).swing_status && limb_phase.at(limb).swing_phase>t_swing_/2 && limb_phase.at(limb).real_contact)
+              {
+                number_of_swing_contacted++;
+              }
+          }
+        if(trot_flag && number_of_swing_contacted == 2)
+          is_contact = true;
+        if(pace_flag && number_of_swing_contacted == 1)
+          is_contact = true;
+
+        is_contact = true;
+        for(int i =0;i<4;i++)
+          {
+            LimbEnum limb = static_cast<LimbEnum>(i);
+
+            if(limb_phase.at(limb).swing_status){
+              limb_phase.at(limb).swing_phase = limb_phase.at(limb).swing_phase + dt;
+    //          ROS_INFO("Leg %s is in swing phase : %f/%f\n", getLimbStringFromLimbEnum(limb).c_str(),
+    //                   limb_phase.at(limb).swing_phase, t_swing_);
+              if(limb_phase.at(limb).swing_phase>t_swing_ && is_contact)
+                {
+                  //! WSHY: normal contacted
+                  limb_phase.at(limb).swing_phase = 0;
+                  limb_phase.at(limb).swing_status = false;
+                  limb_phase.at(limb).stance_status = true;
+                }/* else if (limb_phase.at(limb).swing_phase>t_swing_ && !is_contact) {
+                  //! WSHY: late contacted
+                  limb_phase.at(limb).swing_status = true;
+                  limb_phase.at(limb).stance_status = false;
+                } else if (limb_phase.at(limb).swing_phase>0.5*t_swing_ &&
+                           limb_phase.at(limb).swing_phase<t_swing_ && is_contact) {
+                  //! WSHY: early contacted
+    //              for(int i=0;i<4;i++)
+    //              {
+    //                free_gait::LimbEnum stance_limb = static_cast<free_gait::LimbEnum>(i);
+    //                if(limb_phase.at(stance_limb).stance_status)
+    //                  limb_phase.at(stance_limb).stance_phase = t_swing_ - limb_phase.at(limb).swing_phase;
+    //              }
+                  limb_phase.at(limb).swing_phase = 0;
+                  limb_phase.at(limb).swing_status = false;
+                  limb_phase.at(limb).stance_status = true;
+
+
+                }*/
+              } else if (limb_phase.at(limb).stance_status) {
+                limb_phase.at(limb).stance_phase = limb_phase.at(limb).stance_phase + dt;
+      //          ROS_INFO("Leg %s is in stance phase : %f/%f\n", getLimbStringFromLimbEnum(limb).c_str(),
+      //                   limb_phase.at(limb).stance_phase, t_stance_);
+                if(limb_phase.at(limb).stance_phase>t_stance_ && is_contact)
+                  {
+                    limb_phase.at(limb).stance_phase = 0;
+                    limb_phase.at(limb).stance_status = false;
+                    limb_phase.at(limb).swing_status = true;
+                    limb_phase.at(limb).ready_to_swing = true;
+                  }
+
+            };
+          robot_state_.setSupportLeg(limb, limb_phase.at(limb).stance_status);
+          }
+
       }
+
   }
 
   std::string GaitGenerateClient::getLimbStringFromLimbEnum(const LimbEnum& limb) const

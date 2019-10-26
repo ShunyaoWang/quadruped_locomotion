@@ -17,7 +17,7 @@
   <param name="/free_gait/adapter_ros_interface_plugin/gazebo" value="free_gait_ros/AdapterRosInterfaceGazebo" />
 
   <param name="/use_terrian_map" value="false" />
-  <param name="/step_height" value="0.15" />
+  <param name="/step_height" value="0.12" />
   <param name="/profile_type" value="triangle" />
   <param name="/step_displacement" value="0.2" />
 

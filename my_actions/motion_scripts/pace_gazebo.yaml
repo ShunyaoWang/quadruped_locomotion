@@ -14,12 +14,12 @@ steps:
   - step:
     - footstep:
         name: LF_LEG
-        profile_type: triangle
+        profile_type: square
         profile_height: 0.2
         average_velocity: 0.3
         target:
           frame: foot_print
-          position: [0.57, 0.275, -0.03]
+          position: [0.57, 0.3, -0.03]
   - step:
     - base_auto:
        height: 0.45
@@ -30,12 +30,12 @@ steps:
   - step:
     - footstep:
         name: RH_LEG
-        profile_type: triangle
+        profile_type: square
         profile_height: 0.2
         average_velocity: 0.3
         target:
           frame: foot_print
-          position: [-0.27, -0.275, -0.03]
+          position: [-0.27, -0.3, -0.03]
   - step:
     - base_auto:
        height: 0.45
@@ -46,12 +46,12 @@ steps:
   - step:
     - footstep:
         name: RF_LEG
-        profile_type: triangle
+        profile_type: square
         profile_height: 0.2
         average_velocity: 0.3
         target:
           frame: foot_print
-          position: [0.57, -0.275, -0.03]
+          position: [0.57, -0.3, -0.03]
   - step:
     - base_auto:
        height: 0.45
@@ -62,12 +62,12 @@ steps:
   - step:
     - footstep:
         name: LH_LEG
-        profile_type: triangle
+        profile_type: square
         profile_height: 0.2
         average_velocity: 0.3
         target:
           frame: foot_print
-          position: [-0.27, 0.275, -0.03]
+          position: [-0.27, 0.3, -0.03]
   - step:
     - base_auto:
        height: 0.45
