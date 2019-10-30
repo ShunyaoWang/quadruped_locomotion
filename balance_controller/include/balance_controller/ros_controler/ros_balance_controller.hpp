@@ -113,7 +113,7 @@ namespace balance_controller {
     LimbDuration t_sw0, t_st0;
     LimbFlag sw_flag, st_flag;
     LimbPhase sw_phase, st_phase;
-    LimbVector foot_positions, foot_velocities, foot_accelerations, real_contact_force_;
+    LimbVector foot_positions, foot_velocities, foot_accelerations, real_contact_force_, stored_foot_positions;
     /**
      * @brief contact_distribution_ , pointer to contact force optimaziton
      */
@@ -164,7 +164,7 @@ namespace balance_controller {
     int log_length_, log_index_;
     bool logDataCapture(std_srvs::Empty::Request& req,
                         std_srvs::Empty::Response& res);
-    LimbFlag update_surface_normal_flag, store_current_joint_state_flag_;
+    LimbFlag update_surface_normal_flag, store_current_joint_state_flag_, stored_current_foot_position_flag;
 //    bool store_current_joint_state_flag_;
     LimbVector surface_normals;
 //    std::vector<double> stored_limb_joint_position_;

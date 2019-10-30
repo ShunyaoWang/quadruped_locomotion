@@ -36,7 +36,7 @@ balance_controller:
         pitch: 10
         yaw: 5
       regularizer:
-        value: 0.0001
+        value: 0.00001
       force_diff:
         value: 0.1
         is_use: true

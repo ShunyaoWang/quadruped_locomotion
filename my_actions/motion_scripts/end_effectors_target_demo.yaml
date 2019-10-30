@@ -19,6 +19,8 @@ steps:
   - step:
     - base_auto:
        height: 0.35
+       average_linear_velocity: 0.15
+       average_angular_velocity: 0.2
        ignore_timing_of_leg_motion: false
        support_margin: 0.075
     - end_effector_target:
@@ -31,6 +33,8 @@ steps:
   - step:
     - base_auto:
        height: 0.5
+       average_linear_velocity: 0.15
+       average_angular_velocity: 0.2
        ignore_timing_of_leg_motion: false
        support_margin: 0.075
   - step:

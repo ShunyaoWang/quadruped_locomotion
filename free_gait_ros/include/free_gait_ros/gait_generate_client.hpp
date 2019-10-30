@@ -65,7 +65,7 @@ public:
 
   bool copyRobotState(const free_gait::State& state);
 
-  bool generateFootHolds(const std::string frame);
+  bool generateFootHolds(std::string frame);
 
   bool updateBaseMotion(LinearVelocity& desired_linear_velocity,
                         LocalAngularVelocity& desired_angular_velocity);
@@ -104,6 +104,7 @@ private:
   int step_number;
   Position LF_nominal, RF_nominal, LH_nominal, RH_nominal, P_CoM_desired_;
   Position footholds_in_stance, footprint_center_in_base, footprint_center_in_world;
+  Pose start_pose;
   geometry_msgs::Vector3Stamped surface_normal;
   geometry_msgs::PointStamped lf_foot_holds, rf_foot_holds, lh_foot_holds, rh_foot_holds;
 
@@ -126,7 +127,7 @@ private:
   free_gait_msgs::BaseAuto base_auto_msg_;
   free_gait_msgs::BaseTarget base_target_msg_;
   free_gait_msgs::Footstep footstep_msg_;
-  bool base_auto_flag, base_target_flag, pace_flag, trot_flag, crawl_flag, crawl_leg_switched;
+  bool base_auto_flag, base_target_flag, pace_flag, trot_flag, crawl_flag, crawl_leg_switched, pre_step;
 
   std::vector<int> crawl_leg_order;
 

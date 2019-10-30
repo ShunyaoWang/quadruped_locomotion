@@ -50,6 +50,8 @@ namespace balance_controller{
         foot_positions[limb] = Vector(0,0,0);
         foot_velocities[limb] = Vector(0,0,0);
         foot_accelerations[limb] = Vector(0,0,0);
+        stored_foot_positions[limb] = Vector(0,0,0);
+        stored_current_foot_position_flag[limb] = false;
         store_current_joint_state_flag_[limb] = false;
         update_surface_normal_flag[limb] = false;
         real_contact_[limb] = false;
@@ -347,6 +349,7 @@ namespace balance_controller{
               leg_state.data[i] = 0;
               store_current_joint_state_flag_.at(limb) = false;
               update_surface_normal_flag.at(limb) = false;
+              stored_current_foot_position_flag.at(limb) = false;
 //              ROS_INFO("Leg '%d' is in SwingNormal mode", i);
               break;
             }
@@ -370,11 +373,16 @@ namespace balance_controller{
                 } else {
                   robot_state->setSupportLeg(limb, true);
                   leg_state.data[i] = 2;
-                  if(delay_counts[i]>10)
+                  if(delay_counts[i]>40)
                     {
 
                       robot_state_handle.foot_contact_[i] = 1;
 
+                    }
+                  if(st_phase.at(limb)>0.8)
+                    {
+
+                      robot_state_handle.foot_contact_[i] = 0;
                     }
 
                 }
@@ -406,7 +414,15 @@ namespace balance_controller{
 //                  delay_counts[i] = 0;
 //                  limbs_state.at(limb)->setState(StateSwitcher::States::StanceNormal);
 //                }
-              robot_state->setSupportLeg(limb, true);
+//              robot_state->setSupportLeg(limb, true);
+              if(!stored_current_foot_position_flag.at(limb))
+                {
+                  stored_current_foot_position_flag.at(limb) = true;
+                  stored_foot_positions.at(limb) = foot_positions.at(limb);
+                }else{
+                  robot_state_->setTargetFootPositionInBaseForLimb(Position(stored_foot_positions.at(limb)),limb);
+                  robot_state->setSupportLeg(limb, false);
+                }
               //              if(!update_surface_normal_flag.at(limb))
               //                {
               //                  update_surface_normal_flag.at(limb) = true;
@@ -1472,7 +1488,7 @@ namespace balance_controller{
                 limbs_state.at(limb)->setState(StateSwitcher::States::SwingNormal);
                 continue;
               }
-            if(sw_phase.at(limb)>0.7 && real_contact_.at(limb) && limbs_state.at(limb)->getState() == StateSwitcher::States::SwingNormal)
+            if(sw_phase.at(limb)>0.5 && real_contact_.at(limb) && limbs_state.at(limb)->getState() == StateSwitcher::States::SwingNormal)
               {
                 limbs_state.at(limb)->setState(StateSwitcher::States::SwingEarlyTouchDown);
                 continue;

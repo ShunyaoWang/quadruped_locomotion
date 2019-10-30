@@ -250,6 +250,7 @@ using namespace free_gait;
     crawl_leg_order[2] = 1;
     crawl_leg_order[3] = 3;
     crawl_leg_switched = true;
+    pre_step = true;
     is_done = false;
     return true;
   }
@@ -344,7 +345,7 @@ using namespace free_gait;
     return true;
   }
 
-  bool GaitGenerateClient::generateFootHolds(const std::string frame)
+  bool GaitGenerateClient::generateFootHolds(std::string frame)
   {
 //    ROS_INFO("In Generate FootHolds");
     footholds_in_stance.setZero();
@@ -375,7 +376,8 @@ using namespace free_gait;
             LinearVelocity desired_vel2D, current_vel2D;
             desired_vel2D = desired_linear_velocity_;
             desired_vel2D(2) = 0.0;
-            current_vel2D = average_vel; //current_vel_in_base;
+            current_vel2D = average_vel;//current_vel_in_base;
+//            current_vel2D(0) = 0.0;
             current_vel2D(2) = 0.0;
             double z_hip = height - footprint_center_in_world(2);
 //            ROS_INFO("relative base height is : %f", z_hip);
@@ -413,9 +415,9 @@ using namespace free_gait;
             Position foot_in_base = robot_state_.getPositionBaseToFootInBaseFrame(limb);
 //            Position hip_in_base = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb);
 
-            Position hip_in_footprint = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb);
+//            Position hip_in_footprint = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb);
             Position hip_in_baselink = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb)
-                 + robot_state_.getOrientationBaseToWorld().inverseRotate(Position(0,0,-height_-0.02));//in sim set 0.03
+                 + robot_state_.getOrientationBaseToWorld().inverseRotate(Position(0,0,-height_-0.05));//in sim set 0.03
             Position foothold_in_base = foot_in_base;
             foot_in_base.z() = hip_in_baselink.z();
             foot_in_base.y() = hip_in_baselink.y();
@@ -423,7 +425,7 @@ using namespace free_gait;
 //                  optimized_base_pose.getPosition() - robot_state_.getPositionWorldToBaseInWorldFrame());
 
 //            position_delta.z() = 0;
-            Position target_in_footprint = hip_in_footprint + displace_in_footprint;
+//            Position target_in_footprint = hip_in_footprint + displace_in_footprint;
             Position target_in_baselink = displace_in_baselink + hip_in_baselink;// + position_delta;
 //            if(crawl_flag)
 //              target_in_baselink = 2*displace_in_baselink + foot_in_base;
@@ -431,15 +433,32 @@ using namespace free_gait;
             Position target_in_odom = hip_in_odom + displace_in_odom;
             Position target_in_base =robot_state_.getOrientationBaseToWorld().inverseRotate(target_in_odom - robot_state_.getPositionWorldToBaseInWorldFrame());
 
-            target_in_footprint = Position(0,0,height) + orinetationFootprintToBase.inverseRotate(target_in_baselink);
+            Position target_in_footprint = Position(0,0,height) + orinetationFootprintToBase.inverseRotate(target_in_baselink);
 //            target_in_footprint.z() -= 0.03;
-//            target_in_odom = robot_state_.getPositionWorldToBaseInWorldFrame()
-//                + robot_state_.getOrientationBaseToWorld().rotate(target_in_baselink);
+            target_in_odom = robot_state_.getPositionWorldToBaseInWorldFrame()
+                + robot_state_.getOrientationBaseToWorld().rotate(target_in_baselink);
 
-            target_in_odom = robot_state_.getPositionWorldToBaseInWorldFrame() + Position(0,0,-height) +
-                orinetationFootprintToWorld.rotate(target_in_footprint + Position(t_stance_*desired_vel2D));
+//            target_in_odom = robot_state_.getPositionWorldToBaseInWorldFrame() + Position(0,0,-height) +
+//                orinetationFootprintToWorld.rotate(target_in_footprint + Position(t_stance_*desired_vel2D));
 
             footstep_msg_.name = getLimbStringFromLimbEnum(limb);
+
+            if(crawl_flag)
+              {
+                frame = "odom";
+//                Pose start_pose;
+                if(limb == free_gait::LimbEnum::LF_LEG)
+                  {
+                    start_pose = Pose(robot_state_.getPositionWorldToBaseInWorldFrame(), robot_state_.getOrientationBaseToWorld());
+                  }
+                hip_in_baselink = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb)
+                                 + start_pose.getRotation().inverseRotate(Position(0,0,-height_-0.05));
+                target_in_baselink = displace_in_baselink + hip_in_baselink;
+                target_in_odom = start_pose.getPosition()
+                    + start_pose.getRotation().rotate(target_in_baselink);
+
+
+              }
             Position target_optimized = target_in_odom;
             if(frame=="odom")
               {
@@ -709,7 +728,7 @@ using namespace free_gait;
 
 
 //      P_CoM_desired_(2) = height_ + footprint_center_in_world(2) - 0.02;//robot_state_.getPositionWorldToBaseInWorldFrame()(2);
-      P_CoM_desired_(2) = height_ + optimized_base_pose.getPosition()(2) - 0.03;// + t_stance_*vd.z();// - 0.02;// + t_stance_*current_vel.z();
+      P_CoM_desired_(2) = height_ + optimized_base_pose.getPosition()(2);// - 0.03;// + t_stance_*vd.z();// - 0.02;// + t_stance_*current_vel.z();
 //      P_CoM_desired_(2) += robot_state_.getPositionWorldToBaseInWorldFrame()(2) - footprint_center_in_world(2);
       base_marker = free_gait::RosVisualization::getComMarker(P_CoM_desired_, "odom", color, 0.08);
       desired_base_com_marker_pub_.publish(base_marker);
@@ -850,23 +869,25 @@ using namespace free_gait;
       }
     if(crawl_flag && crawl_leg_switched)
       {
-        crawl_leg_switched = false;
-        free_gait_msgs::Step preStep;
-        free_gait_msgs::BaseAuto baseMotion;
-        baseMotion.height = 0.45;
-        baseMotion.average_linear_velocity = 0.15;//2*desired_linear_velocity.norm();
-        baseMotion.average_angular_velocity = 0.2;//5*desired_angular_velocity.norm();
-        baseMotion.ignore_timing_of_leg_motion = true;
-        baseMotion.support_margin = 0.07;
+          crawl_leg_switched = false;
 
-        preStep.base_auto.push_back(baseMotion);
-        steps_goal.steps.push_back(preStep);
+            free_gait_msgs::Step preStep;
+            free_gait_msgs::BaseAuto baseMotion;
+            baseMotion.height = 0.45;
+            baseMotion.average_linear_velocity = 0.15;//2*desired_linear_velocity.norm();
+            baseMotion.average_angular_velocity = 0.2;//5*desired_angular_velocity.norm();
+            baseMotion.ignore_timing_of_leg_motion = true;
+            baseMotion.support_margin = 0.07;
 
-        steps_goal.steps.push_back(step_msg_);
-        steps_goal.preempt = steps_goal.PREEMPT_NO;
-        sendGoal(steps_goal);
-        ROS_DEBUG("Send Step Goal Once!!!!!!!!!!");
-        step_msg_.footstep.clear();
+            preStep.base_auto.push_back(baseMotion);
+            steps_goal.steps.push_back(preStep);
+
+            steps_goal.steps.push_back(step_msg_);
+            steps_goal.preempt = steps_goal.PREEMPT_NO;
+            sendGoal(steps_goal);
+            ROS_DEBUG("Send Step Goal Once!!!!!!!!!!");
+            step_msg_.footstep.clear();
+
 //        action_client_ptr->waitForResult(3);
 
       }
@@ -885,7 +906,7 @@ using namespace free_gait;
     //! TODO : Test it via a topic?
     if(crawl_flag)
       {
-        if(is_done)
+          if(is_done)
           {
             ROS_INFO("Switch to Next Step");
             is_done = false;
@@ -917,12 +938,18 @@ using namespace free_gait;
             limb_phase.at(next_swing_leg).swing_status = true;
             limb_phase.at(next_swing_leg).stance_status = false;
             crawl_leg_switched = true;
+//            pre_step = true;
           }
           for(int i = 0;i<4;i++)
             {
               LimbEnum limb = static_cast<LimbEnum>(i);
               robot_state_.setSupportLeg(limb, limb_phase.at(limb).stance_status);
             }
+//          if(is_done && !crawl_leg_switched)
+//            {
+//              pre_step = true;
+//            }
+
           }else{
 
         int number_of_swing_contacted = 0;

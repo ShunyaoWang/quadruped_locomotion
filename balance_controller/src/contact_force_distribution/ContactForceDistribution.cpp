@@ -378,6 +378,7 @@ bool ContactForceDistribution::addDesiredLegLoadConstraints()
 
   C_.setZero();
   c_.setZero();
+//  c_ = -std::numeric_limits<double>::max() * VectorXd::Ones(C.rows());
   solveOptimization(); // Solving once without equality constraints
 
   for (auto& legInfo : legInfos_)
