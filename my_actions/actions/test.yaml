@@ -95,3 +95,9 @@ actions:
       file: motion_scripts/stand_middle.yaml
       type: yaml
       description: robot stand at a height of 0.3
+  - action:
+      id: "17"
+      name: change leg configure
+      file: motion_scripts/joints_move.yaml
+      type: yaml
+      description: change leg configure to '<<' type
