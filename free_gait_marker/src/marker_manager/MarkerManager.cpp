@@ -554,6 +554,9 @@ bool MarkerManager::sendStepGoal()
     free_gait_msgs::Step preStep;
     free_gait_msgs::BaseAuto baseMotion;
     baseMotion.height = 0.45;
+    baseMotion.support_margin = 0.07;
+    baseMotion.average_linear_velocity = 0.1;
+    baseMotion.average_angular_velocity = 0.2;
     preStep.base_auto.push_back(baseMotion);
     if(!ignoreBaseMotion_)
       goal.steps.push_back(preStep);
@@ -563,9 +566,9 @@ bool MarkerManager::sendStepGoal()
     footstep.name = foothold.legName;
     footstep.target.header.frame_id = footholdFrameId_;
     footstep.target.point = marker.pose.position;
-    footstep.profile_type = "triangle";
-    footstep.profile_height = 0.15;
-    footstep.average_velocity = 0.65;
+    footstep.profile_type = "straight";
+//    footstep.profile_height = 0.15;
+    footstep.average_velocity = 0.3;
 //    footstep.ignore_for_pose_adaptation = true;
 //    swingData.profile.type = "square";
     step.footstep.push_back(footstep);

@@ -2,23 +2,23 @@ balance_controller:
   virtual_model_controller:
     heading:
       kp: 600
-      kd: 90
+      kd: 30
       kff: 1
     lateral:
       kp: 1000
-      kd: 100
+      kd: 20
       kff: 1
     vertical:
-      kp: 1500
-      kd: 100
+      kp: 1000
+      kd: 20
       kff: 1
     roll:
       kp: 200
-      kd: 50
+      kd: 20
       kff: 0.2
     pitch:
       kp: 400
-      kd: 80
+      kd: 20
       kff: 0.2
     yaw:
       kp: 200
@@ -41,8 +41,8 @@ balance_controller:
         value: 1
         is_use: false
     constraints:
-      friction_coefficient: 0.6
-      minimal_normal_force: 10
+      friction_coefficient: 0.4
+      minimal_normal_force: 30
       load_factor: 1
 single_leg_controller:
   x_direction:

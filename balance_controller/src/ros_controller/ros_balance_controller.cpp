@@ -1488,7 +1488,7 @@ namespace balance_controller{
                 limbs_state.at(limb)->setState(StateSwitcher::States::SwingNormal);
                 continue;
               }
-            if(sw_phase.at(limb)>0.5 && real_contact_.at(limb) && limbs_state.at(limb)->getState() == StateSwitcher::States::SwingNormal)
+            if(sw_phase.at(limb)>0.7 && real_contact_.at(limb) && limbs_state.at(limb)->getState() == StateSwitcher::States::SwingNormal)
               {
                 limbs_state.at(limb)->setState(StateSwitcher::States::SwingEarlyTouchDown);
                 continue;

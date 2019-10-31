@@ -173,7 +173,7 @@ using namespace free_gait;
   {
     t_swing_ = t_swing;
     t_stance_ = t_stance;
-    step_msg_.base_auto.resize(1);
+//    step_msg_.base_auto.resize(1);
 //    step_msg_.base_target.resize(1);
     limb_phase[LimbEnum::LF_LEG].swing_phase = 0;
     limb_phase[LimbEnum::LF_LEG].stance_phase = 0;
@@ -207,6 +207,10 @@ using namespace free_gait;
     pace_flag =true;
     trot_flag = false;
     crawl_flag = false;
+    if(base_auto_flag)
+      step_msg_.base_auto.resize(1);
+    if(base_target_flag)
+      step_msg_.base_target.resize(1);
     return true;
   }
 
@@ -396,7 +400,7 @@ using namespace free_gait;
 
             if(pace_flag || crawl_flag)
               {
-                displace_in_footprint = Position(0.25*t_stance_*desired_vel2D);
+                displace_in_footprint = Position(0.34*t_stance_*desired_vel2D);
 
               }
             displace_in_footprint(2) = 0.02;
@@ -449,7 +453,9 @@ using namespace free_gait;
 //                Pose start_pose;
                 if(limb == free_gait::LimbEnum::LF_LEG)
                   {
-                    start_pose = Pose(robot_state_.getPositionWorldToBaseInWorldFrame(), robot_state_.getOrientationBaseToWorld());
+//                    start_pose = Pose(robot_state_.getPositionWorldToBaseInWorldFrame(), robot_state_.getOrientationBaseToWorld());
+                    optimizePose(start_pose);
+                    start_pose.getPosition().z() = robot_state_.getPositionWorldToBaseInWorldFrame().z();
                   }
                 hip_in_baselink = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb)
                                  + start_pose.getRotation().inverseRotate(Position(0,0,-height_-0.05));
@@ -609,7 +615,7 @@ using namespace free_gait;
             step_msg_.footstep.push_back(footstep_msg_);
 //            ROS_WARN("Generate foot hold position(%f, %f, %f) for %s ",footstep_msg_.target.point.x,footstep_msg_.target.point.y,footstep_msg_.target.point.z,
 //                     getLimbStringFromLimbEnum(limb).c_str());
-            stanceForOrientation_[limb] = robot_state_.getOrientationBaseToWorld().rotate(target_in_base) + robot_state_.getPositionWorldToBaseInWorldFrame();
+//            stanceForOrientation_[limb] = robot_state_.getOrientationBaseToWorld().rotate(target_in_base) + robot_state_.getPositionWorldToBaseInWorldFrame();
 //            footholds_in_stance += robot_state_.getPositionBaseToFootInBaseFrame(limb);
 //            ROS_INFO_STREAM("Footholds limb "<<getLimbStringFromLimbEnum(limb).c_str()<<" in Base is : "<<robot_state_.getPositionBaseToFootInBaseFrame(limb)<<std::endl);
 
@@ -633,8 +639,14 @@ using namespace free_gait;
 //    ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<std::endl);
     visualization_msgs::Marker base_marker;
     visualization_msgs::MarkerArray com_proj_markers;
-    desired_linear_velocity = desired_linear_velocity_world_;
-    desired_angular_velocity = desired_angular_velocity_;
+    if(!crawl_flag)
+      {
+        desired_linear_velocity = desired_linear_velocity_world_;
+        desired_angular_velocity = desired_angular_velocity_;
+      }else{
+        desired_linear_velocity = LinearVelocity(0,0,0);
+        desired_angular_velocity = LocalAngularVelocity(0,0,0);
+      }
     P_CoM_desired_.setZero();
     Position foot_sum;
     for(int i = 0; i<4 ;i++)

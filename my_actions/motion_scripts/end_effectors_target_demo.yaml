@@ -6,8 +6,10 @@ steps:
   - step:
     - base_auto:
        height: 0.5
+       average_linear_velocity: 0.1
+       average_angular_velocity: 0.2
        ignore_timing_of_leg_motion: false
-       support_margin: 0.075
+       support_margin: 0.07
   - step:
     - end_effector_target:
         name: LF_LEG
@@ -19,10 +21,10 @@ steps:
   - step:
     - base_auto:
        height: 0.35
-       average_linear_velocity: 0.15
+       average_linear_velocity: 0.1
        average_angular_velocity: 0.2
        ignore_timing_of_leg_motion: false
-       support_margin: 0.075
+       support_margin: 0.07
     - end_effector_target:
         name: LF_LEG
         ignore_contact: true
@@ -33,14 +35,22 @@ steps:
   - step:
     - base_auto:
        height: 0.5
-       average_linear_velocity: 0.15
+       average_linear_velocity: 0.1
        average_angular_velocity: 0.2
        ignore_timing_of_leg_motion: false
-       support_margin: 0.075
+       support_margin: 0.07
+    - end_effector_target:
+        name: LF_LEG
+        ignore_contact: true
+        ignore_for_pose_adaptation: true
+        target_position:
+          frame: foot_print
+          position: [0.4,0.25,0.2]
   - step:
     - footstep:
         name: LF_LEG
         profile_type: straight
+        average_velocity: 0.2
         target:
           frame: foot_print
           position: [0.4,0.25,0]

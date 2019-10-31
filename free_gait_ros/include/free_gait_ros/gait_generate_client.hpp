@@ -116,7 +116,7 @@ private:
   std::unique_ptr<free_gait::BaseMotionBase> base_motion_;
 
   LimbPhase limb_phase;
-  free_gait::Stance foothold_in_support_;
+  free_gait::Stance foothold_in_support_, start_footholds;
 //  std::unique_ptr<free_gait::PoseOptimizationGeometric> poseOptimizationGeometric_;
 //  const free_gait::StepParameters& parameters_;
   free_gait::PlanarStance nominalPlanarStanceInBaseFrame;
