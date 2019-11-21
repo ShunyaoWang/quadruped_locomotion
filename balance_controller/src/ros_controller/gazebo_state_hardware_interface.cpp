@@ -66,6 +66,7 @@ bool SimRobotStateHardwareInterface::initSim(
   robot_state_data_.foot_contact = foot_contact;
   robot_state_data_.contact_pressure = contact_pressure;
   robot_state_data_.motor_status_word = motor_status_word;
+  robot_state_data_.mode_of_joint = mode_of_joint;
   //! WSHY: registerhandle pass the data point to the hardwareResourseManager and then
   //! the read() method update data which the pointer points to or write() the
   //! updated commmand
@@ -187,6 +188,7 @@ bool SimRobotStateHardwareInterface::initSim(
       joint_handle = hardware_interface::JointHandle(js_interface_.getHandle(joint_names_[j]),
                                                      &joint_position_command_[j]);
       pj_interface_.registerHandle(joint_handle);
+      robot_state_interface_.joint_position_interfaces_.registerHandle(joint_handle);
 //    }
 //    else if(hardware_interface == "VelocityJointInterface" || hardware_interface == "hardware_interface/VelocityJointInterface")
 //    {
@@ -430,17 +432,17 @@ void SimRobotStateHardwareInterface::writeSim(ros::Time time, ros::Duration peri
           double error;
           switch (joint_types_[j])
           {
-            case urdf::Joint::REVOLUTE:
-              angles::shortest_angular_distance_with_limits(joint_position_[j],
-                                                            joint_position_command_[j],
-                                                            joint_lower_limits_[j],
-                                                            joint_upper_limits_[j],
-                                                            error);
-              break;
-            case urdf::Joint::CONTINUOUS:
-              error = angles::shortest_angular_distance(joint_position_[j],
-                                                        joint_position_command_[j]);
-              break;
+//            case urdf::Joint::REVOLUTE:
+//              angles::shortest_angular_distance_with_limits(joint_position_[j],
+//                                                            joint_position_command_[j],
+//                                                            joint_lower_limits_[j],
+//                                                            joint_upper_limits_[j],
+//                                                            error);
+//              break;
+//            case urdf::Joint::CONTINUOUS:
+//              error = angles::shortest_angular_distance(joint_position_[j],
+//                                                        joint_position_command_[j]);
+//              break;
             default:
               error = joint_position_command_[j] - joint_position_[j];
           }

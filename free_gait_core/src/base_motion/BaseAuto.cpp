@@ -127,9 +127,9 @@ bool BaseAuto::prepareComputation(const State& state, const Step& step, const St
   for (const auto& limb : adapter.getLimbs()) {
     minLimbLenghts_[limb] = 0.1; // TODO Make as parameters.
     if (footholdsOfNextLegMotion_.find(limb) == footholdsOfNextLegMotion_.end()) {
-      maxLimbLenghts_[limb] = 0.7; // Foot stays in contact. // 0.57
+      maxLimbLenghts_[limb] = 0.65; // Foot stays in contact. // 0.57
     } else {
-      maxLimbLenghts_[limb] = 0.7; // Foot leaves contact. // 0.6
+      maxLimbLenghts_[limb] = 0.65; // Foot leaves contact. // 0.6
     }
   }
 //  std::cout<<"support region "<<supportRegion.getVertex(1)<<std::endl;
@@ -361,7 +361,7 @@ bool BaseAuto::generateFootholdLists(const State& state, const Step& step, const
       // Double check if right format.
       if (step.getLegMotion(limb).getTrajectoryType() == LegMotionBase::TrajectoryType::EndEffector
           && step.getLegMotion(limb).getControlSetup().at(ControlLevel::Position)) {
-        // Use target end effector position.
+//        std::cout<<"Use target end effector position."<<std::endl;
         const auto& legMotion = dynamic_cast<const EndEffectorMotionBase&>(step.getLegMotion(limb));
         footholdsToReach_[limb] = adapter.transformPosition(legMotion.getFrameId(ControlLevel::Position),
                                                             adapter.getWorldFrameId(),
@@ -371,7 +371,7 @@ bool BaseAuto::generateFootholdLists(const State& state, const Step& step, const
         return false;
       }
     } else {
-      // Use current foot position.
+//      std::cout<<"Use current foot position."<<std::endl;
       if (!state.isIgnoreForPoseAdaptation(limb)) {
         footholdsToReach_[limb] = adapter.getPositionWorldToFootInWorldFrame(limb);
       }

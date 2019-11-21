@@ -38,7 +38,7 @@
 #include "std_msgs/Int8MultiArray.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "nav_msgs/Odometry.h"
-#include "geometry_msgs/Wrench.h"
+#include "geometry_msgs/WrenchStamped.h"
 #include "std_msgs/Time.h"
 
 #include "Eigen/Dense"
@@ -77,6 +77,7 @@ namespace balance_controller {
      * interface
      */
     std::vector<hardware_interface::JointHandle> joints;
+    std::vector<hardware_interface::JointHandle> position_joints;
 //    std::vector<hardware_interface::RobotStateHandle> joints;
     /**
      * @brief robot_state_handle, handle robot state
@@ -149,14 +150,15 @@ namespace balance_controller {
      * @brief joint_command_pub_, for debug to monitor
      */
     ros::Publisher joint_command_pub_, base_command_pub_, base_actual_pub_, joint_actual_pub_,
-    leg_state_pub_, contact_desired_pub_, leg_phase_pub_, desired_robot_state_pub_, actual_robot_state_pub_, motor_status_word_pub_, vmc_info_pub_, desired_vmc_info_pub_;
+    leg_state_pub_, contact_desired_pub_, leg_phase_pub_, desired_robot_state_pub_, actual_robot_state_pub_,
+    motor_status_word_pub_, vmc_info_pub_, desired_vmc_info_pub_;
     std::vector<nav_msgs::Odometry> base_command_pose_, base_actual_pose_;
     std::vector<sensor_msgs::JointState> joint_command_, joint_actual_;
     std::vector<std_msgs::Int8MultiArray> leg_states_;
     std::vector<sim_assiants::FootContacts> foot_desired_contact_;
     std::vector<std_msgs::Float64MultiArray> leg_phases_;
     std::vector<free_gait_msgs::RobotState> desired_robot_state_, actual_robot_state_;
-    std::vector<geometry_msgs::Wrench> vitual_force_torque_, desired_vitual_force_torque_;
+    std::vector<geometry_msgs::WrenchStamped> vitual_force_torque_, desired_vitual_force_torque_;
     std::vector<std_msgs::Time> log_time_;
     std::vector<std_msgs::Int8MultiArray> motor_status_word_;
     ros::ServiceServer log_data_srv_;
@@ -172,7 +174,7 @@ namespace balance_controller {
 
     int delay_counts[4];
 
-    bool real_robot, ignore_contact_sensor;
+    bool real_robot, ignore_contact_sensor,log_data;
 
     double initial_pressure[4];
     double contact_pressure_bias;

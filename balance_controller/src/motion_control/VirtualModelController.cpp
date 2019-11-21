@@ -294,8 +294,10 @@ bool VirtualModelController::computeVirtualTorque()
 //                       + gravityCompensationTorqueInBaseFrame_;
 
   virtualTorqueInBaseFrame_ = Torque(proportionalGainRotation_.cwiseProduct(orientationError_))
-                       +Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation()))
-                       +Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame))
+      +Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation()))
+      +Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame))
+//                       +orientationControlToBase.rotate(Torque(derivativeGainRotation_.cwiseProduct(angularVelocityErrorInControlFrame_.toImplementation())))
+//                       +orientationControlToBase.rotate(Torque(feedforwardGainRotation_.cwiseProduct(feedforwardTermInControlFrame)))
                        + gravityCompensationTorqueInBaseFrame_;
 
 //  std::cout << "--------------------" << std::endl

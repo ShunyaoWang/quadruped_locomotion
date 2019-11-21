@@ -25,10 +25,12 @@ public:
 
   bool minimize(const PoseOptimizationProblem& problem,
                 PoseParameterization& params);
+  int getIterationTimes();
 
 private:
   double tolerance_;
   int max_iteration_;
+  int iteration_times_;
   std::shared_ptr<qp_solver::QuadraticProblemSolver> quadratic_solver_;
 };
 

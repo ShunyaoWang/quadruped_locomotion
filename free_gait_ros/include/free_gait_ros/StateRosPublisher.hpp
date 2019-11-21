@@ -34,6 +34,7 @@ class StateRosPublisher
   bool publish(const State& state, const StepQueue& step_queue);
   bool publish(const State& state);
   bool publish();
+  bool publish(const Pose& base_pose);
  private:
   bool initializeRobotStatePublisher();
 

@@ -444,33 +444,33 @@ bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
     VecQDDotAct = jacobian.transpose()*jac_mul_qddot;
 //    VecQDDotAct =
 
-    if(real_time)
-      {
-        std::queue<VectorNd> last_queue, current_queue;
-        last_queue = QDotActQueueLimb.at(limb);
-        current_queue = QDotActQueueLimb.at(limb);
-        int window_size = QDotActQueueLimb.at(limb).size() - 1;
-        for(int i = 0;i<QDotActQueueLimb.at(limb).size() - 1 ;i++)
-          {
-            current_queue.pop();
-            QDotAcutal.row(calculation_iterstions) = QDotAcutal.row(calculation_iterstions) + current_queue.front();
-            QDotAcutal.row(calculation_iterstions - 1) = QDotAcutal.row(calculation_iterstions - 1) + last_queue.front();
-            last_queue.pop();
-          }
-        QDotAcutal.row(calculation_iterstions) = QDotAcutal.row(calculation_iterstions)/window_size;
-        QDotAcutal.row(calculation_iterstions - 1) = QDotAcutal.row(calculation_iterstions - 1)/window_size;
+//    if(real_time)
+//      {
+//        std::queue<VectorNd> last_queue, current_queue;
+//        last_queue = QDotActQueueLimb.at(limb);
+//        current_queue = QDotActQueueLimb.at(limb);
+//        int window_size = QDotActQueueLimb.at(limb).size() - 1;
+//        for(int i = 0;i<QDotActQueueLimb.at(limb).size() - 1 ;i++)
+//          {
+//            current_queue.pop();
+//            QDotAcutal.row(calculation_iterstions) = QDotAcutal.row(calculation_iterstions) + current_queue.front();
+//            QDotAcutal.row(calculation_iterstions - 1) = QDotAcutal.row(calculation_iterstions - 1) + last_queue.front();
+//            last_queue.pop();
+//          }
+//        QDotAcutal.row(calculation_iterstions) = QDotAcutal.row(calculation_iterstions)/window_size;
+//        QDotAcutal.row(calculation_iterstions - 1) = QDotAcutal.row(calculation_iterstions - 1)/window_size;
 
-        for (int num = 0; num < num_of_joints; ++num) {
-          QDDotAcutal(calculation_iterstions,num) = (QDotAcutal(calculation_iterstions,num) - QDotAcutal(calculation_iterstions - 1, num))/period.toSec();
+//        for (int num = 0; num < num_of_joints; ++num) {
+//          QDDotAcutal(calculation_iterstions,num) = (QDotAcutal(calculation_iterstions,num) - QDotAcutal(calculation_iterstions - 1, num))/period.toSec();
 
-          }
-//        VecQDDotAct = QDDotAcutal.row(calculation_iterstions).transpose();
-        InverseDynamics(*LimbRBDLModel.at(limb),VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
-      }else{
+//          }
+////        VecQDDotAct = QDDotAcutal.row(calculation_iterstions).transpose();
+//        InverseDynamics(*LimbRBDLModel.at(limb),VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
+//      }else{
         InverseDynamics(*LimbRBDLModel.at(limb),VecQAct,VecQDotAct,VecQDDotAct,VecTauAct);
 //        if(limb == free_gait::LimbEnum::RF_LEG || limb == free_gait::LimbEnum::LH_LEG)
 //          VecTauAct = -VecTauAct;
-      }
+//      }
 
 //    VecQDotAct = QDotAcutal.row(calculation_iterstions).transpose();
 //    VecQDDotAct = QDDotAcutal.row(calculation_iterstions).transpose();
@@ -522,6 +522,17 @@ bool MyRobotSolver::update(const ros::Time& time, const ros::Duration& period,
     VecTauAct = jacobian.transpose() * (kp_.cwiseProduct(position_error_in_base)
                                         + kd_.cwiseProduct(velocity_error_in_base))
                 + VecTauAct;
+    if(real_time)
+      {
+        for(int i=0;i<VecTauAct.size();i++)
+          {
+            if(VecTauAct[i]>20.0)
+              VecTauAct[i] = 20.0;
+            if(VecTauAct[i]<-20.0)
+              VecTauAct[i] = -20.0;
+          }
+      }
+
 //
 //    ROS_INFO("Finish swing leg controller update");
     return true;

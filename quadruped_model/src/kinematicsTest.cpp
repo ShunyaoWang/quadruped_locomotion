@@ -43,7 +43,7 @@ int main(int argc, char **argv)
   QK.AnalysticJacobian(joints, LimbEnum::RF_LEG, jacobian);
   cout<<"jacobian : "<<endl<<jacobian<<endl;
 
-  JointPositionsLimb joint_G(0,0,0);
+  JointPositionsLimb joint_G(0,-1.50,0);
   Force gravity_in_base(0,0,-9.8);
   JointTorquesLimb gravity_compensation_torque = QK.getGravityCompensationForLimb(LimbEnum::LF_LEG, joint_G, gravity_in_base);
   cout<<"gravity_compensation_torque :"<<endl<<gravity_compensation_torque<<endl;

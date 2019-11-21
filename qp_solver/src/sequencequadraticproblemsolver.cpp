@@ -130,6 +130,11 @@ bool SequenceQuadraticProblemSolver::minimize(const PoseOptimizationProblem& pro
 
   }
   cout<<"iterate times : "<<k<<endl;
+  iteration_times_ = k;
   return true;
+}
+int SequenceQuadraticProblemSolver::getIterationTimes()
+{
+  return iteration_times_;
 }
 }// namespace sqp_solver

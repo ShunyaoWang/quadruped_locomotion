@@ -202,16 +202,20 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
       {
         StateSwitcher::States foot_state = static_cast<StateSwitcher::States>(robot_state_handle.foot_contact_[i]);
         free_gait::LimbEnum limb = static_cast<free_gait::LimbEnum>(i);
-//        if(foot_state == StateSwitcher::States::SwingEarlyTouchDown)
-//          {
+        real_contact_.at(limb) = false;
+        foot_msg.data[i] = 0;
+
+        if(foot_state == StateSwitcher::States::SwingEarlyTouchDown)
+          {
 //            //delay 10 periods for make sure contact
 //            delay_counts[i] ++;
 //            if(delay_counts[i] == 10)
 //              {
 //                delay_counts[i] = 0;
-//                real_contact_.at(limb) = true;
+                real_contact_.at(limb) = true;
+                foot_msg.data[i] = 0;
 //              }
-//          }
+          }
 //        if(foot_state == StateSwitcher::States::SwingLatelyTouchDown)
 //          {
 //            //delay 10 periods for make sure contact
@@ -223,8 +227,7 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
 //              }
 //          }
 
-        real_contact_.at(limb) = false;
-        foot_msg.data[i] = 0;
+
         if(foot_state == StateSwitcher::States::StanceNormal)
           {
             real_contact_.at(limb) = true;
@@ -371,6 +374,7 @@ void StateEstimateController::update(const ros::Time& time, const ros::Duration&
     robot_state_.base_pose.twist.twist.angular = LegOdom->imu_output.angular_velocity;
     robot_state_.base_pose.child_frame_id = "/base_link";
     robot_state_.base_pose.header.frame_id = "/odom";
+    robot_state_.base_pose.header.stamp = ros::Time::now();
 
     robot_state_pub_.publish(robot_state_);
 //    ROS_ERROR("robot_state_..........");

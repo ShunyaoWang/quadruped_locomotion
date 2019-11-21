@@ -330,9 +330,12 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
                                      robot_state_.base_pose.twist.twist);
 //  ROS_INFO("In ros state publisher");
   LegMotionBase::Type leg_motion_type;
-
-  if(state.isSupportLeg(LimbEnum::LF_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::LF_LEG))
+//  ROS_WARN(" Flag 1");
+//  if(!step_queue.empty())
+//    {
+  if(state.isSupportLeg(LimbEnum::LF_LEG))// || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::LF_LEG))
       {
+//      ROS_WARN(" Flag 2");
         robot_state_.lf_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::LF_LEG)){
             kindr_ros::convertToRosGeometryMsg(state.getSurfaceNormal(LimbEnum::LF_LEG),
@@ -342,14 +345,21 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
                                                robot_state_.lf_leg_mode.surface_normal.vector);
           }
         robot_state_.lf_leg_mode.phase = 0;
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
-          robot_state_.lf_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+        if(!step_queue.empty())
+          {
+            if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
+              robot_state_.lf_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+          }
       }else {
+//      ROS_WARN(" Flag 3");
       robot_state_.lf_leg_mode.phase = 0;
-      if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::LF_LEG))
+      if(!step_queue.empty())
         {
-          robot_state_.lf_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LF_LEG);
-          leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::LF_LEG).getType();
+        if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::LF_LEG))
+          {
+            robot_state_.lf_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LF_LEG);
+            leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::LF_LEG).getType();
+          }
         }
       robot_state_.lf_leg_mode.support_leg = false;
 //        ROS_INFO("In ros state publisher");
@@ -394,7 +404,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
         ****************/
 //        ROS_INFO("In ros state publisher");
     }
-    if(state.isSupportLeg(LimbEnum::RF_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::RF_LEG))
+    if(state.isSupportLeg(LimbEnum::RF_LEG))//  || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::RF_LEG))
       {
         robot_state_.rf_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::RF_LEG)){
@@ -405,14 +415,20 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
                                                robot_state_.rf_leg_mode.surface_normal.vector);
           }
         robot_state_.rf_leg_mode.phase = 0;
-        if(!step_queue.empty() && step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
-          robot_state_.rf_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+        if(!step_queue.empty())
+          {
+            if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
+              robot_state_.rf_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+          }
       }else {
         robot_state_.rf_leg_mode.phase = 0;
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::RF_LEG))
+        if(!step_queue.empty())
           {
+          if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::RF_LEG))
+            {
             robot_state_.rf_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::RF_LEG);
             leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::RF_LEG).getType();
+            }
           }
         robot_state_.rf_leg_mode.support_leg = false;
         if(leg_motion_type == LegMotionBase::Type::JointTarget || leg_motion_type == LegMotionBase::Type::JointTrajectory)
@@ -450,7 +466,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
           }
 
     }
-    if(state.isSupportLeg(LimbEnum::RH_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::RH_LEG))
+    if(state.isSupportLeg(LimbEnum::RH_LEG))//  || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::RH_LEG))
       {
         robot_state_.rh_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::RH_LEG)){
@@ -461,14 +477,20 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
                                                robot_state_.rh_leg_mode.surface_normal.vector);
           }
         robot_state_.rh_leg_mode.phase = 0;
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
-          robot_state_.rh_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+        if(!step_queue.empty())
+          {
+            if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
+              robot_state_.rh_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+          }
       }else {
         robot_state_.rh_leg_mode.phase = 0;
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::RH_LEG))
+        if(!step_queue.empty())
           {
+          if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::RH_LEG))
+            {
             robot_state_.rh_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::RH_LEG);
             leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::RH_LEG).getType();
+            }
           }
         robot_state_.rh_leg_mode.support_leg = false;
         if(leg_motion_type == LegMotionBase::Type::JointTarget || leg_motion_type == LegMotionBase::Type::JointTrajectory)
@@ -506,7 +528,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
           }
 
     }
-    if(state.isSupportLeg(LimbEnum::LH_LEG) || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::LH_LEG))
+    if(state.isSupportLeg(LimbEnum::LH_LEG))//  || !step_queue.getCurrentStep().hasLegMotion(LimbEnum::LH_LEG))
       {
         robot_state_.lh_leg_mode.support_leg = true;
         if(state.hasSurfaceNormal(LimbEnum::LH_LEG)){
@@ -517,14 +539,20 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
                                                robot_state_.lh_leg_mode.surface_normal.vector);
           }
         robot_state_.lh_leg_mode.phase = 0;
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
-          robot_state_.lh_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+        if(!step_queue.empty())
+          {
+            if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasBaseMotion())
+              robot_state_.lh_leg_mode.phase = step_queue.getCurrentStep().getBaseMotionPhase();
+          }
       }else {
         robot_state_.lh_leg_mode.phase = 0;
-        if(!step_queue.empty()&& step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::LH_LEG))
+        if(!step_queue.empty())
           {
+          if(step_queue.getCurrentStep().isUpdated() && step_queue.getCurrentStep().hasLegMotion(LimbEnum::LH_LEG))
+            {
             robot_state_.lh_leg_mode.phase = step_queue.getCurrentStep().getLegMotionPhase(LimbEnum::LH_LEG);
             leg_motion_type = step_queue.getCurrentStep().getLegMotion(LimbEnum::LH_LEG).getType();
+            }
           }
         robot_state_.lh_leg_mode.support_leg = false;
         if(leg_motion_type == LegMotionBase::Type::JointTarget || leg_motion_type == LegMotionBase::Type::JointTrajectory)
@@ -563,7 +591,7 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
 
       }
 
-
+//    }
   robot_state_pub_.publish(robot_state_);
 //  ROS_INFO("Publised robot state once");
   return true;
@@ -571,6 +599,15 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
 
 bool StateRosPublisher::publish()
 {
+  robot_state_pub_.publish(robot_state_);
+  return true;
+}
+
+bool StateRosPublisher::publish(const Pose& base_pose)
+{
+
+  kindr_ros::convertToRosGeometryMsg(base_pose,
+                                     robot_state_.base_pose.pose.pose);
   robot_state_pub_.publish(robot_state_);
   return true;
 }

@@ -21,6 +21,9 @@
 #include "qp_solver/quadraticproblemsolver.h"
 #include <std_utils/timers/ChronoTimer.hpp>
 
+#include "iostream"
+#include "fstream"
+
 #include <limits>
 
 namespace free_gait {
@@ -83,6 +86,7 @@ class PoseOptimizationSQP : public PoseOptimizationBase
   std_utils::HighResolutionClockTimer timer_;
   double durationInCallback_;
   size_t nIterations_;
+  std::ofstream outfile_;
 };
 
 } /* namespace loco */

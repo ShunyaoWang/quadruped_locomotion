@@ -1973,7 +1973,7 @@ void QuadrupedEstimation::GetFootPoseInBase() {
 //    ROS_WARN("GetFootPoseInBase...");
 
     if(joints_output.position.at(0) ==0) {
-        ROS_WARN("***Joints_init---no msg");
+//        ROS_WARN("***Joints_init---no msg");
     }
     /*else {
         ROS_WARN("********Joints_get_data************");
@@ -2210,7 +2210,7 @@ void QuadrupedEstimation::GetLinearVelFromJointvel() {
                 min_index_b = j;
               }
           }
-        if(foot_output.data[i] == 1 && V_Jacob[i](0)<1 && V_Jacob[i](1)<1 && V_Jacob[i](2)<1)
+        if(foot_output.data[i] == 1)// && fabs(V_Jacob[i](0))<1 && fabs(V_Jacob[i](1))<1 && fabs(V_Jacob[i](2))<1)
           foots[i] = 1;
         else
           foots[i] = 0;
@@ -2256,7 +2256,7 @@ void QuadrupedEstimation::GetLinearVelFromJointvel() {
             /number_of_contact;
     //    cout << "odom_vel_inodom: "<< odom_vel_inodom << endl;
         LinearVelocity imu_ang_vel = GetLinearVelFromIMUAng();
-        odom_vel_inodom = odom_vel_inodom + imu_ang_vel;
+//        odom_vel_inodom = odom_vel_inodom + imu_ang_vel;
       }
 
 

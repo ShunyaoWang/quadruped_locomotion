@@ -1,0 +1,29 @@
+adapt_coordinates:
+ - transform:
+    source_frame: foot_print
+    target_frame: odom
+
+steps:
+  - step:
+    - base_auto:
+       height: 0.5
+       ignore_timing_of_leg_motion: true
+       average_linear_velocity: 0.15
+       average_angular_velocity: 0.2
+       support_margin: 0.07
+  - step:
+    - end_effector_trajectory:
+        name: LF_LEG
+        trajectory:
+          frame: foot_print
+          knots: [{time: 1.0, position: [0.6,0.3,0.2]},{time: 3.0, position: [0.7,0.3,0.6]},{time: 4.5, position: [0.7,0.3,0.6]},{time: 10, position: [0.42,0.3,0.0]}]
+        ignore_contact: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+  - step:
+    - leg_mode:
+        name: LF_LEG
+        duration: 0.01
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false

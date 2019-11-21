@@ -77,6 +77,9 @@ bool PoseOptimizationQP::optimize(Pose& pose)
   Eigen::MatrixXd G;
   Eigen::VectorXd hp;
   supportRegion_.convertToInequalityConstraints(G, hp);
+  grid_map::Polygon supportRegionCopy(supportRegion_);
+//  supportRegionCopy.offsetInward(0.01);
+//  supportRegionCopy.convertToInequalityConstraints(G, hp);
   Eigen::VectorXd h = hp - G * (R * centerOfMassInBaseFrame.vector()).head(2);
   G.conservativeResize(Eigen::NoChange,3); // Add column corresponding to Z position
   G.col(2).setZero(); // No constraints in Z position

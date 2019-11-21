@@ -11,28 +11,29 @@ state_estimate_update:
 single_leg_controller:
   type: "balance_controller/SingleLegController"
   joints: ['front_left_1_joint', 'front_left_2_joint', 'front_left_3_joint', 'front_right_1_joint', 'front_right_2_joint', 'front_right_3_joint', 'rear_right_1_joint', 'rear_right_2_joint', 'rear_right_3_joint', 'rear_left_1_joint', 'rear_left_2_joint', 'rear_left_3_joint']
-  legs: ['LF_LEG', 'RF_LEG', 'RH_LEG', 'LH_LEG']
-  control_methods: ['end_position','end_position','end_position','end_position']
+  legs: ['LH_LEG']
+  control_methods: ['end_position']
   real_time: true
 
 base_balance_controller:
   type: "balance_controller/RosBalanceController"
   real_robot: true
   ignore_contact_sensor: false
-  contact_pressure_bias: 20
+  contact_pressure_bias: 80
+  log_data: true
   joints: ['front_left_1_joint', 'front_left_2_joint', 'front_left_3_joint', 'front_right_1_joint', 'front_right_2_joint', 'front_right_3_joint', 'rear_right_1_joint', 'rear_right_2_joint', 'rear_right_3_joint', 'rear_left_1_joint', 'rear_left_2_joint', 'rear_left_3_joint']
-  front_left_1_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  front_left_2_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  front_left_3_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  front_right_1_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  front_right_2_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  front_right_3_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  rear_left_1_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  rear_left_2_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  rear_left_3_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  rear_right_1_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  rear_right_2_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
-  rear_right_3_joint/pid: {p: 10.0, i: 0.01, d: 1.0}
+  front_left_1_joint/pid: {p: 200.0, i: 0.01, d: 1.0}
+  front_left_2_joint/pid: {p: 300.0, i: 0.01, d: 1.0}
+  front_left_3_joint/pid: {p: 200.0, i: 0.01, d: 1.0}
+  front_right_1_joint/pid: {p: 200.0, i: 0.01, d: 3.0}
+  front_right_2_joint/pid: {p: 400.0, i: 0.01, d: 3.0}
+  front_right_3_joint/pid: {p: 400.0, i: 0.01, d: 3.0}
+  rear_left_1_joint/pid: {p: 200.0, i: 0.01, d: 3.0}
+  rear_left_2_joint/pid: {p: 400.0, i: 0.01, d: 3.0}
+  rear_left_3_joint/pid: {p: 400.0, i: 0.01, d: 3.0}
+  rear_right_1_joint/pid: {p: 200.0, i: 0.01, d: 3.0}
+  rear_right_2_joint/pid: {p: 400.0, i: 0.01, d: 3.0}
+  rear_right_3_joint/pid: {p: 400.0, i: 0.01, d: 3.0}
 
 all_joints_position_effort_group_controller:
   type: effort_controllers/JointGroupPositionController

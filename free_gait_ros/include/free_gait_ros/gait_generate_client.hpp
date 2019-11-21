@@ -20,6 +20,10 @@
 #include "free_gait_ros/FootstepOptimization.hpp"
 #include "free_gait_ros/RosVisualization.hpp"
 #include "free_gait_msgs/SetStepParameter.h"
+#include "geometry_msgs/PolygonStamped.h"
+#include "std_msgs/Float64MultiArray.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Path.h"
 
 class GaitGenerateClient
 {
@@ -83,30 +87,35 @@ public:
 //                          LocalAngularVelocity& desired_angular_velocity);
 
 
+  bool publishMarkers();
 
-
+  Pose getDesiredBasePose();
 
   std::vector<LinearVelocity> current_velocity_buffer_;
+  bool ignore_vd;
+
+  int getGaitType();
 
 
 private:
   ros::NodeHandle nodeHandle_;
   ros::Subscriber velocity_command_sub_;
   ros::ServiceServer gaitSwitchServer_, stepParameterServer_;
-  ros::Publisher foot_marker_pub_, com_proj_marker_pub_, desired_base_com_marker_pub_;
+  ros::Publisher foot_marker_pub_, com_proj_marker_pub_, desired_base_com_marker_pub_, support_polygon_pub_, weight_pub_, desired_com_path_pub_;
 
   free_gait::State robot_state_;
   Pose base_pose;
   bool is_updated, is_done, is_active, use_terrian_map;
   std::unique_ptr<free_gait::FreeGaitActionClient> action_client_ptr;
-  double height_, step_displacement, profile_height, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
+  double height_, t_swing_delay, step_displacement, profile_height, t_swing_, t_stance_, sigma_sw_0, sigma_sw_1, sigma_st_0, sigma_st_1;
   std::string profile_type;
   int step_number;
   Position LF_nominal, RF_nominal, LH_nominal, RH_nominal, P_CoM_desired_;
   Position footholds_in_stance, footprint_center_in_base, footprint_center_in_world;
-  Pose start_pose;
+  Pose start_pose, desired_base_pose_;
   geometry_msgs::Vector3Stamped surface_normal;
   geometry_msgs::PointStamped lf_foot_holds, rf_foot_holds, lh_foot_holds, rh_foot_holds;
+  nav_msgs::Path desired_com_path_;
 
   LinearVelocity desired_linear_velocity_, desired_linear_velocity_world_;
   LocalAngularVelocity desired_angular_velocity_;
@@ -116,7 +125,7 @@ private:
   std::unique_ptr<free_gait::BaseMotionBase> base_motion_;
 
   LimbPhase limb_phase;
-  free_gait::Stance foothold_in_support_, start_footholds;
+  free_gait::Stance foothold_in_support_, start_footholds, hip_to_foot_in_base;
 //  std::unique_ptr<free_gait::PoseOptimizationGeometric> poseOptimizationGeometric_;
 //  const free_gait::StepParameters& parameters_;
   free_gait::PlanarStance nominalPlanarStanceInBaseFrame;

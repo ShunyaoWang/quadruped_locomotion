@@ -126,7 +126,7 @@ bool FootstepOptimization::checkKinematicsConstriants(const free_gait::LimbEnum&
                                                       const grid_map::Index& index)
 {
 
-  double leg_lenth = 0.5;
+  double leg_lenth = 0.7;
   Position hip_in_base = robot_state_.getPositionBaseToHipInBaseFrame(limb);
   Position foothold_in_map, hip_in_map;//, hip_in_world;
 //  Position center_of_map;

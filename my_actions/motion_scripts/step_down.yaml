@@ -1,0 +1,28 @@
+adapt_coordinates:
+ - transform:
+    source_frame: foot_print
+    target_frame: odom
+
+steps:
+  - step:
+    - base_auto:
+       height: 0.45
+       ignore_timing_of_leg_motion: true
+       average_linear_velocity: 0.15
+       average_angular_velocity: 0.2
+       support_margin: 0.07
+  - step:
+    - footstep:
+        name: LF_LEG
+        profile_type: square
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [0.57, 0.3, -0.2]
+    - base_auto:
+       height: 0.45
+       ignore_timing_of_leg_motion: false
+       average_linear_velocity: 0.15
+       average_angular_velocity: 0.2
+       support_margin: 0.07

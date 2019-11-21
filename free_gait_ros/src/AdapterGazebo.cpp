@@ -399,7 +399,7 @@ Position AdapterGazebo::getPositionWorldToFootInWorldFrame(const LimbEnum& limb)
 Position AdapterGazebo::getCenterOfMassInWorldFrame() const
 {
 //  return Position(0,0,0);
-  return state_->getPositionWorldToBaseInWorldFrame();
+  return state_->getPositionWorldToBaseInWorldFrame() + state_->getOrientationBaseToWorld().rotate(state_->getCenterOfMassInBase());
 }
 
 void AdapterGazebo::getAvailableFrameTransforms(std::vector<std::string>& frameTransforms) const

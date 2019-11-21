@@ -43,7 +43,8 @@ public:
         joint_effort_write(0),
         foot_contact(0),
         contact_pressure(0),
-        motor_status_word(0){}
+        motor_status_word(0),
+        mode_of_joint(0){}
 
     std::string name;                       ///< The name of the sensor
     std::string frame_id;                   ///< The reference frame to which this sensor is associated
@@ -61,7 +62,8 @@ public:
     int* foot_contact;
     double* contact_pressure;
     int* motor_status_word;///< A pointer to store if a leg is contact [LF,RF,RH,LH], 0-swing,1-stance,2-early,3-late
-//    double* lf_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
+    int* mode_of_joint;
+    //    double* lf_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //    double* rf_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //    double* rh_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
 //    double* lh_leg_phase;       ///< A pointer store the phase(0~1) of leg [sw,st]
@@ -84,7 +86,8 @@ public:
       joint_effort_write_(data.joint_effort_write),
       foot_contact_(data.foot_contact),
       contact_pressure_(data.contact_pressure),
-      motor_status_word_(data.motor_status_word)
+      motor_status_word_(data.motor_status_word),
+      mode_of_joint_(data.mode_of_joint)
   {}
 
   RobotStateHandle(
@@ -103,7 +106,8 @@ public:
         double* joint_effort_write,
         int* foot_contact,            ///< A pointer to store if a leg is contact [LF,RF,RH,LH]
         double* contact_pressure,
-        int* motor_status_word
+        int* motor_status_word,
+        int* mode_of_joint
       )
     : name_(name),
       frame_id_(frame_id),
@@ -120,7 +124,8 @@ public:
       joint_effort_write_(joint_effort_write),
       foot_contact_(foot_contact),
       contact_pressure_(contact_pressure),
-      motor_status_word_(motor_status_word)
+      motor_status_word_(motor_status_word),
+      mode_of_joint_(mode_of_joint)
   {}
 
   std::string getName()                           const {return name_;}
@@ -153,6 +158,7 @@ public:
   int* foot_contact_;
   double* contact_pressure_;
   int* motor_status_word_;///< A pointer to store if a leg is contact [LF,RF,RH,LH]
+  int* mode_of_joint_;
 private:
   std::string name_;
   std::string frame_id_;
@@ -181,6 +187,7 @@ public:
    * RobotStateInterface for command updating to joints
    */
   hardware_interface::JointCommandInterface joint_effort_interfaces_;
+  hardware_interface::JointCommandInterface joint_position_interfaces_;
 };
 
 }

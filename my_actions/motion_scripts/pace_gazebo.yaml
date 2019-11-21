@@ -10,7 +10,7 @@ steps:
        ignore_timing_of_leg_motion: true
        average_linear_velocity: 0.15
        average_angular_velocity: 0.2
-       support_margin: 0.07
+       support_margin: 0.1
   - step:
     - footstep:
         name: LF_LEG
@@ -20,12 +20,6 @@ steps:
         target:
           frame: foot_print
           position: [0.57, 0.3, -0.03]
-    - base_auto:
-       height: 0.45
-       ignore_timing_of_leg_motion: false
-       average_linear_velocity: 0.15
-       average_angular_velocity: 0.2
-       support_margin: 0.07
   - step:
     - base_auto:
        height: 0.45
@@ -42,12 +36,6 @@ steps:
         target:
           frame: foot_print
           position: [-0.27, -0.3, -0.03]
-    - base_auto:
-       height: 0.45
-       ignore_timing_of_leg_motion: false
-       average_linear_velocity: 0.15
-       average_angular_velocity: 0.2
-       support_margin: 0.07
   - step:
     - base_auto:
        height: 0.45
@@ -70,7 +58,7 @@ steps:
        ignore_timing_of_leg_motion: true
        average_linear_velocity: 0.15
        average_angular_velocity: 0.2
-       support_margin: 0.07
+       support_margin: 0.10
   - step:
     - footstep:
         name: LH_LEG

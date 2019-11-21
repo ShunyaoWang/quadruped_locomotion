@@ -10,8 +10,8 @@ steps:
   - step:
     - base_target:
         ignore_timing_of_leg_motion: false
-        average_linear_velocity: 0.1
-        average_angular_velocity: 0.2
+        average_linear_velocity: 0.05
+        average_angular_velocity: 0.1
         target:
           frame: base_link
           position: [0.01,0.0,0.0]
@@ -19,8 +19,8 @@ steps:
   - step:
     - base_target:
         ignore_timing_of_leg_motion: false
-        average_linear_velocity: 0.1
-        average_angular_velocity: 0.2
+        average_linear_velocity: 0.05
+        average_angular_velocity: 0.1
         target:
           frame: base_link
           position: [0.01,0.0,0.0]

@@ -1,0 +1,22 @@
+steps:
+  - step:
+    - leg_mode:
+        name: LF_LEG
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+    - leg_mode:
+        name: RF_LEG
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+    - leg_mode:
+        name: RH_LEG
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false
+    - leg_mode:
+        name: LH_LEG
+        support_leg: true
+        surface_normal: [0,0,1]
+        ignore_for_pose_adaptation: false

@@ -29,7 +29,7 @@ LocalAngularVelocity QuadrupedState::base_feedback_angular_velocity_, QuadrupedS
 QuadrupedState::QuadrupedState()
   : QuadrupedKinematics(),
     robot_mass_(27.0),
-    CoM_in_base_(Position(0,0,0))
+    CoM_in_base_(Position(0.0,0,0))
 {
 //  QuadrupedKinematics::LoadRobotDescriptionFromFile("/home/hitstar/catkin_ws/src/quadruped_locomotion-dev/quadruped_model/urdf/simpledog.urdf");
 //  QK = new QuadrupedKinematics()
@@ -62,7 +62,7 @@ bool QuadrupedState::Initialize()
 //    std::cout<<"Initialize QuadrupedState"<<std::endl;
     setLimbConfigure("><");//配置腿型
     setPoseBaseToWorld(Pose(Position(0,0,0), RotationQuaternion()));
-    joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
+    joint_positions_ << 0,1.57,-3.14,0,-1.57,3.14,0,1.57,-3.14,0,-1.57,3.14;
     setCurrentLimbJoints(joint_positions_);
     joint_velocities_ << 0,0,0,0,0,0,0,0,0,0,0,0;
     setCurrentLimbJointVelocities(joint_velocities_);
@@ -71,6 +71,7 @@ bool QuadrupedState::Initialize()
         target_foot_position_in_base_[limb.first] = Vector(getPositionLegBaseToCoMInBaseFrame(limb.first));
         target_foot_velocity_in_base_[limb.first] = Vector(0,0,0);
         target_foot_acceleration_in_base_[limb.first] = Vector(0,0,0);
+        getPositionLegBaseToCoMInBaseFrame(limb.first);
       }
     return true;
 }
@@ -85,6 +86,8 @@ double QuadrupedState::getRobotMass()
 
 Position QuadrupedState::getPositionLegBaseToCoMInBaseFrame(const LimbEnum& limb) const
 {
+
+//  return getPositionBaseToLegMassCenterInBaseFrame(limb, getJointPositionFeedbackForLimb(limb)) - CoM_in_base_;
   switch (limb) {
     case LimbEnum::LF_LEG:
       return Position(0.42, 0.175, 0.0) - CoM_in_base_;

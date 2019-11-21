@@ -570,6 +570,7 @@ bool MarkerManager::sendStepGoal()
 //    footstep.profile_height = 0.15;
     footstep.average_velocity = 0.3;
 //    footstep.ignore_for_pose_adaptation = true;
+//    footstep.ignore_contact = true;
 //    swingData.profile.type = "square";
     step.footstep.push_back(footstep);
     goal.steps.push_back(step);

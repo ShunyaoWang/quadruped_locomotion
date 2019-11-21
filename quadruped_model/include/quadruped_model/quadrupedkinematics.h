@@ -75,6 +75,7 @@ public:
   bool setHipPoseInBase(const KDL::Chain& kdl_chain, const LimbEnum& limb);
   Position getPositionFootToHipInHipFrame(const LimbEnum& limb, const Position& foot_position_in_base) const;
   Position getPositionBaseToHipInBaseFrame(const LimbEnum& limb) const;
+  Position getPositionBaseToLegMassCenterInBaseFrame(const LimbEnum& limb, const JointPositionsLimb& joint_positions) const;
 
   JointTorquesLimb getGravityCompensationForLimb(const LimbEnum& limb,
                                                  const JointPositionsLimb& joint_positions,

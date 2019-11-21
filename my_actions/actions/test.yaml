@@ -101,3 +101,51 @@ actions:
       file: motion_scripts/joints_move.yaml
       type: yaml
       description: change leg configure to '<<' type
+  - action:
+      id: "18"
+      name: kick a ball
+      file: motion_scripts/kick_ball.yaml
+      type: yaml
+      description: LF leg kick a ball
+  - action:
+      id: "19"
+      name: step demo
+      file: motion_scripts/step_demo.yaml
+      type: yaml
+      description: step with different profile type
+  - action:
+      id: "20"
+      name: reset leg mode
+      file: motion_scripts/reset_legmode.yaml
+      type: yaml
+      description: reset all leg as support leg
+  - action:
+      id: "21"
+      name: shake leg
+      file: motion_scripts/shake_leg.yaml
+      type: yaml
+      description: move LF leg high to shake
+  - action:
+      id: "22"
+      name: push elevator 1
+      file: motion_scripts/push_elevator.yaml
+      type: yaml
+      description: move LF leg high to oush elevator step 1
+  - action:
+      id: "23"
+      name: push elevator 2
+      file: motion_scripts/push_elevator2.yaml
+      type: yaml
+      description: move LF leg high to oush elevator step 2
+  - action:
+      id: "24"
+      name: joint mode switch
+      file: motion_scripts/joint_mode_switch.yaml
+      type: yaml
+      description: move LF leg with Profile Position and SYNC Torque
+  - action:
+      id: "25"
+      name: step down
+      file: motion_scripts/step_down.yaml
+      type: yaml
+      description: move LF leg down to a foothold

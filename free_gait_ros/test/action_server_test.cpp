@@ -104,8 +104,8 @@ public:
   void ActionServerThread()//(const FreeGaitActionServer& server)
   {
       ROS_INFO("In action server thread");
-      parameters->footstepParameters.minimumDuration_ = 0.3;
-      parameters->baseTargetParameters.minimumDuration = 0.3;
+      parameters->footstepParameters.minimumDuration_ = 0.4;
+      parameters->baseTargetParameters.minimumDuration = 0.4;
       double dt = 0.01;// change dt cause problem?
       double time = 0.0;
       ros::Rate rate(100);
@@ -142,9 +142,14 @@ public:
             AdapterRos_.updateAdapterWithState();
 
             executor->advance(dt, false);
-            if(is_start_gait){
+            if(is_start_gait && !gait_generate_client_.ignore_vd){
                 state->setLinearVelocityBaseInWorldFrame(desired_linear_velocity_);
                 state->setAngularVelocityBaseInBaseFrame(desired_angular_velocity_);
+              }
+            if(is_start_gait && gait_generate_client_.getGaitType() == 2)
+              {
+                state->setPositionWorldToBaseInWorldFrame(gait_generate_client_.getDesiredBasePose().getPosition());
+                state->setOrientationBaseToWorld(gait_generate_client_.getDesiredBasePose().getRotation());
               }
 //            ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<endl);
 //            ROS_WARN_STREAM("Desired in State Velocity :"<<state->getTargetLinearVelocityBaseInWorldFrame()<<endl);
@@ -175,9 +180,15 @@ public:
 //                  //! WSHY: publish robot state to balance controller
 //                rosPublisher->publish(*state);
 //                }
+              if(is_start_gait && gait_generate_client_.getGaitType() == 2)
+                {
+                  state->setPositionWorldToBaseInWorldFrame(gait_generate_client_.getDesiredBasePose().getPosition());
+                  state->setOrientationBaseToWorld(gait_generate_client_.getDesiredBasePose().getRotation());
+                  rosPublisher->publish(gait_generate_client_.getDesiredBasePose());
+                }else if(!is_joy_control)
+                  rosPublisher->publish();
 
-              if(!is_joy_control)
-                rosPublisher->publish();
+
             }
 
           rate.sleep();
@@ -196,7 +207,9 @@ public:
 //    gait_generate_client_.initializePace(0.45, 3*0.5);
     while (ros::ok()) {
 //        ROS_INFO("Gait Generate updated Once");
+        double ts = ros::Time::now().toSec();
         if(is_start_gait){
+//            double ts = ros::Time::now().toSec();
             boost::recursive_mutex::scoped_lock lock(r_mutex_);
             AdapterRos_.updateAdapterWithState();
             gait_generate_client_.copyRobotState(AdapterRos_.getAdapter().getState());
@@ -206,9 +219,17 @@ public:
 //            ROS_WARN_STREAM("Desired Velocity :"<<desired_linear_velocity_<<endl);
             lock.unlock();
             gait_generate_client_.sendMotionGoal();
+//            dt = ros::Time::now().toSec() - ts;
+          }else{
+            //! WSHY: for marker publish
+            boost::recursive_mutex::scoped_lock lock(r_mutex_);
+            AdapterRos_.updateAdapterWithState();
+            gait_generate_client_.copyRobotState(AdapterRos_.getAdapter().getState());
+            lock.unlock();
           }
 
         rate.sleep();
+        dt = ros::Time::now().toSec() - ts;
       }
   }
 
@@ -248,6 +269,8 @@ public:
       }
     if(request.data == true){
         is_start_gait = true;
+        parameters->footstepParameters.minimumDuration_ = 0.3;
+        parameters->baseTargetParameters.minimumDuration = 0.3;
         gait_generate_client_.initializeTrot(0.3,0.3);
 //        gait_generate_client_.initializePace(0.45, 3*0.5);
       ROS_INFO("START GAIT....");
@@ -266,7 +289,11 @@ public:
       }
     if(request.data == true){
         is_start_gait = true;
+        parameters->footstepParameters.minimumDuration_ = 0.45;
+        parameters->baseTargetParameters.minimumDuration = 0.45;
         gait_generate_client_.initializePace(0.45,0.45*3);
+        gait_generate_client_.updateBaseMotion(desired_linear_velocity_,desired_angular_velocity_);
+
 //        gait_generate_client_.initializePace(0.45, 3*0.5);
       ROS_INFO("START GAIT....");
       }

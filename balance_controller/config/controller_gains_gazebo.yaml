@@ -39,9 +39,9 @@ balance_controller:
         value: 0.00001
       force_diff:
         value: 0.1
-        is_use: true
+        is_use: false
     constraints:
-      friction_coefficient: 0.8
+      friction_coefficient: 0.6
       minimal_normal_force: 10
       load_factor: 1
 single_leg_controller:

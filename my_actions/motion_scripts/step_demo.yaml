@@ -1,0 +1,75 @@
+adapt_coordinates:
+ - transform:
+    source_frame: foot_print
+    target_frame: odom
+
+steps:
+  - step:
+    - footstep:
+        name: LF_LEG
+        profile_type: triangle
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [0.42, 0.3, -0.03]
+    - footstep:
+        name: RH_LEG
+        profile_type: triangle
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [-0.42, -0.3, -0.03]
+    - footstep:
+        name: RF_LEG
+        profile_type: trapezoid
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [0.42, -0.3, -0.03]
+    - footstep:
+        name: LH_LEG
+        profile_type: square
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [-0.42, 0.3, -0.03]
+  - step:
+    - footstep:
+        name: LF_LEG
+        profile_type: triangle
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [0.57, 0.3, -0.03]
+  - step:
+    - footstep:
+        name: RH_LEG
+        profile_type: triangle
+        profile_height: 0.3
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [-0.27, -0.3, -0.03]
+  - step:
+    - footstep:
+        name: RF_LEG
+        profile_type: trapezoid
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [0.57, -0.3, -0.03]
+  - step:
+    - footstep:
+        name: LH_LEG
+        profile_type: square
+        profile_height: 0.2
+        average_velocity: 0.3
+        target:
+          frame: foot_print
+          position: [-0.27, 0.3, -0.03]

@@ -37,6 +37,10 @@ PoseOptimizationSQP::PoseOptimizationSQP(const AdapterBase& adapter)
   }
 
   constraints_->setPositionsBaseToHip(positionsBaseToHipInBaseFrame);
+  std::string record_dir = "/home/hitstar/logdata";
+  std::ofstream outfile_(record_dir+"/pose_optimization/sqp_time_cost.txt", std::ios::app);
+
+//  outfile_<<"iterations"<<", "<<"times(us)"<<"\r\n";
 
   timer_.setAlpha(1.0);
 }
@@ -105,13 +109,21 @@ bool PoseOptimizationSQP::optimize(Pose& pose)
 //  if (!solver.minimize(&problem, params, functionValue)) return false;
   if(!solver.minimize(problem, params)) return false;
   pose = params.getPose();
+
+  // TODO Fix unit quaternion?
+
+  timer_.splitTime("total");
+  std::string record_dir = "/home/hitstar/logdata";
+
+  std::ofstream outfile_(record_dir+"/pose_optimization/sqp_time_cost.txt", std::ios::app);
+
+  outfile_<<solver.getIterationTimes()<<", "<<timer_.getAverageElapsedTimeUSec("total")<<"\r\n";
+//  nIterations_ = ;
+  std::cout<<"Total Time Cost For SQP :"<<timer_.getAverageElapsedTimeUSec("total")<<"us"<<std::endl;
   EulerAnglesZyx eular_zyx(pose.getRotation());
   std::cout<<"Pose Optiazation SQP solve result:"<<std::endl<<pose.getPosition()<<std::endl<<
         "Rotation: "<<std::endl<<"Roll: "<<eular_zyx.roll()<<std::endl<<"Pitch: "<<
         eular_zyx.pitch()<<std::endl<<"Yaw: "<<eular_zyx.yaw()<<std::endl;
-  // TODO Fix unit quaternion?
-
-  timer_.splitTime("total");
   return true;
 }
 
@@ -156,7 +168,7 @@ void PoseOptimizationSQP::callExternalOptimizationStepCallbackWithPose(const Pos
 
 double PoseOptimizationSQP::getOptimizationDuration() const
 {
-  return timer_.getAverageElapsedTimeUSec("total") - durationInCallback_;
+  return timer_.getAverageElapsedTimeUSec("total");// - durationInCallback_;
 }
 
 size_t PoseOptimizationSQP::getNumberOfIterations() const

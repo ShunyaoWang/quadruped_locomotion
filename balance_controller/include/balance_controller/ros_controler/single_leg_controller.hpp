@@ -35,7 +35,7 @@
 
 namespace balance_controller {
 
-  class SingleLegController : public controller_interface::Controller<hardware_interface::EffortJointInterface>
+  class SingleLegController : public controller_interface::Controller<hardware_interface::RobotStateInterface>
   {
     typedef std::unordered_map<free_gait::LimbEnum, bool, EnumClassHash> LimbFlag;
     typedef std::unordered_map<free_gait::LimbEnum, free_gait::Vector, EnumClassHash> LimbVector;
@@ -49,7 +49,7 @@ namespace balance_controller {
      * @param node_handle
      * @return
      */
-    bool init(hardware_interface::EffortJointInterface* hardware,
+    bool init(hardware_interface::RobotStateInterface* hardware,
               ros::NodeHandle& node_handle);
     void update(const ros::Time& time, const ros::Duration& period);
     void starting(const ros::Time& time);
@@ -67,6 +67,9 @@ namespace balance_controller {
      * interface
      */
     std::vector<hardware_interface::JointHandle> joints;//_positions;
+    std::vector<hardware_interface::JointHandle> position_joints;
+    hardware_interface::RobotStateHandle robot_state_handle;
+
 //    std::vector<hardware_interface::JointHandle> joint_efforts;
     realtime_tools::RealtimeBuffer<std::vector<double>> commands_buffer;
     unsigned int n_joints;
@@ -110,6 +113,7 @@ namespace balance_controller {
     std::vector<free_gait::BranchEnum> branches_;
     LimbFlag real_contact_, is_cartisian_motion_;
     LimbVector foot_positions, foot_velocities, foot_accelerations, contactForces_;
+    std::vector<double> joint_commands_;
 
     Position end_desired_position;
 

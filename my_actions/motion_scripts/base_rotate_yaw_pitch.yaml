@@ -15,7 +15,7 @@ steps:
         target:
           frame: base_link
           position: [0.01,0.0,0.0]
-          orientation: [0.0,0.3,0.3]
+          orientation: [0.0,0.4,0.4]
   - step:
     - base_target:
         ignore_timing_of_leg_motion: false
@@ -24,7 +24,7 @@ steps:
         target:
           frame: base_link
           position: [0.01,0.0,0.0]
-          orientation: [0.0,0.3,-0.3]
+          orientation: [0.0,0.4,-0.4]
   - step:
     - base_auto:
        height: 0.4

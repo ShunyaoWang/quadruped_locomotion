@@ -37,6 +37,7 @@ namespace balance_controller {
         foot_accelerations[limb] = Vector(0,0,0);
         contactForces_[limb] = Vector(0,0,0);
       }
+    joint_commands_.resize(12);
     foot_positions[free_gait::LimbEnum::LF_LEG] = Vector(0.5,0.2,-0.45);
     foot_positions[free_gait::LimbEnum::RF_LEG] = Vector(0.5,-0.2,-0.45);
     foot_positions[free_gait::LimbEnum::RH_LEG] = Vector(-0.5,-0.2,-0.45);
@@ -47,7 +48,7 @@ namespace balance_controller {
   SingleLegController::~SingleLegController()
   {};
 
-  bool SingleLegController::init(hardware_interface::EffortJointInterface* hardware,
+  bool SingleLegController::init(hardware_interface::RobotStateInterface* hardware,
             ros::NodeHandle& node_handle)
   {
     ROS_INFO("Initializing SingleLegController");
@@ -125,12 +126,28 @@ namespace balance_controller {
     for(unsigned int i = 0; i < n_joints; i++)
       {
         try {
-          joints.push_back(hardware->getHandle(joint_names[i]));
+          joints.push_back(hardware->joint_effort_interfaces_.getHandle(joint_names[i]));
+          position_joints.push_back(hardware->joint_position_interfaces_.getHandle(joint_names[i]));
           ROS_INFO("Get '%s' Handle", joint_names[i].c_str());
         } catch (const hardware_interface::HardwareInterfaceException& ex) {
           ROS_ERROR_STREAM("Exception thrown : "<< ex.what());
           return false;
         }
+      }
+
+    ROS_INFO("Balance Controller to Get robot state handle");
+    //! WSHY: get robot state handle
+    robot_state_handle = hardware->getHandle("base_controller");
+
+    ROS_INFO("Balance Controller initialized");
+    for(unsigned int i=0;i<12;i++)
+      {
+        robot_state_handle.getJointEffortWrite()[i] = 0;
+        robot_state_handle.motor_status_word_[i] = 0;
+      }
+    for(int i = 0;i<4;i++)
+      {
+        robot_state_handle.foot_contact_[i] = 1;
       }
 
     dynamicReconfigureServer_.reset(new DynamicConfigServer(node_handle));
@@ -206,9 +223,9 @@ namespace balance_controller {
 
     for(unsigned int i=0; i<joints.size(); i++)
       {
-        all_joint_positions(i) = joints[i].getPosition();
-        all_joint_velocities(i) = joints[i].getVelocity();
-        all_joint_efforts(i) = joints[i].getEffort();
+        all_joint_positions(i) = robot_state_handle.getJointPositionRead()[i];
+        all_joint_velocities(i) = robot_state_handle.getJointVelocityRead()[i];
+        all_joint_efforts(i) = robot_state_handle.getJointEffortRead()[i];
       }
 
     //! WSHY: update current base state from robot state handle
@@ -242,7 +259,6 @@ namespace balance_controller {
 //        std::cout<<"Num of leg to move "<<leg_to_move.size()<<endl<<"update leg "<<start_index/3<<endl;
 //        free_gait::LimbEnum limb = static_cast<free_gait::LimbEnum>(i);
 //        single_leg_solver_->update(time, real_time_period, limb, true);
-
         if(robot_state_->isSupportLeg(limb))
           {
             if(control_methods[i] == "contact_force")
@@ -255,9 +271,11 @@ namespace balance_controller {
                 for(int j = start_index;j<start_index +3;j++)
                   {
                     joints[j].setCommand(jointTorques(j));
+                    robot_state_handle.mode_of_joint_[j] = 4;
                   }
+                continue;
               }
-            if(control_methods[i] == "end_position")
+            if(control_methods[i] == "end_position" || is_cartisian_motion_.at(limb))
               {
                 for(int j = start_index;j<start_index +3;j++)
                   {
@@ -265,21 +283,37 @@ namespace balance_controller {
 //                    if(is_cartisian_motion_.at(limb))
 //                      effort_command = single_leg_solver_->getVecTauAct()[j];
                     joints[j].setCommand(0.0);
+                    robot_state_handle.mode_of_joint_[j] = 4;
+
                   }
+                continue;
               }
+            if(control_methods[i] == "joint_position" || !is_cartisian_motion_.at(limb))
+              {
+                for(int j = start_index;j<start_index +3;j++)
+                  {
+                    robot_state_handle.mode_of_joint_[j] = 1;
+                    position_joints[j].setCommand(joint_commands_[j]);
+                  }
+                ROS_INFO_ONCE("Joint control");
+              }
+            continue;
           }
         else if (!robot_state_->isSupportLeg(limb)) {
-            if(control_methods[i] == "end_position")
+            if(control_methods[i] == "end_position" || is_cartisian_motion_.at(limb))
               {
 //                ROS_INFO("control end position");
                 single_leg_solver_->update(time, real_time_period, limb, real_time_, foot_accelerations.at(limb).vector());
 
                 for(int j = start_index;j<start_index +3;j++)
                   {
+                    robot_state_handle.mode_of_joint_[j] = 4;
                     q_state.name.push_back("joint"+std::to_string(j));
-                    q_state.effort.push_back(single_leg_solver_->getTauFeedForward()[j - start_index]);
+                    q_state.effort.push_back(single_leg_solver_->getVecTauAct()[j - start_index]);
                     q_state.velocity.push_back(single_leg_solver_->getVecQDDAct()[j - start_index]);
                     q_state.position.push_back(single_leg_solver_->getVecQDAct()[j - start_index]);
+
+                    joint_state_pub_.publish(q_state);
 
                     double effort_command;
                     if(is_cartisian_motion_.at(limb))
@@ -291,9 +325,11 @@ namespace balance_controller {
                     joints[j].setCommand(effort_command);
                   }
 //                ROS_INFO("control end position");
+                continue;
               }
             if(control_methods[i] == "contact_force")
               {
+
                 Eigen::Matrix3d jacobian = robot_state_->getTranslationJacobianFromBaseToFootInBaseFrame(limb);
                 Force contactForce = Force(contactForces_.at(limb).toImplementation());
                 free_gait::JointEffortsLeg jointTorques = free_gait::JointEffortsLeg(jacobian.transpose() * contactForce.toImplementation());
@@ -302,11 +338,23 @@ namespace balance_controller {
                 for(int j = start_index;j<start_index +3;j++)
                   {
                     joints[j].setCommand(jointTorques(j));
+                    robot_state_handle.mode_of_joint_[j] = 4;
                   }
                 std::cout<<"Joint Torque to Apply is : "<<jointTorques<<std::endl;
+                continue;
+              }
+            if(control_methods[i] == "joint_position" || !is_cartisian_motion_.at(limb))
+              {
+                for(int j = start_index;j<start_index +3;j++)
+                  {
+                    robot_state_handle.mode_of_joint_[j] = 1;
+                    position_joints[j].setCommand(joint_commands_[j]);
+                  }
+                ROS_INFO_ONCE("Joint control");
+                continue;
               }
           }
-        joint_state_pub_.publish(q_state);
+
       }
   fakePosePublisher();
   robotStatePublisher();
@@ -321,6 +369,11 @@ namespace balance_controller {
     if(!control_method.response.result)
       {
         ROS_ERROR("Switch Controller Error");
+      }
+    for(int i=0;i<joint_commands_.size();i++)
+      {
+        joint_commands_[i] = robot_state_handle.getJointPositionRead()[i];
+        std::cout<<"set initial joint commmad for "<<i<<" : "<<joint_commands_[i]<<std::endl;
       }
     ROS_INFO("Started Single leg controller");
   }
@@ -378,6 +431,20 @@ namespace balance_controller {
     kindr_ros::convertFromRosGeometryMsg(robot_state_msg->lh_target.target_acceleration[0].vector,
         foot_acceleration);
     foot_accelerations[free_gait::LimbEnum::LH_LEG] = Vector(foot_acceleration.toImplementation());
+
+//    std::vector<double> joint_commands_;
+    for(unsigned int i = 0;i<3;i++)
+    {
+        /****************
+        * TODO(Shunyao) : only for the non-support leg to follow the joint position and
+        *velocity command
+        ****************/
+      joint_commands_[i] = robot_state_msg->lf_leg_joints.position[i];
+      joint_commands_[i+3] = robot_state_msg->rf_leg_joints.position[i];
+      joint_commands_[i+6] = robot_state_msg->rh_leg_joints.position[i];
+      joint_commands_[i+9] = robot_state_msg->lh_leg_joints.position[i];
+    }
+
 
     if(robot_state_msg->lf_leg_mode.name == "joint")
       is_cartisian_motion_.at(free_gait::LimbEnum::LF_LEG) = false;

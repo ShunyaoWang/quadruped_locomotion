@@ -72,10 +72,13 @@ bool QuadrupedKinematics::LoadRobotDescriptionFromFile(const std::string filenam
  setHipPoseInBase(RF_Chain,LimbEnum::RF_LEG);
  setHipPoseInBase(RH_Chain,LimbEnum::RH_LEG);
  setHipPoseInBase(LH_Chain,LimbEnum::LH_LEG);
+// getPositionBaseToLegMassCenterInBaseFrame(LimbEnum::LF_LEG);
+
 // cout<<"LF : "<<endl<<"T01 : "<<endl<<LF_Chain.getSegment(0).getFrameToTip()<<endl
 //                    <<"T12 : "<<endl<<LF_Chain.getSegment(1).getFrameToTip()<<endl
 //                    <<"T23 : "<<endl<<LF_Chain.getSegment(2).getFrameToTip()<<endl
 //                    <<"T34 : "<<endl<<LF_Chain.getSegment(3).getFrameToTip()<<endl;
+// std::cout<<LF_Chain.getSegment(3).getJoint().getTypeName()<<std::endl;
 // cout<<"rF : "<<endl<<"T01 : "<<endl<<RF_Chain.getSegment(0).getFrameToTip()<<endl
 //                    <<"T12 : "<<endl<<RF_Chain.getSegment(1).getFrameToTip()<<endl
 //                    <<"T23 : "<<endl<<RF_Chain.getSegment(2).getFrameToTip()<<endl
@@ -119,6 +122,60 @@ bool QuadrupedKinematics::setHipPoseInBase(const KDL::Chain& kdl_chain, const Li
   hip_pose_in_base_[limb] = Pose(translation, RotationQuaternion(rotation_matrix));
 //  cout<<"hip pose in base : "<<hip_pose_in_base_[limb]<<endl;
   return true;
+
+}
+
+Position QuadrupedKinematics:: getPositionBaseToLegMassCenterInBaseFrame(const LimbEnum& limb,
+                                                                         const JointPositionsLimb& joint_positions) const
+{
+  KDL::Frame T01,T12,T23, cartisian_frame;
+  Position leg_mass_center;
+  KDL::Chain limb_chain;
+  KDL::JntArray joints(2);
+  joints(0) = joint_positions(0);
+  joints(1) = joint_positions(1);
+  switch (limb) {
+    case LimbEnum::LF_LEG:
+      {
+        limb_chain.addSegment(LF_Chain.getSegment(0));
+        limb_chain.addSegment(LF_Chain.getSegment(1));
+        limb_chain.addSegment(KDL::Segment("lf_mass_center_link",KDL::Joint("mass_center_joint"), KDL::Frame(KDL::Vector(0.175,0.0,0.1))));
+        break;
+      }
+    case LimbEnum::RF_LEG:
+      {
+        limb_chain.addSegment(RF_Chain.getSegment(0));
+        limb_chain.addSegment(RF_Chain.getSegment(1));
+        limb_chain.addSegment(KDL::Segment("rf_mass_center_link",KDL::Joint("mass_center_joint"), KDL::Frame(KDL::Vector(0.175,0.0,0.1))));
+        break;
+      }
+    case LimbEnum::RH_LEG:
+      {
+        limb_chain.addSegment(RH_Chain.getSegment(0));
+        limb_chain.addSegment(RH_Chain.getSegment(1));
+        limb_chain.addSegment(KDL::Segment("rh_mass_center_link",KDL::Joint("mass_center_joint"), KDL::Frame(KDL::Vector(0.175,0.0,0.1))));
+        break;
+      }
+    case LimbEnum::LH_LEG:
+      {
+        limb_chain.addSegment(LH_Chain.getSegment(0));
+        limb_chain.addSegment(LH_Chain.getSegment(1));
+        limb_chain.addSegment(KDL::Segment("lh_mass_center_link",KDL::Joint("mass_center_joint"), KDL::Frame(KDL::Vector(0.175,0.0,0.1))));
+        break;
+      }
+    }
+
+  KDL::ChainFkSolverPos_recursive fk_solver(limb_chain);
+  fk_solver.JntToCart(joints, cartisian_frame);
+
+  Position translation(cartisian_frame(0,3), cartisian_frame(1,3), cartisian_frame(2,3));
+  RotationMatrix rotation_matrix(cartisian_frame(0,0), cartisian_frame(0,1), cartisian_frame(0,2),
+                                 cartisian_frame(1,0), cartisian_frame(1,1), cartisian_frame(1,2),
+                                 cartisian_frame(2,0), cartisian_frame(2,1), cartisian_frame(2,2));
+  RotationQuaternion rotation(rotation_matrix);
+  Position leg_mass_center_in_base = translation + rotation.rotate(leg_mass_center);
+//  ROS_ERROR_STREAM(limb_chain.getSegment(2).getName()<<" MASS CENTER :"<<leg_mass_center_in_base<<endl);
+  return leg_mass_center_in_base;
 
 }
 
