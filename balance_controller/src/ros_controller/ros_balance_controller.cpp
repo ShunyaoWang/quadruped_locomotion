@@ -381,7 +381,8 @@ namespace balance_controller{
                 } else {
                   robot_state->setSupportLeg(limb, true);
                   leg_state.data[i] = 2;
-                  if(delay_counts[i]>30)
+//                  if(delay_counts[i]>30) //for trot
+                  if(delay_counts[i]>5)
                     {
 
                       robot_state_handle.foot_contact_[i] = 1;
