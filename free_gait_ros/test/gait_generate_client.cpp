@@ -33,7 +33,9 @@ using namespace free_gait;
       profile_type("triangle"),
       crawl_flag(false),
       ignore_vd(false),
-      t_swing_delay(0.0)
+      t_swing_delay(0.0),
+      update_start_pose_flag_(false),
+      crawl_support_margin(0.06)
 //      actionClient_(nodeHandle_)
   {
     if(!nodeHandle_.getParam("/use_terrian_map", use_terrian_map))
@@ -149,7 +151,7 @@ using namespace free_gait;
     optimized_base_pose.getRotation() = robot_state_.getOrientationBaseToWorld();
     t_swing_ = t_swing;
     t_stance_ = t_stance;
-    step_msg_.base_target.resize(1);
+//    step_msg_.base_target.resize(1);
 //    step_msg_.base_auto.resize(1);
 //    step_msg_.footstep.resize(4);
     limb_phase[LimbEnum::LF_LEG].swing_phase = 0;
@@ -180,7 +182,7 @@ using namespace free_gait;
     limb_phase[LimbEnum::LH_LEG].ready_to_swing = false;
     limb_phase[LimbEnum::LH_LEG].real_contact = true;
     base_auto_flag = false;
-    base_target_flag = true;
+    base_target_flag = false;
     pace_flag =false;
     trot_flag = true;
     crawl_flag = false;
@@ -195,6 +197,7 @@ using namespace free_gait;
 //    sigma_sw_0 = 0.5;
 //    sigma_sw_1 = 0.5;
 
+    height_ = 0.5;
     sigma_st_0 = 0.2;
     sigma_st_1 = 0.2;
     sigma_sw_0 = 0.5;
@@ -276,6 +279,7 @@ using namespace free_gait;
     pace_flag =true;
     trot_flag = false;
     crawl_flag = false;
+    update_start_pose_flag_ = false;
     if(base_auto_flag)
       step_msg_.base_auto.resize(1);
     if(base_target_flag)
@@ -288,6 +292,7 @@ using namespace free_gait;
     t_swing_ = t_swing;
     t_stance_ = t_stance;
 
+    height_ = 0.55;
 //    step_msg_.base_auto.resize(1);
 //    step_msg_.base_target.resize(1);
     limb_phase[LimbEnum::LF_LEG].swing_phase = 0;
@@ -331,6 +336,7 @@ using namespace free_gait;
     step_msg_.base_auto.clear();
     step_msg_.base_target.clear();
     step_msg_.footstep.clear();
+    update_start_pose_flag_ = false;
     return true;
   }
 
@@ -558,9 +564,15 @@ using namespace free_gait;
 
             footstep_msg_.name = getLimbStringFromLimbEnum(limb);
 
-            if(crawl_flag)
+            if(crawl_flag || pace_flag)
               {
                 frame = "odom";
+                Position displace_of_angular = Position(desired_angular_velocity_.cross(robot_state_.getPositionBaseToHipInBaseFrame(limb)));
+
+                if(limb == free_gait::LimbEnum::LF_LEG || limb == free_gait::LimbEnum::RF_LEG)
+                  crawl_support_margin = 0.05;
+                else
+                  crawl_support_margin = 0.10;
 //                Pose start_pose;
                 if(limb == free_gait::LimbEnum::LF_LEG)
                   {
@@ -570,45 +582,69 @@ using namespace free_gait;
                       {
                         free_gait::LimbEnum limb_i = static_cast<free_gait::LimbEnum>(i);
                         foot_sum += foothold_in_support_[limb_i];
-//                        hip_to_foot_in_base[limb_i] = robot_state_.getPositionBaseToFootInBaseFrame(limb_i)
-//                            -robot_state_.getPositionBaseToHipInBaseFrame(limb_i);
+                        hip_to_foot_in_base[limb_i] = robot_state_.getPositionBaseToFootInBaseFrame(limb_i)
+                            -robot_state_.getPositionBaseToHipInBaseFrame(limb_i);
 //                        std::cout<<getLimbStringFromLimbEnum(limb_i)<<" Hip to Foot In Base : "<<hip_to_foot_in_base[limb_i]<<std::endl;
                       }
 //                    start_pose = Pose(robot_state_.getPositionWorldToBaseInWorldFrame(), robot_state_.getOrientationBaseToWorld());
                     optimizePose(start_pose);
                     start_pose.getPosition() = foot_sum/4;
 //                    start_pose.getPosition().z() = robot_state_.getPositionWorldToBaseInWorldFrame().z();
-                    start_pose.getPosition().z() += 0.45;
+                    start_pose.getPosition().z() += height_;
                     start_footholds = foothold_in_support_;
 //                    EulerAnglesZyx(start_pose.getRotation()).yaw();
 
-                  }
-                hip_to_foot_in_base[limb] = robot_state_.getPositionBaseToFootInBaseFrame(limb)
-                    -robot_state_.getPositionBaseToHipInBaseFrame(limb);
-                std::cout<<getLimbStringFromLimbEnum(limb)<<" Hip to Foot In Base : "<<hip_to_foot_in_base[limb]<<std::endl;
 
-                double yaw = EulerAnglesZyx(start_pose.getRotation()).getUnique().vector()(0);
-                ROS_WARN_STREAM("Yaw angle is :%"<<180.0 / M_PI *yaw);
-                RotationQuaternion yaw_rotate = RotationQuaternion(EulerAnglesZyx(yaw,0,0));
+                    if(!update_start_pose_flag_)
+                      {
+                        next_pose_ = start_pose;
+                        update_start_pose_flag_ = true;
+                      }
+                    next_pose_.getPosition() = next_pose_.getPosition() + next_pose_.getRotation().rotate(displace_in_baselink);// + displace_of_angular);
+                    next_pose_.getPosition().z() = start_pose.getPosition().z();
+                    next_pose_.getRotation() = start_pose.getRotation();
+
+
+                  }
+                next_pose_.getPosition().z() = start_footholds.at(limb).z() + height_;
+//                hip_to_foot_in_base[limb] = robot_state_.getPositionBaseToFootInBaseFrame(limb)
+//                    -robot_state_.getPositionBaseToHipInBaseFrame(limb);
+//                std::cout<<getLimbStringFromLimbEnum(limb)<<" Hip to Foot In Base : "<<hip_to_foot_in_base[limb]<<std::endl;
+
+//                double yaw = EulerAnglesZyx(start_pose.getRotation()).getUnique().vector()(0);
+//                ROS_WARN_STREAM("Yaw angle is :%"<<180.0 / M_PI *yaw);
+//                RotationQuaternion yaw_rotate = RotationQuaternion(EulerAnglesZyx(yaw,0,0));
                 //! WSHY: use neurul point
                 hip_in_baselink = robot_state_.getPositionBaseToHipInBaseFrame(limb) + hip_dispacement.at(limb)
-                                 + Position(0,0,hip_to_foot_in_base.at(limb).z());//Position(0,0,-height_+0.02);//start_pose.getRotation().inverseRotate(Position(0,0,-height_-0.02));
-                Position displace_of_angular = Position(desired_angular_velocity_.cross(robot_state_.getPositionBaseToHipInBaseFrame(limb)));
-                target_in_baselink = displace_in_baselink + hip_in_baselink + displace_of_angular;
-                target_in_odom = start_pose.getPosition()
-                    + start_pose.getRotation().rotate(target_in_baselink);
+                                 + Position(0,0,-height_);//Position(0,0,hip_to_foot_in_base.at(limb).z());//Position(0,0,-height_+0.02);//start_pose.getRotation().inverseRotate(Position(0,0,-height_-0.02));
+//                target_in_baselink = displace_in_baselink + hip_in_baselink + displace_of_angular;
+////                Position displace_in_odom = start_pose.getPosition() + start_pose.getRotation().rotate(displace_in_baselink + displace_of_angular);
+
+//                target_in_odom = start_pose.getPosition()
+//                    + start_pose.getRotation().rotate(target_in_baselink);
                 //! WSHY: directly displace footholds
-//                displace_in_odom = start_pose.getRotation().rotate(displace_in_baselink);
+//                displace_in_odom = start_pose.getRotation().rotate(displace_in_baselink + displace_of_angular);
 //                target_in_odom = start_footholds.at(limb) + displace_in_odom;
 //                std::cout<<"Foothold in support"<<foothold_in_support_<<std::endl;
 //                std::cout<< "current base position"<<robot_state_.getPositionWorldToBaseInWorldFrame()<<std::endl;
 //                std::cout << "Start Position: " << start_pose.getPosition() << std::endl;
-                std::cout << "Start Orientation (yaw, pitch, roll) [deg]: " << 180.0 / M_PI * EulerAnglesZyx(yaw_rotate).getUnique().vector().transpose() << std::endl;
+//                std::cout << "Start Orientation (yaw, pitch, roll) [deg]: " << 180.0 / M_PI * EulerAnglesZyx(start_pose.getRotation()).getUnique().vector().transpose() << std::endl;
 
+//                if(!update_start_pose_flag_)
+//                  {
+//                    next_pose_ = start_pose;
+//                    update_start_pose_flag_ = true;
+//                  }
+//                next_pose_.getPosition() = next_pose_.getPosition() + next_pose_.getRotation().rotate(displace_in_baselink + displace_of_angular);
+//                next_pose_.getRotation() = next_pose_.getRotation();
+                target_in_odom = next_pose_.getPosition() + next_pose_.getRotation().rotate(hip_in_baselink + displace_of_angular);
 
 //                ROS_INFO_STREAM("Hip Projection in base_link :"<<hip_in_baselink<<std::endl);
 
               }
+            footstep_msg_.profile_height = profile_height;
+            footstep_msg_.profile_type = profile_type;
+
             Position target_optimized = target_in_odom;
             if(frame=="odom")
               {
@@ -631,6 +667,7 @@ using namespace free_gait;
                         kindr_ros::convertToRosGeometryMsg(footstepOptimization->getSurfaceNormal(target_optimized),
                                                            footstep_msg_.surface_normal.vector);
                         footstep_msg_.profile_type = "square";
+                        footstep_msg_.profile_height = 0.23;
                       }
                   }else{
                     kindr_ros::convertToRosGeometryMsg(target_optimized,
@@ -756,13 +793,17 @@ using namespace free_gait;
 
 
             footstep_msg_.average_velocity = sqrt(displace_in_odom.norm()*displace_in_odom.norm() + profile_height*profile_height)*2/0.1;
-            footstep_msg_.profile_height = profile_height;
-            footstep_msg_.profile_type = profile_type;
+//            footstep_msg_.profile_height = profile_height;
+//            footstep_msg_.profile_type = profile_type;
             footstep_msg_.ignore_contact = false;
             footstep_msg_.ignore_for_pose_adaptation = false;
             if(crawl_flag)
-              footstep_msg_.average_velocity = 0.3;
-//            if(pace_flag)
+              {
+                footstep_msg_.average_velocity = 0.3;
+                footstep_msg_.profile_height = 0.23;
+                footstep_msg_.profile_type = "square";
+              }
+            //            if(pace_flag)
 //              footstep_msg_.ignore_for_pose_adaptation = true;
 
             kindr_ros::convertToRosGeometryMsg(robot_state_.getSurfaceNormal(limb),
@@ -941,6 +982,7 @@ using namespace free_gait;
       EulerAnglesZyx ypr_optimized(optimized_base_pose.getRotation());
       ypr_optimized.setUnique();
       double pitch_angle = ypr_optimized.pitch();
+      yaw_angle = ypr_optimized.yaw();
       desired_base_pose_.getRotation() = EulerAnglesZyx(yaw_angle, pitch_angle, 0);
       kindr_ros::convertToRosGeometryMsg(RotationQuaternion(EulerAnglesZyx(yaw_angle, pitch_angle, 0)), base_target_msg_.target.pose.orientation);
 
@@ -1099,16 +1141,17 @@ using namespace free_gait;
 
             free_gait_msgs::Step preStep;
             free_gait_msgs::BaseAuto baseMotion;
-            baseMotion.height = 0.45;
-            baseMotion.average_linear_velocity = 0.15;//2*desired_linear_velocity.norm();
-            baseMotion.average_angular_velocity = 0.2;//5*desired_angular_velocity.norm();
+            baseMotion.height = height_;
+            baseMotion.average_linear_velocity = 0.1;//2*desired_linear_velocity.norm();
+            baseMotion.average_angular_velocity = 0.15;//5*desired_angular_velocity.norm();
             baseMotion.ignore_timing_of_leg_motion = true;
-            baseMotion.support_margin = 0.03;
+            baseMotion.support_margin = crawl_support_margin;
 
             preStep.base_auto.push_back(baseMotion);
             steps_goal.steps.push_back(preStep);
 
-            step_msg_.base_auto.push_back(baseMotion);
+//            baseMotion.ignore_timing_of_leg_motion = false;
+//            step_msg_.base_auto.push_back(baseMotion);
             steps_goal.steps.push_back(step_msg_);
             steps_goal.preempt = steps_goal.PREEMPT_NO;
             sendGoal(steps_goal);

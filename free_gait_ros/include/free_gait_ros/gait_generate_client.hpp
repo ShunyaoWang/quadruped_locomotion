@@ -112,7 +112,8 @@ private:
   int step_number;
   Position LF_nominal, RF_nominal, LH_nominal, RH_nominal, P_CoM_desired_;
   Position footholds_in_stance, footprint_center_in_base, footprint_center_in_world;
-  Pose start_pose, desired_base_pose_;
+  Pose start_pose, desired_base_pose_, next_pose_;
+  bool update_start_pose_flag_;
   geometry_msgs::Vector3Stamped surface_normal;
   geometry_msgs::PointStamped lf_foot_holds, rf_foot_holds, lh_foot_holds, rh_foot_holds;
   nav_msgs::Path desired_com_path_;
@@ -151,6 +152,7 @@ private:
 
   Pose optimized_base_pose;
 
+  double crawl_support_margin;
 //  std::vector<LinearVelocity> current_velocity_buffer_;
 
 

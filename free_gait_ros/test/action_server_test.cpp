@@ -145,6 +145,8 @@ public:
             if(is_start_gait && !gait_generate_client_.ignore_vd){
                 state->setLinearVelocityBaseInWorldFrame(desired_linear_velocity_);
                 state->setAngularVelocityBaseInBaseFrame(desired_angular_velocity_);
+                state->setPositionWorldToBaseInWorldFrame(gait_generate_client_.getDesiredBasePose().getPosition());
+                state->setOrientationBaseToWorld(gait_generate_client_.getDesiredBasePose().getRotation());
               }
             if(is_start_gait && gait_generate_client_.getGaitType() == 2)
               {
@@ -185,8 +187,20 @@ public:
                   state->setPositionWorldToBaseInWorldFrame(gait_generate_client_.getDesiredBasePose().getPosition());
                   state->setOrientationBaseToWorld(gait_generate_client_.getDesiredBasePose().getRotation());
                   rosPublisher->publish(gait_generate_client_.getDesiredBasePose());
-                }else if(!is_joy_control)
+                }
+              else if(is_start_gait && gait_generate_client_.getGaitType() == 1)
+                {
+                  state->setPositionWorldToBaseInWorldFrame(gait_generate_client_.getDesiredBasePose().getPosition());
+                  state->setOrientationBaseToWorld(gait_generate_client_.getDesiredBasePose().getRotation());
+                  state->setLinearVelocityBaseInWorldFrame(desired_linear_velocity_);
+                  state->setAngularVelocityBaseInBaseFrame(desired_angular_velocity_);
+                  rosPublisher->publish(gait_generate_client_.getDesiredBasePose());
+                }
+              else if(!is_joy_control)
+                {
                   rosPublisher->publish();
+                }
+
 
 
             }
@@ -266,6 +280,8 @@ public:
         is_start_gait = false;
         ROS_INFO("STOP GAIT....");
         gait_generate_client_.current_velocity_buffer_.clear();
+        desired_linear_velocity_ = LinearVelocity(0,0,0);
+        desired_angular_velocity_ = LocalAngularVelocity(0,0,0);
       }
     if(request.data == true){
         is_start_gait = true;

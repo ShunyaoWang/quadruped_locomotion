@@ -5,7 +5,7 @@ balance_controller:
       kd: 10
       kff: 1
     lateral:
-      kp: 1000
+      kp: 1500
       kd: 10
       kff: 1
     vertical:
@@ -32,8 +32,8 @@ balance_controller:
         lateral: 1
         vertical: 1
       torque:
-        roll: 20
-        pitch: 20
+        roll: 10
+        pitch: 10
         yaw: 5
       regularizer:
         value: 0.00001

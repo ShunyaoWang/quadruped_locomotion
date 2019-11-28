@@ -149,3 +149,9 @@ actions:
       file: motion_scripts/step_down.yaml
       type: yaml
       description: move LF leg down to a foothold
+  - action:
+      id: "26"
+      name: climb_stairs
+      file: motion_scripts/climb_stairs.yaml
+      type: yaml
+      description: crawl gait to climb stairs
