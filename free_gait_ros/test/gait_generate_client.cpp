@@ -138,6 +138,11 @@ using namespace free_gait;
 
   bool GaitGenerateClient::initializeTrot(const double t_swing, const double t_stance)
   {
+    hip_dispacement.emplace(LimbEnum::LF_LEG, Position(0,step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::RF_LEG, Position(0,-step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::LH_LEG, Position(0,step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::RH_LEG, Position(0,-step_displacement,0));
+
     sigma_st_0 = 0.8;
     sigma_st_1 = 0.8;
     sigma_sw_0 = 1;
@@ -196,6 +201,11 @@ using namespace free_gait;
 //    sigma_st_1 = 0.2;
 //    sigma_sw_0 = 0.5;
 //    sigma_sw_1 = 0.5;
+
+    hip_dispacement.emplace(LimbEnum::LF_LEG, Position(0,step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::RF_LEG, Position(0,-step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::LH_LEG, Position(0,step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::RH_LEG, Position(0,-step_displacement,0));
 
     height_ = 0.5;
     sigma_st_0 = 0.2;
@@ -291,6 +301,11 @@ using namespace free_gait;
   {
     t_swing_ = t_swing;
     t_stance_ = t_stance;
+
+    hip_dispacement.emplace(LimbEnum::LF_LEG, Position(-0.1,step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::RF_LEG, Position(-0.1,-step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::LH_LEG, Position(0.1,step_displacement,0));
+    hip_dispacement.emplace(LimbEnum::RH_LEG, Position(0.1,-step_displacement,0));
 
     height_ = 0.55;
 //    step_msg_.base_auto.resize(1);
@@ -572,7 +587,7 @@ using namespace free_gait;
                 if(limb == free_gait::LimbEnum::LF_LEG || limb == free_gait::LimbEnum::RF_LEG)
                   crawl_support_margin = 0.05;
                 else
-                  crawl_support_margin = 0.10;
+                  crawl_support_margin = 0.15;
 //                Pose start_pose;
                 if(limb == free_gait::LimbEnum::LF_LEG)
                   {
@@ -600,9 +615,10 @@ using namespace free_gait;
                         next_pose_ = start_pose;
                         update_start_pose_flag_ = true;
                       }
+                    next_pose_.getRotation() = start_pose.getRotation();
                     next_pose_.getPosition() = next_pose_.getPosition() + next_pose_.getRotation().rotate(displace_in_baselink);// + displace_of_angular);
                     next_pose_.getPosition().z() = start_pose.getPosition().z();
-                    next_pose_.getRotation() = start_pose.getRotation();
+
 
 
                   }

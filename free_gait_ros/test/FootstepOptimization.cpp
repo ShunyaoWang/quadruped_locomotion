@@ -68,7 +68,7 @@ bool FootstepOptimization::getOptimizedFoothold(free_gait::Position& nominal_foo
   int i = 0;
     for(grid_map::CircleIterator iterator(traversability_map_, center, radius); !iterator.isPastEnd(); ++iterator)
     {
-      if(traversability_map_.at("traversability", *iterator) > 0.9)
+      if(traversability_map_.at("traversability", *iterator) > 0.75)
         {
           if(checkKinematicsConstriants(limb, *iterator))
             {
@@ -82,6 +82,7 @@ bool FootstepOptimization::getOptimizedFoothold(free_gait::Position& nominal_foo
                   ROS_INFO("Find a new foothold");
                 }else{
                   ROS_INFO("Keep the foothold");
+                  return false;
                 }
               return true;
             }
