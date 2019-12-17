@@ -60,15 +60,15 @@ class StateSwitcher: public StateSwitcherBase {
    * 6: middle swing, but bumped into obstacle while swinging
    */
   enum States {
-    Init,
-    StanceNormal,
-    StanceSlipping,
-    StanceLostContact,
     SwingNormal,
-    SwingLateLiftOff,
+    StanceNormal,
     SwingEarlyTouchDown,
+    SwingLatelyTouchDown,
     SwingBumpedIntoObstacle,
-    SwingLatelyTouchDown
+    StanceLostContact,
+    StanceSlipping,
+    Init,
+    SwingLateLiftOff
   };
 
   StateSwitcher();
@@ -78,6 +78,7 @@ class StateSwitcher: public StateSwitcherBase {
 
   virtual void setState(States state);
   virtual States getState();
+  virtual States getLastState();
 
  protected:
   States currentState_;

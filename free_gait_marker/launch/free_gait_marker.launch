@@ -8,5 +8,5 @@
     <rosparam command="load" file="$(find free_gait_marker)/config/locomotion_controller.yaml"/>
     <remap from="/tf" to="/tf_minimal" if="$(arg tf_minimal)"/>
   </node>
-	
+
 </launch>

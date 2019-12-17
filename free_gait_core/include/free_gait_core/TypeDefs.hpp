@@ -51,7 +51,7 @@ using romo::RotationVector;
 using romo::EulerAnglesXyz;
 using romo::EulerAnglesXyzDiff;
 using romo::Position;
-using Position2 = kindr::Position<double, 2>;
+using Position2 = kindr::Position<double, 2>;//2D position
 using romo::LinearVelocity;
 using romo::LocalAngularVelocity;
 using romo::EulerAnglesZyxDiff;
@@ -88,7 +88,7 @@ const std::vector<LimbEnum> limbEnumCounterClockWiseOrder = { LimbEnum::LF_LEG,
                                                               LimbEnum::RF_LEG };
 
 typedef std::unordered_map<ControlLevel, bool, EnumClassHash> ControlSetup;
-typedef std::unordered_map<LimbEnum, Position, EnumClassHash> Stance;
+typedef std::unordered_map<LimbEnum, Position, EnumClassHash> Stance;//leg and corresponding position
 typedef std::unordered_map<LimbEnum, Position2, EnumClassHash> PlanarStance;
 
 struct CompareByCounterClockwiseOrder;

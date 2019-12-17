@@ -96,6 +96,10 @@ target_link_libraries(${PROJECT_NAME}
 add_executable(steps_test test/test.cpp) #test/AdapterDummy.cpp)
 target_link_libraries(steps_test ${PROJECT_NAME}
   ${catkin_LIBRARIES})
+
+add_executable(steps_test_kp test/test_kp.cpp) #test/AdapterDummy.cpp)
+target_link_libraries(steps_test_kp ${PROJECT_NAME}
+  ${catkin_LIBRARIES})
 add_executable(action_server_test_node test/action_server_test.cpp)
 target_link_libraries(action_server_test_node
   ${PROJECT_NAME}
@@ -103,6 +107,16 @@ target_link_libraries(action_server_test_node
 
 add_executable(action_client_test_node test/action_client_test.cpp)
 target_link_libraries(action_client_test_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES})
+
+add_executable(action_server_test_node_kp test/action_server_test_node_kp.cpp)
+target_link_libraries(action_server_test_node_kp
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES})
+
+add_executable(action_client_test_node_kp test/action_client_test_node_kp.cpp)
+target_link_libraries(action_client_test_node_kp
   ${PROJECT_NAME}
   ${catkin_LIBRARIES})
 
@@ -115,20 +129,22 @@ target_link_libraries(robot_state_pub_node
   target_link_libraries(foothold_optimization_test
     ${PROJECT_NAME}
     ${catkin_LIBRARIES})
+
+
 #############
 ## Testing ##
 #############
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 ## Add gtest based cpp test target and link libraries
-catkin_add_gtest(${PROJECT_NAME}-test
-  test/test_free_gait_ros.cpp
-  test/AdapterDummy.cpp
-  test/StepTest.cpp
-)
-if(TARGET ${PROJECT_NAME}-test)
-  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-endif()
+#catkin_add_gtest(${PROJECT_NAME}-test
+#  test/test_free_gait_ros.cpp
+#  test/AdapterDummy.cpp
+#  test/StepTest.cpp
+#)
+#if(TARGET ${PROJECT_NAME}-test)
+#  target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+#endif()
 
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

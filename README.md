@@ -12,10 +12,10 @@ package for quadruped locomotion
 - [others](https://github.com/HITSZ-LeggedRobotics/dependencies)
 
 ## Build Dependencies
-   
+
    - first build and install **kindr**
 
-  
+
    - build and install **RBDL** follow instructions in the corresponding floder;
 
 
@@ -26,7 +26,7 @@ package for quadruped locomotion
     sudo make install
     ```
    then and .cmake file for cmake to find RBDL
-   
+
     ```
     cd usr/local/lib/cmake
     sudo mkdir rbdl

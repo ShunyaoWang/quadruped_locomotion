@@ -82,7 +82,7 @@ bool StepQueue::advance(double dt)
   hasSwitchedStep_ = false;
   hasStartedStep_ = false;
   if (queue_.empty()) {
-    active_ = false;
+    active_ = false;//bool
     return true;
   }
 
@@ -94,6 +94,7 @@ bool StepQueue::advance(double dt)
   }
 
   // Check if step is updated (multi-threading).
+  // .front the first element
   if (!queue_.front().isUpdated()) {
     if (queue_.front().update()) { //update motion duration
       hasStartedStep_ = true;
@@ -106,7 +107,7 @@ bool StepQueue::advance(double dt)
   if (!queue_.front().advance(dt)) { //add time +=dt, time>duration,false
     // Step finished.
     previousStep_ = std::move(std::unique_ptr<Step>(new Step(queue_.front())));
-    queue_.pop_front();
+    queue_.pop_front();//remove the first element
     if (queue_.empty()) {
       // End reached.
       active_ = false;
@@ -135,7 +136,7 @@ bool StepQueue::hasStartedStep() const
 bool StepQueue::active() const
 {
   if (empty()) return false;
-  return queue_.front().isUpdated();
+  return queue_.front().isUpdated();//queue_ std::deque<Step> queue_, the first element is step
 }
 
 bool StepQueue::empty() const
@@ -147,7 +148,7 @@ void StepQueue::skipCurrentStep()
 {
   if (empty()) return;
   previousStep_ = std::move(std::unique_ptr<Step>(new Step(queue_.front())));
-  queue_.pop_front();
+  queue_.pop_front();//remove the first element.
   active_ = false;
 }
 

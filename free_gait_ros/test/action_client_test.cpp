@@ -105,12 +105,12 @@ public:
   {
     is_active = true;
     is_done = false;
-    ROS_INFO("Goal just went active");
+    ROS_DEBUG("Goal just went active");
   }
 
   void feedbackCallback(const free_gait_msgs::ExecuteStepsFeedbackConstPtr& feedback)
   {
-    ROS_INFO("step time is : %f", feedback->phase);
+    ROS_DEBUG("step time is : %f", feedback->phase);
   }
 
   void doneCallback(const actionlib::SimpleClientGoalState& state,

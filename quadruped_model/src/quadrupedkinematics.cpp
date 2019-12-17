@@ -109,6 +109,7 @@ bool QuadrupedKinematics::LoadRobotDescriptionFromFile(const std::string filenam
 bool QuadrupedKinematics::setHipPoseInBase(const KDL::Chain& kdl_chain, const LimbEnum& limb)
 {
   KDL::Frame cartisian_frame;
+  //设置Segment的惯量,getSegment(0)
   cartisian_frame = kdl_chain.getSegment(0).getFrameToTip();
   Position translation(cartisian_frame(0,3), cartisian_frame(1,3), cartisian_frame(2,3));
   RotationMatrix rotation_matrix(cartisian_frame(0,0), cartisian_frame(0,1), cartisian_frame(0,2),
@@ -149,14 +150,15 @@ bool QuadrupedKinematics::FowardKinematicsSolve(const JointPositionsLimb& joint_
   for(int i = 0; i<number_of_joints; i++)
   {
     joints(i) = joint_position(i);
-//    cout<<"the "<<i<<"th joint: "<<joints(i)<<endl;
   }
+<<<<<<< HEAD
+=======
 //  cout<<LF_Chain.getNrOfSegments()<<endl;
-//  cout<<joints.data<<endl;
+  // cout<<joints.data<<endl;
+>>>>>>> 157af038605185025808fe7c7ab73730ea5ac357
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
-//        cout<<"LF : "<<LF_Chain.getSegment(0).getFrameToTip()<<endl;
         KDL::ChainFkSolverPos_recursive lf_fk_solver(LF_Chain);
         if(lf_fk_solver.JntToCart(joints, cartisian_frame)<0)
         {
@@ -276,6 +278,148 @@ bool QuadrupedKinematics::AnalysticJacobian(const JointPositionsLimb& joint_posi
 //  for(int i = 0;)
   return true;
 }
+
+bool QuadrupedKinematics::AnalysticJacobianDot(const JointPositionsLimb& joint_positions,
+                                               const JointVelocitiesLimb& joint_velocity,
+                                               const LimbEnum& limb, Eigen::MatrixXd& jacobian_dot)
+{
+  int number_of_joints = joint_velocity.vector().size();
+  KDL::JntArray q(number_of_joints);
+  KDL::JntArray qdot(number_of_joints);
+  for(int i = 0; i<number_of_joints; i++)
+  {
+    qdot(i) = joint_velocity(i);
+    q(i) = joint_positions(i);
+//    cout<<"the "<<i<<"th joint pos: "<<q(i)<<endl;
+//    cout<<"the "<<i<<"th joint vel: "<<qdot(i)<<endl;
+  }
+
+  KDL::JntArrayVel joint_vel(q, qdot);
+  KDL::Jacobian JacDot;
+  JacDot.resize(number_of_joints);
+  int error_code = 0;
+
+  if(error_code != 0)
+  {
+    cout<<"Failed to solve Jacobian problem"<<" error code :"<<error_code<<endl;
+  }
+
+  switch (limb) {
+    case LimbEnum::LF_LEG:
+      {
+//        KDL::ChainJntToJacDotSolver jac_dot_solver(LF_Chain);
+//        error_code = jac_dot_solver.JntToJacDot(joint_vel, JacDot);
+        if(!CalculateJacobianDotFromJointVel(LF_Chain, joint_vel, JacDot))
+        {
+          cout<<"Failed to solve Jacobian Dot problem"<<endl;
+          return false;
+        }
+        break;
+      }
+    case LimbEnum::RF_LEG:
+      {
+//        KDL::ChainJntToJacDotSolver jac_dot_solver(RF_Chain);
+        if(!CalculateJacobianDotFromJointVel(RF_Chain, joint_vel, JacDot))
+        {
+          cout<<"Failed to solve Jacobian Dot problem"<<endl;
+          return false;
+        }
+        break;
+      }
+    case LimbEnum::LH_LEG:
+    {
+//      KDL::ChainJntToJacDotSolver jac_dot_solver(LH_Chain);
+      if(!CalculateJacobianDotFromJointVel(LH_Chain, joint_vel, JacDot))
+      {
+        cout<<"Failed to solve Jacobian Dot problem"<<endl;
+        return false;
+      }
+      break;
+    }
+    case LimbEnum::RH_LEG:
+     {
+//      KDL::ChainJntToJacDotSolver jac_dot_solver(RH_Chain);
+      if(!CalculateJacobianDotFromJointVel(RH_Chain, joint_vel, JacDot))
+      {
+        cout<<"Failed to solve Jacobian Dot problem"<<endl;
+        return false;
+      }
+      break;
+     }
+
+  }
+
+  jacobian_dot = JacDot.data;
+//  cout<<jacobian<<endl;
+//  cout<<"size of jacobian is (rows, cols) : "<<jacobian.rows()<<","<<jacobian.cols()<<endl;
+//  for(int i = 0;)
+  return true;
+}
+
+bool QuadrupedKinematics::CalculateJacobianDotFromJointVel(const KDL::Chain& chain,
+                                                           const KDL::JntArrayVel& q_in,
+                                                           KDL::Jacobian& jdot)
+{
+  // Let's compute Jdot in the corresponding representation
+  unsigned int segmentNr = chain.getNrOfSegments();
+  int error_code = 0;
+  int number_of_joints = chain.getNrOfJoints();
+  KDL::Jacobian jac_;
+  jac_.resize(number_of_joints);
+
+  KDL::ChainJntToJacSolver jacobian_solver(chain);
+
+  error_code = jacobian_solver.JntToJac(q_in.q, jac_);
+  if(error_code != 0)
+  {
+    cout<<"Failed to solve Jacobian problem in 'CalculateJacobianDotFromJointVel()' "<<" error code :"<<error_code<<endl;
+  }
+  int k=0;
+  KDL::Twist t_djdq_, jac_j_, jac_i_, jac_dot_k_;
+
+  for(unsigned int i=0;i<segmentNr;++i)
+  {
+      //Only increase joint nr if the segment has a joint
+      if(chain.getSegment(i).getJoint().getType()!=KDL::Joint::None){
+
+          for(unsigned int j=0;j<chain.getNrOfJoints();++j)
+          {
+              // Column J is the sum of all partial derivatives  ref (41)
+//              if(!locked_joints_[j])
+              int joint_idx = j;
+              int column_idx = k;
+
+              jac_j_ = jac_.getColumn(joint_idx);
+              jac_i_ = jac_.getColumn(column_idx);
+
+              SetToZero(t_djdq_);
+
+              if(joint_idx < column_idx)
+              {
+                  // P_{\Delta}({}_{bs}J^{j})  ref (20)
+                  t_djdq_.vel = jac_j_.rot * jac_i_.vel;
+                  t_djdq_.rot = jac_j_.rot * jac_i_.rot;
+              }else if(joint_idx > column_idx)
+              {
+                  // M_{\Delta}({}_{bs}J^{j})  ref (23)
+                  SetToZero(t_djdq_.rot);
+                  t_djdq_.vel = -jac_j_.vel * jac_i_.rot;
+              }else if(joint_idx == column_idx)
+              {
+                   // ref (40)
+                   SetToZero(t_djdq_.rot);
+                   t_djdq_.vel = jac_i_.rot * jac_i_.vel;
+              }
+
+            jac_dot_k_ += t_djdq_ * q_in.qdot(j);
+          }
+          jdot.setColumn(k++, jac_dot_k_);
+          SetToZero(jac_dot_k_);
+      }
+  }
+  return true;
+}
+
 bool QuadrupedKinematics::AnalysticJacobianForLink(const JointPositionsLimb& joint_positions, const LimbEnum& limb, const int& link_index, Eigen::MatrixXd& jacobian)
 {
   int number_of_joints = link_index;
@@ -290,6 +434,7 @@ bool QuadrupedKinematics::AnalysticJacobianForLink(const JointPositionsLimb& joi
   switch (limb) {
     case LimbEnum::LF_LEG:
       {
+        //自己设置一个链条?
         KDL::Chain LF_Chain_Link;
         LF_Chain_Link.addSegment(LF_Chain.getSegment(0));
         cout<<LF_Chain.getSegment(0).getName()<<endl;
@@ -300,6 +445,7 @@ bool QuadrupedKinematics::AnalysticJacobianForLink(const JointPositionsLimb& joi
                                                   LF_Chain.getSegment(i).getJoint(),
                                                   KDL::Frame(com)));
           }
+        //
         KDL::ChainJntToJacSolver jacobian_solver(LF_Chain_Link);
         error_code = jacobian_solver.JntToJac(joints, J);
         if(error_code != 0)
@@ -381,8 +527,8 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
 {
   double d,l1,l2,px,py,pz,alpha,beta1,beta2;
   d=0.1;
-  l1=0.25;
-  l2=0.25;
+  l1=0.35;
+  l2=0.35;
 //  cout<<"px in base = "<<foot_position(0)<<endl
 //      <<"py in base = "<<foot_position(1)<<endl
 //      <<"pz in base = "<<foot_position(2)<<endl;
@@ -565,7 +711,7 @@ double QuadrupedKinematics::MapToPI(double q)
 Position QuadrupedKinematics::getPositionBaseToHipInBaseFrame(const LimbEnum& limb) const
 {
   Position hip_position_in_base = hip_pose_in_base_.at(limb).getPosition();
-  hip_position_in_base.z() = 0.0;
+  hip_position_in_base.z() = 0.;
   return hip_position_in_base;
 //  switch (limb) {
 //    case LimbEnum::LF_LEG:

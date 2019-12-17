@@ -34,6 +34,7 @@ namespace balance_controller {
         is_cartisian_motion_[limb] = true;
 //        foot_positions[limb] = Vector(0.5,0.2,-0.45);
         foot_velocities[limb] = Vector(0,0,0);
+        foot_accelerations[limb] = Vector(0,0,0);
         contactForces_[limb] = Vector(0,0,0);
       }
     foot_positions[free_gait::LimbEnum::LF_LEG] = Vector(0.5,0.2,-0.45);
@@ -101,6 +102,13 @@ namespace balance_controller {
         ROS_ERROR_STREAM("Failed to getParam '" << param_name << "' (namespace: " << node_handle.getNamespace() << ").");
         return false;
       }
+    param_name = "/free_gait/robot_state";
+    std::string robot_state_topic;
+    if(!node_handle.getParam(param_name, robot_state_topic))
+      {
+        ROS_ERROR_STREAM("Failed to getParam '" << param_name << "' (namespace: " << node_handle.getNamespace() << ").");
+        return false;
+      }
     //! WSHY: get joint handle from robot state handle
     param_name = "joints";
     if(!node_handle.getParam(param_name, joint_names))
@@ -125,13 +133,17 @@ namespace balance_controller {
         }
       }
 
+    dynamicReconfigureServer_.reset(new DynamicConfigServer(node_handle));
+    reconfigureCallbackType_ = boost::bind(&SingleLegController::dynamicReconfigureCallback, this, _1, _2);
+    dynamicReconfigureServer_->setCallback(reconfigureCallbackType_);
+
     base_command_sub_ = node_handle.subscribe<free_gait_msgs::RobotState>("/desired_robot_state", 1, &SingleLegController::baseCommandCallback, this);
 
     contact_sub_ = node_handle.subscribe<sim_assiants::FootContacts>("/bumper_sensor_filter_node/foot_contacts", 1, &SingleLegController::footContactsCallback, this);
 
     contact_force_sub_ = node_handle.subscribe<geometry_msgs::Wrench>("/force_cmd", 1, &SingleLegController::forceCommandCallback, this);
     fakePosePub_ = node_handle.advertise<geometry_msgs::PoseWithCovarianceStamped>("base_pose", 1);
-    robot_state_pub_ = node_handle.advertise<free_gait_msgs::RobotState>("/gazebo/robot_states", 1);
+    robot_state_pub_ = node_handle.advertise<free_gait_msgs::RobotState>(robot_state_topic, 1);
     joint_state_pub_ = node_handle.advertise<sensor_msgs::JointState>("/inverse_dynamic_joint_state", 1);
 
     switchControlMethodClient_ = node_handle.serviceClient<free_gait_msgs::SetLimbConfigure>("/set_control_method");
@@ -155,11 +167,31 @@ namespace balance_controller {
     robot_state_msg.rh_leg_joints.position.resize(3);
     robot_state_msg.rh_leg_joints.velocity.resize(3);
     robot_state_msg.rh_leg_joints.effort.resize(3);
+
+    robot_state_msg.lf_target.target_position.resize(1);
+    robot_state_msg.lf_target.target_velocity.resize(1);
+
+    robot_state_msg.rf_target.target_position.resize(1);
+    robot_state_msg.rf_target.target_velocity.resize(1);
+
+    robot_state_msg.rh_target.target_position.resize(1);
+    robot_state_msg.rh_target.target_velocity.resize(1);
+
+    robot_state_msg.lh_target.target_position.resize(1);
+    robot_state_msg.lh_target.target_velocity.resize(1);
     //    message_filters::Subscriber<gazebo_msgs:
     all_joint_positions.setZero();
     all_joint_velocities.setZero();
     all_joint_efforts.setZero();
 
+  }
+
+  void SingleLegController::dynamicReconfigureCallback(balance_controller::balance_controllerConfig& config, uint32_t level)
+  {
+    Eigen::Vector3d kp_vec, kd_vec;
+    kp_vec << config.x_dir_kp, config.y_dir_kp, config.z_dir_kp;
+    kd_vec << config.x_dir_kd, config.y_dir_kd, config.z_dir_kd;
+    single_leg_solver_->setGains(kp_vec, kd_vec);
   }
 
   void SingleLegController::update(const ros::Time& time, const ros::Duration& period)
@@ -216,7 +248,7 @@ namespace balance_controller {
             if(control_methods[i] == "contact_force")
               {
                 Eigen::Matrix3d jacobian = robot_state_->getTranslationJacobianFromBaseToFootInBaseFrame(limb);
-                Force contactForce;
+                Force contactForce = Force(contactForces_.at(limb).toImplementation());
                 free_gait::JointEffortsLeg jointTorques = free_gait::JointEffortsLeg(jacobian.transpose() * contactForce.toImplementation());
                 free_gait::JointPositionsLeg joint_position_leg = robot_state_->getJointPositionFeedbackForLimb(limb);
                 jointTorques += robot_state_->getGravityCompensationForLimb(limb, joint_position_leg, gravity_in_base);
@@ -240,7 +272,7 @@ namespace balance_controller {
             if(control_methods[i] == "end_position")
               {
 //                ROS_INFO("control end position");
-                single_leg_solver_->update(time, real_time_period, limb, real_time_);
+                single_leg_solver_->update(time, real_time_period, limb, real_time_, foot_accelerations.at(limb).vector());
 
                 for(int j = start_index;j<start_index +3;j++)
                   {
@@ -476,6 +508,7 @@ namespace balance_controller {
     robot_state_msg.lf_leg_joints.position[2] = all_joint_positions(2);
     robot_state_msg.lf_leg_joints.effort[2] = all_joint_efforts(2);
 
+
     robot_state_msg.rf_leg_joints.name[0] = "front_right_1_joint";
     robot_state_msg.rf_leg_joints.position[0] = all_joint_positions(3);
     robot_state_msg.rf_leg_joints.effort[0] = all_joint_efforts(3);
@@ -506,6 +539,25 @@ namespace balance_controller {
     robot_state_msg.lh_leg_joints.position[2] = all_joint_positions(11);
     robot_state_msg.lh_leg_joints.effort[2] = all_joint_efforts(11);
 
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::LF_LEG),
+                                       robot_state_msg.lf_target.target_position[0].point);
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::RF_LEG),
+                                       robot_state_msg.rf_target.target_position[0].point);
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::RH_LEG),
+                                       robot_state_msg.rh_target.target_position[0].point);
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getPositionBaseToFootInBaseFrame(free_gait::LimbEnum::LH_LEG),
+                                       robot_state_msg.lh_target.target_position[0].point);
+
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::LF_LEG),
+                                       robot_state_msg.lf_target.target_velocity[0].vector);
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::RF_LEG),
+                                       robot_state_msg.rf_target.target_velocity[0].vector);
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::RH_LEG),
+                                       robot_state_msg.rh_target.target_velocity[0].vector);
+    kindr_ros::convertToRosGeometryMsg(robot_state_->getEndEffectorVelocityInBaseForLimb(free_gait::LimbEnum::LH_LEG),
+                                       robot_state_msg.lh_target.target_velocity[0].vector);
+
+
     robot_state_pub_.publish(robot_state_msg);
 
 
@@ -517,4 +569,3 @@ namespace balance_controller {
 }
 
 PLUGINLIB_EXPORT_CLASS(balance_controller::SingleLegController, controller_interface::ControllerBase)
-

@@ -84,6 +84,8 @@ bool Footstep::compute(bool isSupportLeg)
     generateStraightKnots();
   } else if (profileType_ == "trapezoid") {
     generateTrapezoidKnots();
+  } else if(profileType_ == "square_ab") {
+    generateSquareKnotsAbsolute();
   } else {
     MELO_ERROR_STREAM("Swing profile of type '" << profileType_ << "' not supported.");
     return false;
@@ -302,6 +304,30 @@ void Footstep::generateSquareKnots()
   values_.push_back(knot3.vector());
 
   // Knot 4.
+  values_.push_back(target_.vector());
+}
+
+void Footstep::generateSquareKnotsAbsolute()
+{
+  // Knot 1.
+  values_.push_back(start_.vector());
+
+  // Knot 2.
+  Position knot2 = start_ - 0.5 * (target_ - start_);
+  knot2.z() = start_.z() + profileHeight_;
+  values_.push_back(knot2.vector());
+
+  // Knot 4.
+  Position knot4 = start_ + 0.5 * (target_ - start_);
+  knot4.z() = target_.z() + profileHeight_;
+
+  // Knot 3.
+  Position knot3 = knot2 + 0.5 * (knot4 - knot2);
+  knot3.z() = knot4.z();
+  values_.push_back(knot3.vector());
+  values_.push_back(knot4.vector());
+
+  // Knot 5.
   values_.push_back(target_.vector());
 }
 

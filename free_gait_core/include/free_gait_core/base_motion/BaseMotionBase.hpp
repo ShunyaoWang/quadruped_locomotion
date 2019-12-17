@@ -56,7 +56,7 @@ class BaseMotionBase
    */
   BaseMotionBase::Type getType() const;
 
-  virtual const ControlSetup getControlSetup() const;
+  virtual const ControlSetup getControlSetup() const;//control level typedef std::unordered_map<ControlLevel, bool, EnumClassHash> ControlSetup;
 
   /*!
    * Update the trajectory with the base start pose.

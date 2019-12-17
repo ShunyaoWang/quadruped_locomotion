@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <param name="/free_gait/adapter_plugin/preview" value="free_gait_ros/AdapterDummy" />
+  <param name="/free_gait/adapter_ros_interface_plugin/preview" value="free_gait_ros/AdapterRosInterfaceDummy" />
+  <param name = "/free_gait/robot_description"
+         value = "$(find quadruped_model)/urdf/quadruped_model.urdf"
+         />
+
+
+</launch>

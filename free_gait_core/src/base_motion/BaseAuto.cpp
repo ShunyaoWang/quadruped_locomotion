@@ -329,6 +329,9 @@ bool BaseAuto::generateFootholdLists(const State& state, const Step& step, const
   footholdsInSupport_.clear();
   footholdsOfNextLegMotion_.clear();
   bool prepareForNextStep = false;
+  /**
+    true if the legmotions_ is empty
+    */
   if (!step.hasLegMotion() && queue.size() > 1) {
     if (queue.getNextStep().hasLegMotion()) prepareForNextStep = true;
   }

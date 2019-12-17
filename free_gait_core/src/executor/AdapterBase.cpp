@@ -39,7 +39,7 @@ Position AdapterBase::transformPosition(const std::string& inputFrameId,
 
     if (outputFrameId == getBaseFrameId()) {
       transformedPosition = position;
-      std::cout<<"Transfer from base to base"<<std::endl;
+//      std::cout<<"Transfer from base to base"<<std::endl;
     } else if (outputFrameId == getWorldFrameId()) {//odom
       transformedPosition = getPositionWorldToBaseInWorldFrame() + getOrientationBaseToWorld().rotate(position);
 //      std::cout<<"Transfer from base to world, base position in world : "<<getPositionWorldToBaseInWorldFrame()<<std::endl;

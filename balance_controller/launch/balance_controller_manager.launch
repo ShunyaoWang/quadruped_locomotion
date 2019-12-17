@@ -9,12 +9,32 @@
   robot_namespace:=$(arg robot_namespace)
   kinect_enabled:=$(arg kinect_enabled)"/>
 
-  <param name="/free_gait/robot_state" value="/leg_odom/robot_states" />
+  <param name="/free_gait/robot_state" value="/legodom/robot_states" />
   <!--<param name="robot_description" textfile="$(find simpledog)/urdf/simpledog.urdf.xacro"/>-->
 
   <!--<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />-->
 
+  <!-- <include file="$(find pressure_sensor)/launch/pressure_sensor.launch">
+
+  </include> -->
+
+  <!-- <param name="/use_gazebo_feedback" value="false"/> -->
+
+  <param name="/legodom/use_gazebo_feedback" value="false"/>
+
+  <param name="/real_time_factor" value="1" />
+  <param name="/cal_fator_x" value="1.0" />
+  <param name="/cal_fator_y" value="1.0" />
+  <param name="/cal_fator_z" value="1.0" />
+
 <!-- Load controller configuration -->
+
+<include file="$(find xsens_driver)/launch/xsens_driver.launch">
+
+</include>
+<!-- <remap from="/imu/data" to="/imu" /> -->
+<param name="/imu_topic_name" value="/imu/data" />
+
 <rosparam command="load" file="$(find balance_controller)/config/control.yaml" />
 
 <rosparam command="load" file="$(find ros_ethercat_driver)/config/motor_param.yaml" />
@@ -22,7 +42,8 @@
 <!-- Spawn controllers -->
 <node name="base_controller_spawner" pkg="controller_manager" type="spawner"
       args="simpledog_joint_publisher
-            all_joints_position_group_controller" />
+            all_joints_position_group_controller
+            state_estimate_update" />
             <!-- front_left_1_joint_position_controller
             front_left_2_joint_position_controller
             front_left_3_joint_position_controller
@@ -37,8 +58,8 @@
             rear_left_3_joint_position_controller"/> -->
 <rosparam file="$(find balance_controller)/config/controller_gains.yaml" command="load" />
 <node name="base_controller_spawner_stopped" pkg="controller_manager" type="spawner"
-      args="--stopped base_balance_controller
-              single_leg_controller
+      args="--stopped single_leg_controller
+              base_balance_controller
               all_joints_velocity_group_controller
               all_joints_effort_group_controller" />
 

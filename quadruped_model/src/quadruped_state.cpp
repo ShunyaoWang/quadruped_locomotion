@@ -14,6 +14,9 @@ JointPositions QuadrupedState::joint_positions_feedback_ = JointPositions(Eigen:
 JointVelocities QuadrupedState::joint_velocities_ = JointVelocities(Eigen::VectorXd::Zero(12,1));
 JointPositions QuadrupedState::allJointPositionsFeedback_;
 JointVelocities QuadrupedState::joint_velocities_feedback_;
+JointTorques QuadrupedState::joint_torques_ = JointTorques().setZero();
+JointTorques QuadrupedState::joint_torques_feedback_ = JointTorques().setZero();
+
 Pose QuadrupedState::poseInWorldFrame_;
 Position QuadrupedState::positionWorldToBaseInWorldFrame_;
 RotationQuaternion QuadrupedState::orientationBaseToWorld_;
@@ -46,7 +49,6 @@ QuadrupedState::QuadrupedState()
 
 //QuadrupedState::QuadrupedState(const QuadrupedState& other)
 //    :
-
 //{
 
 //}
@@ -57,12 +59,13 @@ QuadrupedState::~QuadrupedState()
 };
 bool QuadrupedState::Initialize()
 {
-    std::cout<<"Initialize QuadrupedState"<<std::endl;
-    setLimbConfigure("><");
+//    std::cout<<"Initialize QuadrupedState"<<std::endl;
+    setLimbConfigure("><");//配置腿型
     setPoseBaseToWorld(Pose(Position(0,0,0), RotationQuaternion()));
     joint_positions_ << 0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14,0,1.57,-3.14;
-    //allJointPositionsFeedback_ = joint_positions_;
     setCurrentLimbJoints(joint_positions_);
+    joint_velocities_ << 0,0,0,0,0,0,0,0,0,0,0,0;
+    setCurrentLimbJointVelocities(joint_velocities_);
     for(auto limb : limb_configure_)
       {
         target_foot_position_in_base_[limb.first] = Vector(getPositionLegBaseToCoMInBaseFrame(limb.first));
@@ -114,6 +117,7 @@ bool QuadrupedState::setPoseBaseToWorld(const Pose pose)
 bool QuadrupedState::setBaseStateFromFeedback(const LinearVelocity& base_linear_velocity,
                                               const LocalAngularVelocity& base_angular_velocity)
 {
+  
   base_feedback_linear_velocity_ = base_linear_velocity;
   base_feedback_angular_velocity_ = base_angular_velocity;
   return true;
@@ -121,31 +125,49 @@ bool QuadrupedState::setBaseStateFromFeedback(const LinearVelocity& base_linear_
 const Position QuadrupedState::getPositionWorldToFootInWorldFrame(const LimbEnum& limb)
 {
   Position foot_in_base, base_in_world;
-//  setCurrentLimbJoints(joint_positions_);
+  //  setCurrentLimbJoints(joint_positions_);
   foot_in_base = getPositionBaseToFootInBaseFrame(limb);
   base_in_world = poseInWorldFrame_.getPosition();
   return poseInWorldFrame_.getRotation().rotate(foot_in_base) + base_in_world;//poseInWorldFrame_.getPosition() + getPositionWorldToFootInWorldFrame(limb);
 }
 const Position QuadrupedState::getPositionBaseToFootInBaseFrame(const LimbEnum& limb)
 {
-//  std::cout<<"get here"<<std::endl;
+  //  std::cout<<"get here"<<std::endl;
   JointPositionsLimb jointPositions = current_limb_joints_.at(limb);
-//  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
+  //  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
   Pose foot_pose;
   FowardKinematicsSolve(jointPositions, limb, foot_pose);
   footPoseInBaseFrame_[limb] = foot_pose;
-//  std::cout<<"in getPositionBaseToFootInBaseFrame()  "<<foot_pose.getPosition()<<std::endl;
+  //  std::cout<<"in getPositionBaseToFootInBaseFrame()  "<<foot_pose.getPosition()<<std::endl;
   return foot_pose.getPosition();
 }
 
 Position QuadrupedState::getPositionBaseToFootInBaseFrame(const LimbEnum& limb, const JointPositionsLimb& jointPositions)
 {
   Pose pose_base_to_foot_in_base;
-//  std::cout<<hip_pose_in_base_.at(LimbEnum::LF_LEG)<<std::endl;
-//  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
+  //  std::cout<<hip_pose_in_base_.at(LimbEnum::LF_LEG)<<std::endl;
+  //  std::cout<<"in getPositionBaseToFootInBaseFrame() jointPositions  "<<jointPositions<<std::endl;
   FowardKinematicsSolve(jointPositions, limb, pose_base_to_foot_in_base);
   return pose_base_to_foot_in_base.getPosition();
 }
+
+
+Pose QuadrupedState::getPoseFootInBaseFrame(const LimbEnum& limb){
+  Pose footposeinbase;
+  JointPositionsLimb jointPositions = current_limb_joints_.at(limb);
+//  std::cout<<"jointPositions: " <<jointPositions <<std::endl;
+  FowardKinematicsSolve(jointPositions, limb, footposeinbase);
+  return footposeinbase;
+}
+
+Pose QuadrupedState::getPoseFootInBaseFrame(const LimbEnum& limb, JointPositionsLimb& jointleg)
+{
+//  ROS_INFO("getPoseFootInBaseFrame");
+  Pose footposeinbase;
+  FowardKinematicsSolve(jointleg, limb, footposeinbase);
+  return footposeinbase;
+}
+
 
 const RotationQuaternion QuadrupedState::getOrientationBaseToWorld() const
 {
@@ -163,7 +185,7 @@ const JointPositions& QuadrupedState::getJointPositionFeedback() const
 
 const JointPositionsLimb QuadrupedState::getJointPositionFeedbackForLimb(const LimbEnum& limb) const
 {
-//  JointPositionsLimb joint_position_limb;
+  //  JointPositionsLimb joint_position_limb;
   int start, n;
   start = QD::getLimbStartIndexInJ(limb);
   n = QD::getNumDofLimb();
@@ -180,6 +202,11 @@ JointPositions& QuadrupedState::getJointPositions()
 JointVelocities& QuadrupedState::getJointVelocities()
 {
   return joint_velocities_;
+}
+
+JointTorques& QuadrupedState::getJointTorques()
+{
+  return joint_torques_;
 }
 
 const LinearVelocity QuadrupedState::getLinearVelocityBaseInWorldFrame() const
@@ -269,7 +296,6 @@ bool QuadrupedState::setAngularVelocityBaseInBaseFrame(const LocalAngularVelocit
 bool QuadrupedState::setJointPositions(const JointPositions joint_positions)
 {
   joint_positions_ = joint_positions;
-//  allJointPositionsFeedback_ = joint_positions_;
   setCurrentLimbJoints(joint_positions_);
   return true;
 }
@@ -314,15 +340,32 @@ LinearVelocity QuadrupedState::getEndEffectorLinearVelocityFromJointVelocities(c
 
 LinearVelocity QuadrupedState::getEndEffectorVelocityInBaseForLimb(const LimbEnum& limb)
 {
-  Eigen::Vector3d vel = getTranslationJacobianFromBaseToFootInBaseFrame(limb) * current_limb_joint_velocities_.at(limb).vector();
+//  ROS_INFO("getEndEffectorVelocityInBaseForLimb");
+  Eigen::Matrix3d vel_ = getTranslationJacobianFromBaseToFootInBaseFrame(limb);
+//  JointPositionsLimb j_ = current_limb_joints_.at(limb);
+//  std::cout<<"jointVelocity: " << current_limb_joint_velocities_.at(limb) <<std::endl;
+  JointVelocitiesLimb j_ = current_limb_joint_velocities_.at(limb);
+//  ROS_ERROR("here");
+  Eigen::Vector3d vel = vel_ * j_.vector();
+//  std::cout <<"J-vel:"<<vel << std::endl;
   return LinearVelocity(vel);
 }
 
 Eigen::Matrix3d QuadrupedState::getTranslationJacobianFromBaseToFootInBaseFrame(const LimbEnum& limb)
 {
   Eigen::MatrixXd jacobian;
-  AnalysticJacobian(current_limb_joints_.at(limb), limb, jacobian);
+  JointPositionsLimb jointPositions_ = current_limb_joints_.at(limb);
+  AnalysticJacobian(jointPositions_, limb, jacobian);
+//  ROS_INFO("getTranslationJacobianFromBaseToFootInBaseFrame");
   return jacobian.block(0,0,3,3);
+}
+Eigen::Matrix3d QuadrupedState::getTranslationJacobianDotFromBaseToFootInBaseFrame(const LimbEnum& limb)
+{
+  Eigen::MatrixXd jacobian_dot;
+  JointPositionsLimb joint_pos = current_limb_joints_.at(limb);
+  JointVelocitiesLimb joint_vel = current_limb_joint_velocities_.at(limb);
+  AnalysticJacobianDot(joint_pos, joint_vel, limb, jacobian_dot);
+  return jacobian_dot.block(0,0,3,3);
 }
 
 Eigen::Matrix3d getTranslationJacobianBaseToCoMInBaseFrame(const LimbEnum& limb, const int link_index)
@@ -332,10 +375,10 @@ Eigen::Matrix3d getTranslationJacobianBaseToCoMInBaseFrame(const LimbEnum& limb,
 
 
 void QuadrupedState::setCurrentLimbJoints(JointPositions all_joints_position)
-{
+{   
   /****************
-* TODO(Shunyao) : update current joint position, feedback,
-****************/
+  * TODO(Shunyao) : update current joint position, feedback,
+  ****************/
   allJointPositionsFeedback_ = all_joints_position;
   current_limb_joints_[LimbEnum::LF_LEG] = JointPositionsLimb(all_joints_position(0),all_joints_position(1),all_joints_position(2));
   current_limb_joints_[LimbEnum::RF_LEG] = JointPositionsLimb(all_joints_position(3),all_joints_position(4),all_joints_position(5));
@@ -346,12 +389,18 @@ void QuadrupedState::setCurrentLimbJoints(JointPositions all_joints_position)
       Pose foot_pose;
       FowardKinematicsSolve(current_limb_joints_.at(leg.first), leg.first, foot_pose);
       footPoseInBaseFrame_[leg.first] = foot_pose;
-//      foot_positions_[leg.first] = foot_pose.getPosition();
+<<<<<<< HEAD
+    }
+=======
+  //      foot_positions_[leg.first] = foot_pose.getPosition();
 
     }
-//  setSupportFootStance(foot_positions_);
+  //  setSupportFootStance(foot_positions_);
 
+>>>>>>> 157af038605185025808fe7c7ab73730ea5ac357
 }
+
+
 
 void QuadrupedState::setCurrentLimbJointVelocities(JointVelocities all_joints_velocities)
 {

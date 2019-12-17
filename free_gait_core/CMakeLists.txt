@@ -100,15 +100,23 @@ add_library(${PROJECT_NAME}
    src/pose_optimization/PoseOptimizationGeometric.cpp
    src/pose_optimization/PoseOptimizationQP.cpp
    src/pose_optimization/PoseOptimizationSQP.cpp
-   src/pose_optimization/poseparameterization.cpp
+   src/pose_optimization/PoseParameterization.cpp
    src/pose_optimization/PoseOptimizationObjectiveFunction.cpp
    src/pose_optimization/PoseOptimizationFunctionConstraints.cpp
    src/pose_optimization/PoseOptimizationProblem.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-)
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES})
+
+add_executable(test_kp_node
+    test/test_kp.cpp
+    )
+target_link_libraries(test_kp_node
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+    )
 
 #############
 ## Testing ##
@@ -116,19 +124,20 @@ target_link_libraries(${PROJECT_NAME}
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 # Add gtest based cpp test target and link libraries
-catkin_add_gtest(${PROJECT_NAME}-test
-  test/test_free_gait_core.cpp
-  test/AdapterDummy.cpp
-  test/StepTest.cpp
-  test/FootstepTest.cpp
+#catkin_add_gtest(${PROJECT_NAME}-test
+#  test/test_free_gait_core.cpp
+#  test/AdapterDummy.cpp
+#  test/StepTest.cpp
+#  test/FootstepTest.cpp
+#  test/test_kp.cpp
 #  test/PoseOptimizationQpTest.cpp
 #  test/PoseOptimizationSQPTest.cpp
-)
-if(TARGET ${PROJECT_NAME}-test)
-  target_link_libraries(${PROJECT_NAME}-test
-    ${PROJECT_NAME}
-  )
-endif()
+#)
+#if(TARGET ${PROJECT_NAME}-test)
+#  target_link_libraries(${PROJECT_NAME}-test
+#    ${PROJECT_NAME}
+#  )
+#endif()
 
 #############
 ## Install ##

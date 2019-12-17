@@ -24,11 +24,12 @@ balance_controller:
       kp: 4000
       kd: 1000
       kff: 1000
+    gravity_compensation_percentage: 1.0
   contact_force_distribution:
     weights:
       force:
         heading: 1
-        lateral: 5
+        lateral: 1
         vertical: 1
       torque:
         roll: 10
@@ -41,11 +42,11 @@ balance_controller:
       minimal_normal_force: 10
 single_leg_controller:
   x_direction:
-    kp: 1000
-    kd: 200
+    kp: 3000
+    kd: 1000
   y_direction:
-    kp: 1000
-    kd: 200
+    kp: 3000
+    kd: 1000
   z_direction:
-    kp: 1000
-    kd: 200
+    kp: 3000
+    kd: 1000

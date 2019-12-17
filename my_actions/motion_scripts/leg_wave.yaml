@@ -1,0 +1,39 @@
+adapt_coordinates:
+ - transform:
+    source_frame: base_link
+    target_frame: odom
+steps:
+  - step:
+    - base_auto:
+       height: 0.4
+       ignore_timing_of_leg_motion: false
+  - step:
+    - footstep:
+       name: LF_LEG
+       profile_type: straight
+       target:
+         frame: foot_print
+         position: [0.42, 0.25, 0.3]
+    - base_auto:
+       height: 0.35
+       ignore_timing_of_leg_motion: false
+  - step:
+    - footstep:
+       name: LF_LEG
+       profile_type: straight
+       target:
+         frame: foot_print
+         position: [0.42, 0.25, 0.1]
+    - base_auto:
+       height: 0.4
+       ignore_timing_of_leg_motion: false
+  - step:
+    - footstep:
+       name: LF_LEG
+       profile_type: straight
+       target:
+         frame: foot_print
+         position: [0.42, 0.25, 0.1]
+    - base_auto:
+       height: 0.3
+       ignore_timing_of_leg_motion: false

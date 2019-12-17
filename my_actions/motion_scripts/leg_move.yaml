@@ -21,6 +21,7 @@ steps:
         target:
           frame: foot_print
           position: [-0.42, -0.25, 0]
+  - step:
     - footstep:
         name: RF_LEG
         profile_type: foot_print

@@ -92,7 +92,7 @@ bool FreeGaitActionServer::isActive()
 
 void FreeGaitActionServer::goalCallback()
 {
-  ROS_INFO("Received goal for StepAction.");
+  ROS_DEBUG("Received goal for StepAction.");
 //  if (server_.isActive()) server_.setRejected();
 
   const auto goal = server_.acceptNewGoal();
@@ -139,7 +139,7 @@ void FreeGaitActionServer::goalCallback()
 
 void FreeGaitActionServer::preemptCallback()
 {
-  ROS_INFO("StepAction is requested to preempt.");
+  ROS_DEBUG("StepAction is requested to preempt.");
   Executor::Lock lock(executor_.getMutex());
   executor_.stop();
   isPreempting_ = true;
@@ -188,7 +188,7 @@ void FreeGaitActionServer::publishFeedback()
 
 void FreeGaitActionServer::setSucceeded()
 {
-  ROS_INFO("StepAction succeeded.");
+  ROS_DEBUG("StepAction succeeded.");
   free_gait_msgs::ExecuteStepsResult result;
   server_.setSucceeded(result, "Step action has been reached.");
 }

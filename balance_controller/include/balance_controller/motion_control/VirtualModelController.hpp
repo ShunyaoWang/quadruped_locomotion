@@ -55,6 +55,8 @@
 #include "tinyxml.h"
 
 #include "tinyxml.h"
+#include "dynamic_reconfigure/server.h"
+#include "balance_controller/balance_controllerConfig.h"
 
 namespace balance_controller {
 
@@ -149,6 +151,7 @@ class VirtualModelController : public MotionControllerBase
    */
   virtual bool setToInterpolated(const MotionControllerBase& motionController1, const MotionControllerBase& motionController2, double t);
 
+
  private:
   std::shared_ptr<ContactForceDistributionBase> contactForceDistribution_;
 
@@ -187,6 +190,12 @@ class VirtualModelController : public MotionControllerBase
   std::vector<free_gait::LimbEnum> limbs_;
 
   ros::NodeHandle node_handle_;
+
+  typedef dynamic_reconfigure::Server<balance_controller::balance_controllerConfig> DynamicConfigServer;
+
+  boost::shared_ptr<DynamicConfigServer> dynamicReconfigureServer_;
+  dynamic_reconfigure::Server<balance_controller::balance_controllerConfig>::CallbackType reconfigureCallbackType_;
+  boost::recursive_mutex param_reconfig_mutex_;
  private:
   /*!
    * Compute error between desired an actual robot pose and twist.
@@ -215,6 +224,8 @@ class VirtualModelController : public MotionControllerBase
    * @return true if parameters are loaded
    */
   bool isParametersLoaded() const;
+
+  void dynamicReconfigureCallback(balance_controller::balance_controllerConfig& config, uint32_t level);
 };
 
 } /* namespace loco */

@@ -116,7 +116,7 @@ bool StateRosPublisher::publish(const State& state)
     ROS_ERROR("Joint name vector and joint position are not of equal size!");
     return false;
   }
-  std::map<std::string, double> jointPositionsMap;
+  std::map<std::string, double> jointPositionsMap;//joint name and position
   for (size_t i = 0; i < jointNames.size(); ++i) {
     jointPositionsMap[jointNames[i]] = jointPositions(i);
 //    std::cout<<jointNames[i]<<" position is : "<<jointPositions(i)<<std::endl;
@@ -563,6 +563,12 @@ bool StateRosPublisher::publish(const State& state, const StepQueue& step_queue)
       }
   robot_state_pub_.publish(robot_state_);
 //  ROS_INFO("Publised robot state once");
+  return true;
+}
+
+bool StateRosPublisher::publish()
+{
+  robot_state_pub_.publish(robot_state_);
   return true;
 }
 //void StateRosPublisher::publishSupportRegion(const State& state)

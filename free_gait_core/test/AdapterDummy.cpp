@@ -105,6 +105,7 @@ bool AdapterDummy::getLimbJointPositionsFromPositionBaseToFootInBaseFrame(
 Position AdapterDummy::getPositionBaseToFootInBaseFrame(
     const LimbEnum& limb, const JointPositionsLeg& jointPositions) const
 {
+    std::cout <<"what" <<std::endl;
   throw std::runtime_error("AdapterDummy::getPositionBaseToFootInBaseFrame() is not implemented.");
 }
 

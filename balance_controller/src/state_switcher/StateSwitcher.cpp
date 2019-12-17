@@ -69,6 +69,11 @@ StateSwitcher::States StateSwitcher::getState() {
   return currentState_;
 }
 
+StateSwitcher::States StateSwitcher::getLastState()
+{
+  return oldState_;
+}
+
 
 void StateSwitcher::setState(States state) {
   if (STATESWITCHER_DEBUG) {

@@ -44,8 +44,12 @@ namespace rqt_free_gait {
 FreeGaitActionPlugin::FreeGaitActionPlugin()
     : rqt_gui_cpp::Plugin()
     , widget_(0) {
-
-  qRegisterMetaType<free_gait_msgs::ExecuteActionResult>(
+    /**
+   * @brief qRegisterMetaType<free_gait_msgs::ExecuteActionResult>
+   * 注册方法：在当前类的顶部包含：#include <QMetaType>，构造函数中加入代码：qRegisterMetaType<MyClass>("Myclass")；
+   *
+   */
+  qRegisterMetaType<free_gait_msgs::ExecuteActionResult>(//self define
       "free_gait_msgs::ExecuteActionResult");
   qRegisterMetaType<std_srvs::TriggerResponse>(
       "std_srvs::TriggerResponse");
@@ -687,7 +691,6 @@ void FreeGaitActionPlugin::onTrotClicked()
 {
   std_srvs::SetBoolRequest request;
   request.data = true;
-
 
   WorkerThreadSetBool *workerThreadSetBool = new WorkerThreadSetBool;
   connect(workerThreadSetBool,
