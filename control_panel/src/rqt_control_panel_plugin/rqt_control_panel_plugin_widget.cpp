@@ -13,6 +13,7 @@ rqt_control_panel_plugin_widget::rqt_control_panel_plugin_widget(const ros::Node
   ui->Controllers->setTabText(2, "Joint Velocity");
   ui->Controllers->setTabText(3, "Joint Effort");
   ui->Controllers->setTabText(4, "Single Leg Control");
+  ui->Controllers->setTabText(5, "configure controller");
 
   switchControllerClient_ = nodehandle_.serviceClient<controller_manager_msgs::SwitchController>
       ("/controller_manager/switch_controller", false);
@@ -39,6 +40,15 @@ rqt_control_panel_plugin_widget::rqt_control_panel_plugin_widget(const ros::Node
 
   jointStateSubscriber_ = nodehandle_.subscribe("/joint_states", 1, &rqt_control_panel_plugin_widget::jointStateCallback, this);
 
+  change_to_x_pub_ = nodehandle_.advertise<std_msgs::Bool>("/x_configure_change",1);
+
+  change_to_left_pub_ = nodehandle_.advertise<std_msgs::Bool>("/left_configure_change",1);
+
+  change_to_right_pub_ = nodehandle_.advertise<std_msgs::Bool>("/right_configure_change",1);
+
+  change_to_anti_X_pub_ = nodehandle_.advertise<std_msgs::Bool>("/anti_x_configure_change",1);
+
+  fit_curves_pub_ = nodehandle_.advertise<std_msgs::Bool>("/planning_curves", 1);
 }
 
 rqt_control_panel_plugin_widget::~rqt_control_panel_plugin_widget()
@@ -163,6 +173,11 @@ void rqt_control_panel_plugin_widget::on_Controllers_currentChanged(int index)
           current_controller = "single_leg_controller";
           break;
         }
+      if(controller.name == "configure_change_controller" && controller.state =="running")
+          {
+              current_controller = "configure_change_controller";
+              break;
+          }
 
     }
   controller_manager_msgs::SwitchController controller_switch;
@@ -258,7 +273,25 @@ void rqt_control_panel_plugin_widget::on_Controllers_currentChanged(int index)
           control_method_ = JOINT_EFFORT;
           displayOutputInfos("green", "Switch to Single Leg Controller");
         }
-    }
+    }else if (tab_name == "configure controller") {
+      std::cout<<"configure controller"<<std::endl;
+      e_stop_msg.data = false;
+      eStopPublisher_.publish(e_stop_msg);
+      controller_switch.request.start_controllers.push_back("configure_change_controller");
+      controller_switch.request.stop_controllers.push_back(current_controller.c_str());
+      controller_switch.request.strictness = controller_switch.request.STRICT;
+      switchControllerClient_.call(controller_switch.request, controller_switch.response);
+
+      control_method.request.configure = "Joint Position";
+      switchControlMethodClient_.call(control_method.request, control_method.response);
+
+      if(controller_switch.response.ok && control_method.response.result)
+      {
+          control_method_ = JOINT_POSITION;
+          displayOutputInfos("green", "Switch to JOINT_POSITION");
+      }
+
+  }
 }
 
 void rqt_control_panel_plugin_widget::displayOutputInfos(const std::string &color,
@@ -544,4 +577,39 @@ void rqt_control_panel_plugin_widget::on_crawlButton_clicked()
     {
       displayOutputInfos("green", "Starting Crawling......");
     }
+}
+
+void rqt_control_panel_plugin_widget::on_change_left_clicked()
+{
+    std_msgs::Bool change_left_msgs;
+    change_left_msgs.data = true;
+    change_to_left_pub_.publish(change_left_msgs);
+}
+
+void rqt_control_panel_plugin_widget::on_change_right_clicked()
+{
+    std_msgs::Bool change_right_msgs;
+    change_right_msgs.data = true;
+    change_to_right_pub_.publish(change_right_msgs);
+}
+
+void rqt_control_panel_plugin_widget::on_fit_curves_clicked()
+{
+  std_msgs::Bool fit_curves;
+  fit_curves.data = true;
+  fit_curves_pub_.publish(fit_curves);
+}
+
+void rqt_control_panel_plugin_widget::on_change_anti_x_clicked()
+{
+  std_msgs::Bool change_anti_x_msgs;
+  change_anti_x_msgs.data = true;
+  change_to_anti_X_pub_.publish(change_anti_x_msgs);
+}
+
+void rqt_control_panel_plugin_widget::on_change_x_clicked()
+{
+  std_msgs::Bool change_x_msgs;
+  change_x_msgs.data = true;
+  change_to_x_pub_.publish(change_x_msgs);
 }

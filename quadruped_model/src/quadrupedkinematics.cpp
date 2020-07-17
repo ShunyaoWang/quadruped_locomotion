@@ -582,9 +582,9 @@ bool QuadrupedKinematics::InverseKinematicsSolve(const Position& foot_position, 
                                                  const std::string LimbType)
 {
   double d,l1,l2,px,py,pz,alpha,beta1,beta2;
-  d=0.1;
-  l1=0.25;
-  l2=0.25;
+  d=0.23;
+  l1=0.308;
+  l2=0.308;
 //  cout<<"px in base = "<<foot_position(0)<<endl
 //      <<"py in base = "<<foot_position(1)<<endl
 //      <<"pz in base = "<<foot_position(2)<<endl;

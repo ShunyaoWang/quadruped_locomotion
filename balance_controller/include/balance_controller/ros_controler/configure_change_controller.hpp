@@ -11,7 +11,6 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "free_gait_msgs/RobotState.h"
 #include "std_srvs/Empty.h"
-//#include "free_gait_msgs/FootInBase.h"
 #include "sim_assiants/FootContacts.h"
 
 #include "std_msgs/Int8MultiArray.h"
@@ -29,6 +28,7 @@
 #include "curves/PolynomialSplineScalarCurve.hpp"
 #include "cmath"
 #include <std_msgs/Bool.h>
+#include "quadruped_model/quadrupedkinematics.h"
 
 namespace balance_controller{
 class configure_change_controller: public controller_interface::Controller<hardware_interface::RobotStateInterface>
@@ -52,11 +52,12 @@ public:
 
 private:
     enum leg_configuration_{x_configuration,left_configuration}leg_configuration_;
-    void baseCommandCallback(const free_gait_msgs::RobotStateConstPtr& robot_state_msgs);    
-    void change_to_X_configure_CB(const std_msgs::BoolConstPtr& X_Configure);
+    void baseCommandCallback(const free_gait_msgs::RobotStateConstPtr& robot_state_msgs);
+    void change_to_x_configure_CB(const std_msgs::BoolConstPtr& X_Configure);
     void change_to_left_configure_CB(const std_msgs::BoolConstPtr& left_Configure);
     void change_to_right_configure_CB(const std_msgs::BoolConstPtr& right_Configure);
     void change_to_anti_x_configure_CB(const std_msgs::BoolConstPtr& anti_x_Configure);
+    void planning_curves_CB(const std_msgs::BoolConstPtr& planning_curves);
     std::vector<std::string> joint_names_;
     std::vector<hardware_interface::JointHandle> joints_;
     hardware_interface::RobotStateHandle robot_state_handle_;
@@ -79,7 +80,6 @@ private:
     std::vector<nav_msgs::Odometry> base_command_pose_, base_actual_pose_;
     //    std::vector<std_msgs::Int8MultiArray> leg_states_;
     std::vector<sim_assiants::FootContacts> foot_desired_contact_;
-//    std::vector<free_gait_msgs::FootInBase> foot_in_base_;
     std::vector<std_msgs::Time> log_time_;
     std::vector<std_msgs::Float64MultiArray> leg_phases_;
 
@@ -93,12 +93,12 @@ private:
     LimbState limbs_state_, limbs_desired_state_, limbs_last_state_;
     LimbDuration t_sw0_, t_st0_;
     bool ignore_contact_sensor;
-    quadruped_model::QuadrupedKinematics robot_kinetics;
     free_gait::Stance footholdsInSupport;
 
     ros::ServiceServer log_data_srv_;
     ros::Publisher leg_state_pub_, leg_phase_pub_, desird_robot_state_pub_, contact_desired_pub_;
     ros::Subscriber x_configure_sub_,left_configure_sub_, right_configure_sub_, anti_x_configure_sub_;
+    ros::Subscriber planning_curves_sub_;
     int log_length_;
     free_gait::JointPositions all_joint_positions_;
 
@@ -112,8 +112,12 @@ private:
     bool logDataCapture(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res);
     Time dt_;
     bool configure_time_start_flag_;
-    double initial_position_x_;
-    double l1, l2;
+    quadruped_model::QuadrupedKinematics robot_kinetics_;
+    std::vector<Pose> foot_pose_to_base_in_base_frame;
+    int knot_num_;
+    std::string configure_last_;
+    std::string configure_now_;
+//    quadruped_model::JointPositionsLimb joints_position_;
     //    std::vector<bool> leg_states_;
 };
 

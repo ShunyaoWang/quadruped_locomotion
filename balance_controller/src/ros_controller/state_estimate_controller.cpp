@@ -95,7 +95,9 @@ bool StateEstimateController::init(hardware_interface::RobotStateInterface* hard
     }
 
     //! WSHY: get robot state handle
+    ROS_INFO("Start to get robot state handle");
     robot_state_handle = hardware->getHandle("base_controller");
+    ROS_WARN("Successfully get robot state handle");
     for(int i = 0;i<4;i++)
       robot_state_handle.foot_contact_[i] = 1;
 //    int i = 0;

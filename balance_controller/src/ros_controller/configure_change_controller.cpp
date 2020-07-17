@@ -18,11 +18,12 @@ configure_change_controller::configure_change_controller()
     robot_state_.reset(new free_gait::State);
     robot_state_->initialize(limbs_, branches_);
     log_length_ = 100000;
-    times_.resize(3);
-    values_lf_.resize(3);
-    values_rf_.resize(3);
-    values_rh_.resize(3);
-    values_lh_.resize(3);
+    knot_num_ = 10;
+    times_.resize(knot_num_);
+    values_lf_.resize(knot_num_);
+    values_rf_.resize(knot_num_);
+    values_rh_.resize(knot_num_);
+    values_lh_.resize(knot_num_);
 
     for (auto limbs : limbs_) {
         is_legmode_[limbs] = false;
@@ -46,10 +47,10 @@ configure_change_controller::configure_change_controller()
         footholdsInSupport[limbs].setZero();
     }
     dt_ = 0.0;
-    l1 = 0.308;
-    l2 = 0.308;
     configure_time_start_flag_ = false;
-
+    foot_pose_to_base_in_base_frame.resize(4);
+    configure_last_ = "x_configure";
+    configure_now_ = "x_configure";
 }//configure_change_controller
 
 configure_change_controller::~configure_change_controller()
@@ -125,10 +126,11 @@ bool configure_change_controller::init(hardware_interface::RobotStateInterface *
     leg_phase_pub_ = nodehandle.advertise<std_msgs::Float64MultiArray>("/log/leg_phase_kp", log_length_);
     desired_robot_state_pub_ = nodehandle.advertise<free_gait_msgs::RobotState>("/log/desired_robot_state_kp", log_length_);
     actual_robot_state_pub_ = nodehandle.advertise<free_gait_msgs::RobotState>("/log/actual_robot_state_kp", log_length_);    
-    x_configure_sub_ = nodehandle.subscribe("/x_configure_change", 1, &configure_change_controller::change_to_X_configure_CB, this);
+    x_configure_sub_ = nodehandle.subscribe("/x_configure_change", 1, &configure_change_controller::change_to_x_configure_CB, this);
     left_configure_sub_ = nodehandle.subscribe("/left_configure_change", 1, &configure_change_controller::change_to_left_configure_CB, this);
     right_configure_sub_ = nodehandle.subscribe("/right_configure_change", 1, &configure_change_controller::change_to_right_configure_CB, this);
     anti_x_configure_sub_ = nodehandle.subscribe("/anti_x_configure_change", 1, &configure_change_controller::change_to_anti_x_configure_CB, this);
+    planning_curves_sub_ = nodehandle.subscribe("/planning_curves", 1, &configure_change_controller::planning_curves_CB, this);
 }
 
 void configure_change_controller::update(const ros::Time &time, const ros::Duration &period)
@@ -146,22 +148,10 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
     std_msgs::Float64MultiArray leg_phase;
     leg_phase.data.resize(8);
     leg_state.resize(4);
-
-//    free_gait_msgs::FootInBase foot_in_base;
-//    foot_in_base.name.resize(4);
-//    foot_in_base.position_in_base.resize(4);
-//    foot_in_base.position_in_world.resize(4);
-
-//    foot_in_base.name[0] = "LF_LEG";
-//    foot_in_base.name[1] = "RF_LEG";
-//    foot_in_base.name[2] = "RH_LEG";
-//    foot_in_base.name[3] = "LH_LEG";
-
     for (unsigned int i = 0; i < 12; i++) {
         joint_actual.position[i] = robot_state_handle_.getJointPositionRead()[i];//actual joint
         joint_actual.name[i] = joint_names_.at(i);
         joint_command.name[i] = joint_names_.at(i);
-        joint_command.position[i] = joint_actual.position[i];
 //        ROS_INFO_STREAM("joint_actual_position of joint " << i << " is " << joint_actual.position[i]);
     }
 //    ROS_INFO_STREAM("joint_actual_position of joint 3 is " << joint_actual.position[2]);
@@ -188,7 +178,7 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
                                                                 robot_state_handle_.getAngularVelocity()[1],
                                                                 robot_state_handle_.getAngularVelocity()[2]));
 
-    free_gait::JointPositionsLeg joint_positions;
+    free_gait::JointPositionsLeg joint_positions_lf, joint_positions_rf, joint_positions_rh, joint_positions_lh;
 
     if(configure_time_start_flag_)
     {
@@ -196,38 +186,134 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
         trajectory_rf_.evaluate(values_joint_2, dt_);
         trajectory_rh_.evaluate(values_joint_3, dt_);
         trajectory_lh_.evaluate(values_joint_4, dt_);
-        double values_joint_1_3, values_joint_2_3, values_joint_3_3, values_joint_4_3;
-        values_joint_1_3 = - 2 * values_joint_1;
-        values_joint_2_3 = - 2 * values_joint_2;
-        values_joint_3_3 = - 2 * values_joint_3;
-        values_joint_4_3 = - 2 * values_joint_4;
+
+        double x_init = 0.426997;
+        double y_init = 0.305;
+        foot_pose_to_base_in_base_frame[0].getPosition().z() = values_joint_1;
+        foot_pose_to_base_in_base_frame[0].getPosition().x() = x_init;
+        foot_pose_to_base_in_base_frame[0].getPosition().y() = y_init;
+
+        foot_pose_to_base_in_base_frame[1].getPosition().z() = values_joint_2;
+        foot_pose_to_base_in_base_frame[1].getPosition().x() = x_init;
+        foot_pose_to_base_in_base_frame[1].getPosition().y() = -y_init;
+
+        foot_pose_to_base_in_base_frame[2].getPosition().z() = values_joint_3;
+        foot_pose_to_base_in_base_frame[2].getPosition().x() = -x_init;
+        foot_pose_to_base_in_base_frame[2].getPosition().y() = -y_init;
+
+        foot_pose_to_base_in_base_frame[3].getPosition().z() = values_joint_4;
+        foot_pose_to_base_in_base_frame[3].getPosition().x() = -x_init;
+        foot_pose_to_base_in_base_frame[3].getPosition().y() = y_init;
+
+//        ROS_INFO_STREAM_ONCE("foot_pose_to_base_in_base_frame in update is " << foot_pose_to_base_in_base_frame[0].getPosition());
+
+        if(dt_ <= (knot_num_ * 0.6 / 2) )
+        {
+//            ROS_INFO_STREAM("the knot_num_ /2 time values is " << values_joint_1 << values_joint_2 << values_joint_3 << values_joint_4 <<"time dt_ is" << dt_);
+
+            if(configure_last_ == "x_configure")
+            {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"OUT_LEFT");
+            }else if (configure_last_ == "left_configure") {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"IN_LEFT");
+            }else if (configure_last_ == "right_configure") {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"OUT_LEFT");
+            }else if (configure_last_ == "anti_x_configure") {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"IN_LEFT");
+            }
+
+        }else {
+            if(configure_now_ == "x_configure")
+            {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"OUT_LEFT");
+            }else if (configure_now_ == "left_configure") {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"IN_LEFT");
+            }else if (configure_now_ == "right_configure") {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"OUT_LEFT");
+            }else if (configure_now_ == "anti_x_configure") {
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[0].getPosition(),
+                                                       quadruped_model::LimbEnum::LF_LEG,joint_positions_lf, joint_positions_lf,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[1].getPosition(),
+                                                       quadruped_model::LimbEnum::RF_LEG,joint_positions_rf, joint_positions_rf,"IN_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[2].getPosition(),
+                                                       quadruped_model::LimbEnum::RH_LEG,joint_positions_rh, joint_positions_rh,"OUT_LEFT");
+                robot_kinetics_.InverseKinematicsSolve(foot_pose_to_base_in_base_frame[3].getPosition(),
+                                                       quadruped_model::LimbEnum::LH_LEG,joint_positions_lh, joint_positions_lh,"IN_LEFT");
+            }
+        }
+        joint_command.position[0] = joint_positions_lf(0);
+        joint_command.position[1] = joint_positions_lf(1);
+        joint_command.position[2] = joint_positions_lf(2);
+        joint_command.position[3] = joint_positions_rf(0);
+        joint_command.position[4] = joint_positions_rf(1);
+        joint_command.position[5] = joint_positions_rf(2);
+        joint_command.position[6] = joint_positions_rh(0);
+        joint_command.position[7] = joint_positions_rh(1);
+        joint_command.position[8] = joint_positions_rh(2);
+        joint_command.position[9] = joint_positions_lh(0);
+        joint_command.position[10] = joint_positions_lh(1);
+        joint_command.position[11] = joint_positions_lh(2);
+        ROS_INFO_STREAM("the joint command in time dt is " << dt_ << joint_command.position[0]
+            << joint_command.position[1] << joint_command.position[2]);
         dt_ = dt_ + 0.001;
 
-        joint_command.position[0] = 0;
-        joint_command.position[1] = values_joint_1;
-        joint_command.position[2] = values_joint_1_3;
-
-        joint_command.position[3] = 0;
-        joint_command.position[4] = values_joint_2;
-        joint_command.position[5] = values_joint_2_3;
-
-        joint_command.position[6] = 0;
-        joint_command.position[7] = values_joint_3;
-        joint_command.position[8] = values_joint_3_3;
-
-        joint_command.position[9]  = 0;
-        joint_command.position[10] = values_joint_4;
-        joint_command.position[11] = values_joint_4_3;
-//        ROS_INFO_STREAM("In time " << dt_ );
     }else {
         ROS_INFO_STREAM("in the default loop");
         for (unsigned int i = 0; i < 12; i++) {
             joint_command.position[i] = 0;
         }
-        ROS_INFO_STREAM("joint_command.position[i] is " << joint_command.position[11]);
     }
 
-//    ROS_INFO_STREAM("In time " << dt_ << " joint_command is " << joint_command.position[2]);
+    ROS_INFO_STREAM("In time " << dt_ << " joint_command is " << joint_command.position[2]);
     free_gait::JointPositionsLeg LF_leg_joints, RF_leg_joints, RH_leg_joints, LH_leg_joints;
     LF_leg_joints(0) = joint_command.position[0];
     LF_leg_joints(1) = joint_command.position[1];
@@ -338,7 +424,6 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
         desire_odom.twist.twist = desired_twist;
         actual_odom.pose.pose = actual_pose;
         actual_odom.twist.twist = actual_twist;
-//        foot_in_base_.push_back(foot_in_base);
         joint_command_.push_back(joint_command);
         joint_actual_.push_back(joint_actual);
         leg_phases_.push_back(leg_phase);
@@ -682,7 +767,7 @@ void configure_change_controller::stopping(const ros::Time &time)
 {
     std::cout << "the length of data is " << actual_robot_state_.size() << std::endl;
     ROS_INFO("stop configure change controller");
-    configure_time_start_flag_ = false;
+//    configure_time_start_flag_ = false;
 }
 bool configure_change_controller::logDataCapture(std_srvs::Empty::Request& req,
                                                  std_srvs::Empty::Response& res)
@@ -705,180 +790,131 @@ bool configure_change_controller::logDataCapture(std_srvs::Empty::Request& req,
 
 
 
-void configure_change_controller::change_to_X_configure_CB(const std_msgs::BoolConstPtr &X_Configure)
+void configure_change_controller::planning_curves_CB(const std_msgs::BoolConstPtr& planning_curves)
 {
-    ROS_INFO_STREAM("in the x configure");
+    ROS_INFO_STREAM("planning curves");
     dt_ = 0;
     trajectory_lf_.clear();
     trajectory_rf_.clear();
     trajectory_rh_.clear();
     trajectory_lh_.clear();
+    free_gait::JointPositions all_joint_positions;
     for (unsigned int i = 0; i < 12; i++) {
-        all_joint_positions_(i) = robot_state_handle_.getJointPositionRead()[i];
+        all_joint_positions(i) = robot_state_handle_.getJointPositionRead()[i];
     }
-    robot_state_->setCurrentLimbJoints(all_joint_positions_);//current joint
+    ROS_INFO_STREAM("all_joint_position is " << all_joint_positions(0) << all_joint_positions(1) << all_joint_positions(2));
 
-    times_[0] = 0.0;
-    times_[1] = 1.5;
-    times_[2] = 3.0;
+    quadruped_model::JointPositionsLimb joints_position_lf, joints_position_rf, joints_position_rh, joints_position_lh;
+    joints_position_lf = quadruped_model::JointPositionsLimb(all_joint_positions(0),all_joint_positions(1),all_joint_positions(2));
+    robot_kinetics_.FowardKinematicsSolve(joints_position_lf,quadruped_model::LimbEnum::LF_LEG,foot_pose_to_base_in_base_frame[0]);
 
-    values_lf_[0] = all_joint_positions_(1);
-    values_lf_[1] = (all_joint_positions_(1) + 0.8) / 2;
-    values_lf_[2] = 0.8;
+    for (unsigned int i = 0; i < knot_num_; i++) {
+        times_[i] = i * 0.6;
+    }
+
+    values_lf_[0] = foot_pose_to_base_in_base_frame[0].getPosition().z();
+//    ROS_INFO_STREAM("foot_pose_to_base_in_base_frame[0] << " << foot_pose_to_base_in_base_frame[0].getPosition());
+//    ROS_INFO_STREAM("values_lf_[0] is << " << values_lf_[0]);
+
+    double motion_step = (-0.6255 - values_lf_[0]) / (knot_num_ / 2);
+    for (unsigned int i = 1; i <= knot_num_; i++) {
+        if(i <= (knot_num_/2)){
+            values_lf_[i] = values_lf_[i - 1] + motion_step;
+        }else {
+            values_lf_[i] = values_lf_[i - 1] + 0.04;
+        }
+    }
     trajectory_lf_.fitCurve(times_,values_lf_);
 
-    values_rf_[0] = all_joint_positions_(4);
-    values_rf_[1] = (all_joint_positions_(4) - 0.8) / 2;
-    values_rf_[2] = -0.8;
+    joints_position_rf = quadruped_model::JointPositionsLimb(all_joint_positions(3),all_joint_positions(4),all_joint_positions(5));
+//    ROS_INFO_STREAM("joints_position_ is << " << all_joint_positions(3)<< all_joint_positions(4) << all_joint_positions(5));
+    robot_kinetics_.FowardKinematicsSolve(joints_position_rf,quadruped_model::LimbEnum::RF_LEG,foot_pose_to_base_in_base_frame[1]);
+
+    values_rf_[0] = foot_pose_to_base_in_base_frame[1].getPosition().z();
+//    ROS_INFO_STREAM("foot_pose_to_base_in_base_frame[1] << " << foot_pose_to_base_in_base_frame[1].getPosition());
+//    ROS_INFO_STREAM("values_rf_[0] is << " << values_rf_[0]);
+
+    motion_step = (-0.6255 - values_rf_[0]) / (knot_num_ / 2);
+    for (unsigned int i = 1; i <= knot_num_; i++) {
+        if(i <= (knot_num_/2)){
+            values_rf_[i] = values_rf_[i - 1] + motion_step;
+        }else {
+            values_rf_[i] = values_rf_[i - 1] + 0.04;
+        }
+    }
     trajectory_rf_.fitCurve(times_,values_rf_);
 
-    values_rh_[0] = all_joint_positions_(7);
-    values_rh_[1] = (all_joint_positions_(7) + 0.8) / 2;
-    values_rh_[2] = 0.8;
+    joints_position_rh = quadruped_model::JointPositionsLimb(all_joint_positions(6),all_joint_positions(7),all_joint_positions(8));
+    robot_kinetics_.FowardKinematicsSolve(joints_position_rh,quadruped_model::LimbEnum::RH_LEG,foot_pose_to_base_in_base_frame[2]);
+    values_rh_[0] = foot_pose_to_base_in_base_frame[2].getPosition().z();
+//    ROS_INFO_STREAM("foot_pose_to_base_in_base_frame[2] << " << foot_pose_to_base_in_base_frame[2].getPosition());
+//    ROS_INFO_STREAM("values_rf_[0] is << " << values_rh_[0]);
+
+    motion_step = (-0.6255 - values_rh_[0]) / (knot_num_ / 2);
+    for (unsigned int i = 1; i <= knot_num_; i++) {
+        if(i <= (knot_num_ / 2)){
+            values_rh_[i] = values_rh_[i - 1] + motion_step;
+        }else {
+            values_rh_[i] = values_rh_[i - 1] + 0.04;
+        }
+    }
     trajectory_rh_.fitCurve(times_,values_rh_);
 
-    values_lh_[0] = all_joint_positions_(10);
-    values_lh_[1] = (all_joint_positions_(10) - 0.8) / 2;
-    values_lh_[2] = -0.8;
+    joints_position_lh = quadruped_model::JointPositionsLimb(all_joint_positions(9),all_joint_positions(10),all_joint_positions(11));
+    robot_kinetics_.FowardKinematicsSolve(joints_position_lh,quadruped_model::LimbEnum::LH_LEG,foot_pose_to_base_in_base_frame[3]);
+
+    values_lh_[0] = foot_pose_to_base_in_base_frame[3].getPosition().z();
+//    ROS_INFO_STREAM("z_posi_in_base of lh is " << values_lh_[0]);
+
+    motion_step = (-0.6255 - values_lh_[0]) / (knot_num_ / 2);
+    for (unsigned int i = 1; i <= knot_num_; i++) {
+        if(i <= (knot_num_/2)){
+            values_lh_[i] = values_lh_[i - 1] + motion_step;
+        }else {
+            values_lh_[i] = values_lh_[i - 1] + 0.04;
+        }
+    }
     trajectory_lh_.fitCurve(times_,values_lh_);
     configure_time_start_flag_ = true;
+    ROS_INFO_STREAM("finish planning");
+}
+void configure_change_controller::change_to_x_configure_CB(const std_msgs::BoolConstPtr& X_Configure)
+{
+    ROS_INFO_STREAM("in the x configure");
+    configure_last_ = configure_now_;
+    configure_now_ = "x_configure";
+    std_msgs::BoolConstPtr test;
+    planning_curves_CB(test);
     ROS_INFO_STREAM("in the x configure_end");
 }
 
 void configure_change_controller::change_to_left_configure_CB(const std_msgs::BoolConstPtr &left_Configure)
 {
     ROS_INFO_STREAM("in the left configure");
-    dt_ = 0;
-    trajectory_lf_.clear();
-    trajectory_rf_.clear();
-    trajectory_rh_.clear();
-    trajectory_lh_.clear();
-    for (unsigned int i = 0; i < 12; i++) {
-        all_joint_positions_(i) = robot_state_handle_.getJointPositionRead()[i];
-    }
-    robot_state_->setCurrentLimbJoints(all_joint_positions_);//current joint
-
-    times_[0] = 0.0;
-    times_[1] = 1.5;
-    times_[2] = 3.0;
-
-    values_lf_[0] = all_joint_positions_(1);
-    values_joint_1 = values_lf_[0];
-    values_lf_[1] = (all_joint_positions_(1) + 0.8) / 2;
-    values_lf_[2] = 0.8;
-    trajectory_lf_.fitCurve(times_,values_lf_);
-
-    values_rf_[0] = all_joint_positions_(4);
-    values_joint_2 = values_rf_[0];
-    values_rf_[1] = (all_joint_positions_(4) - 0.8) / 2;
-    values_rf_[2] = -0.8;
-    trajectory_rf_.fitCurve(times_,values_rf_);
-
-    values_rh_[0] = all_joint_positions_(7);
-    values_joint_2 = values_rh_[0];
-    values_rh_[1] = (all_joint_positions_(7) - 0.8) / 2;
-    values_rh_[2] = - 0.8;
-    trajectory_rh_.fitCurve(times_,values_rh_);
-
-    values_lh_[0] = all_joint_positions_(10);
-    values_joint_2 = values_lh_[0];
-    values_lh_[1] = (all_joint_positions_(10) + 0.8) / 2;
-    values_lh_[2] = 0.8;
-    trajectory_lh_.fitCurve(times_,values_lh_);
-
-    configure_time_start_flag_ = true;
+    configure_last_ = configure_now_;
+    configure_now_ = "left_configure";
+    std_msgs::BoolConstPtr test;
+    planning_curves_CB(test);
     ROS_INFO_STREAM("in the left configure_end");
 }
 
 void configure_change_controller::change_to_right_configure_CB(const std_msgs::BoolConstPtr &right_Configure)
 {
-    ROS_INFO_STREAM("in the left configure");
-    dt_ = 0;
-    trajectory_lf_.clear();
-    trajectory_rf_.clear();
-    trajectory_rh_.clear();
-    trajectory_lh_.clear();
-    for (unsigned int i = 0; i < 12; i++) {
-        all_joint_positions_(i) = robot_state_handle_.getJointPositionRead()[i];
-    }
-    robot_state_->setCurrentLimbJoints(all_joint_positions_);//current joint
-
-    times_[0] = 0.0;
-    times_[1] = 1.5;
-    times_[2] = 3.0;
-
-    values_lf_[0] = all_joint_positions_(1);
-    values_joint_1 = values_lf_[0];
-    values_lf_[2] = -0.8;
-    values_lf_[1] = (all_joint_positions_(1) + values_lf_[2]) / 2;
-    trajectory_lf_.fitCurve(times_,values_lf_);
-
-    values_rf_[0] = all_joint_positions_(4);
-    values_joint_2 = values_rf_[0];
-    values_rf_[2] = 0.8;
-    values_rf_[1] = (all_joint_positions_(4) + values_rf_[2]) / 2;
-    trajectory_rf_.fitCurve(times_,values_rf_);
-
-    values_rh_[0] = all_joint_positions_(7);
-    values_joint_2 = values_rh_[0];
-    values_rh_[2] = 0.8;
-    values_rh_[1] = (all_joint_positions_(7) + values_rh_[2]) / 2;
-
-    trajectory_rh_.fitCurve(times_,values_rh_);
-
-    values_lh_[0] = all_joint_positions_(10);
-    values_joint_2 = values_lh_[0];
-    values_lh_[2] = -0.8;
-    values_lh_[1] = (all_joint_positions_(10) + values_lh_[2]) / 2;
-    trajectory_lh_.fitCurve(times_,values_lh_);
-
-    configure_time_start_flag_ = true;
+    ROS_INFO_STREAM("in the right configure");
+    configure_last_ = configure_now_;
+    configure_now_ = "right_configure";
+    std_msgs::BoolConstPtr test;
+    planning_curves_CB(test);
     ROS_INFO_STREAM("in the right configure_end");
 }
 
 void configure_change_controller::change_to_anti_x_configure_CB(const std_msgs::BoolConstPtr &anti_x_Configure)
 {
     ROS_INFO_STREAM("in the anti x configure");
-    dt_ = 0;
-    trajectory_lf_.clear();
-    trajectory_rf_.clear();
-    trajectory_rh_.clear();
-    trajectory_lh_.clear();
-    for (unsigned int i = 0; i < 12; i++) {
-        all_joint_positions_(i) = robot_state_handle_.getJointPositionRead()[i];
-    }
-    robot_state_->setCurrentLimbJoints(all_joint_positions_);//current joint
-
-    times_[0] = 0.0;
-    times_[1] = 1.5;
-    times_[2] = 3.0;
-
-    values_lf_[0] = all_joint_positions_(1);
-    values_joint_1 = values_lf_[0];
-    values_lf_[2] = -0.8;
-    values_lf_[1] = (all_joint_positions_(1) + values_lf_[2]) / 2;
-    trajectory_lf_.fitCurve(times_,values_lf_);
-
-    values_rf_[0] = all_joint_positions_(4);
-    values_joint_2 = values_rf_[0];
-    values_rf_[2] = 0.8;
-    values_rf_[1] = (all_joint_positions_(4) + values_rf_[2]) / 2;
-    trajectory_rf_.fitCurve(times_,values_rf_);
-
-    values_rh_[0] = all_joint_positions_(7);
-    values_joint_2 = values_rh_[0];
-    values_rh_[2] = -0.8;
-    values_rh_[1] = (all_joint_positions_(7) + values_rh_[2]) / 2;
-
-    trajectory_rh_.fitCurve(times_,values_rh_);
-
-    values_lh_[0] = all_joint_positions_(10);
-    values_joint_2 = values_lh_[0];
-    values_lh_[2] = 0.8;
-    values_lh_[1] = (all_joint_positions_(10) + values_lh_[2]) / 2;
-    trajectory_lh_.fitCurve(times_,values_lh_);
-
-    configure_time_start_flag_ = true;
+    configure_last_ = configure_now_;
+    configure_now_ = "anti_x_configure";
+    std_msgs::BoolConstPtr test;
+    planning_curves_CB(test);
     ROS_INFO_STREAM("in the anti x configure_end");
 }
 

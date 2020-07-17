@@ -168,6 +168,7 @@ bool ContactForceDistribution::prepareOptimization(
     const Force& virtualForce,
     const Torque& virtualTorque)
 {
+  std::cout << "Running the prepareoptimization" << std::endl;
   n_ = footDof_ * nLegsInForceDistribution_;//! WSHY: rows of x, columns of A
 
   /*
@@ -181,6 +182,7 @@ bool ContactForceDistribution::prepareOptimization(
 
   A_.resize(nElementsVirtualForceTorqueVector_, n_);
   A_.setZero();
+  std::cout << "A_size is " << A_.size() << std::endl;
   //! WSHY: set the upper 3 rows as identity
   A_.middleRows(0, footDof_) = (Matrix3d::Identity().replicate(1, nLegsInForceDistribution_)).sparseView();
 
@@ -643,6 +645,7 @@ bool ContactForceDistribution::getNetForceAndTorqueOnBase(
 
   Eigen::Matrix<double, nElementsVirtualForceTorqueVector_, 1> stackedNetForceAndTorque;
   stackedNetForceAndTorque = A_ * x_;
+  std::cout << "A_ size is " << A_.size() << "x_ size is " << x_.size() << std::endl;//72 12
   netForce = Force(stackedNetForceAndTorque.head(3));
   netTorque = Torque(stackedNetForceAndTorque.tail(3));
 

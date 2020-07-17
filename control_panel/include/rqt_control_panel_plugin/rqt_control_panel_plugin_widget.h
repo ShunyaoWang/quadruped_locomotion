@@ -72,6 +72,16 @@ private slots:
 
   void on_crawlButton_clicked();
 
+  void on_change_left_clicked();
+
+  void on_change_right_clicked();
+
+  void on_change_x_clicked();
+
+  void on_fit_curves_clicked();
+
+  void on_change_anti_x_clicked();
+
 private:
   Ui::rqt_control_panel_plugin_widget *ui;
   ros::NodeHandle nodehandle_;
@@ -104,6 +114,12 @@ private:
   bool updateJointState();
 
   void jointStateCallback(const sensor_msgs::JointState::ConstPtr& joint_state);
+
+  ros::Publisher change_to_x_pub_;
+  ros::Publisher change_to_left_pub_;
+  ros::Publisher change_to_right_pub_;
+  ros::Publisher change_to_anti_X_pub_;
+  ros::Publisher fit_curves_pub_;
 };
 
 #endif // CONTROL_PANEL_PLUGIN_WIDGET

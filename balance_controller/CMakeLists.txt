@@ -228,6 +228,10 @@ target_link_libraries(state_estimate_controller
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/balance_controller_node.cpp)
 add_executable(balance_controller_test_node test/test.cpp)
+add_executable(model_test_node test/model_test.cpp)
+target_link_libraries(model_test_node
+  ${catkin_LIBRARIES}
+  )
 add_executable(balance_controller_manager src/ros_controller/balance_controller_manager.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
