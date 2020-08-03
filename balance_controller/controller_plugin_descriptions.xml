@@ -31,4 +31,12 @@
     </class>
   </library>
 
+  <library path="lib/libwalk_forward_controller">
+    <class name="balance_controller/walk_forward_controller"
+           type="balance_controller::walk_forward_controller"
+           base_class_type="controller_interface::ControllerBase">
+      <description>change configuretion of quadruped robot</description>
+    </class>
+  </library>
+
 </class_libraries>

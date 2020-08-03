@@ -64,7 +64,7 @@
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Joint&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="BlanceController">
       <property name="enabled">
@@ -1054,7 +1054,7 @@
        </property>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="ConfigureController">
       <attribute name="title">
        <string>Page</string>
       </attribute>
@@ -1110,19 +1110,11 @@
         <string>change anti_x</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="fit_curves">
-       <property name="geometry">
-        <rect>
-         <x>200</x>
-         <y>30</y>
-         <width>89</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>fit_curves</string>
-       </property>
-      </widget>
+     </widget>
+     <widget class="QWidget" name="walkforwardcontroller">
+      <attribute name="title">
+       <string>Page</string>
+      </attribute>
      </widget>
     </widget>
    </item>

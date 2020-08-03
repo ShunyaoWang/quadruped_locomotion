@@ -212,6 +212,11 @@ target_link_libraries(state_estimate_controller
     ${catkin_LIBRARIES}
     )
 
+  add_library(walk_forward_controller
+      src/ros_controller/walk_forward_controller.cpp
+      )
+  target_link_libraries(walk_forward_controller ${PROJECT_NAME} ${catkin_LIBRARIES})
+
 #add_library(joint_torque_controller src/ros_controller/joint_torque_controller.cpp)
 #target_link_libraries(joint_torque_controller
 #  ${catkin_LIBRARIES}

@@ -1381,7 +1381,7 @@ namespace balance_controller{
       }
 
     if(robot_state_msg->lf_leg_mode.support_leg){
-        ROS_INFO_STREAM("contacting");
+//        ROS_INFO_STREAM("contacting");
         robot_state_->setSupportLeg(free_gait::LimbEnum::LF_LEG, true);
         robot_state_->setSurfaceNormal(free_gait::LimbEnum::LF_LEG,
                                        Vector(robot_state_msg->lf_leg_mode.surface_normal.vector.x,
@@ -1397,7 +1397,7 @@ namespace balance_controller{
         st_phase.at(free_gait::LimbEnum::LF_LEG) = robot_state_msg->lf_leg_mode.phase;
         sw_phase.at(free_gait::LimbEnum::LF_LEG) = 0;
       } else {
-        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
         robot_state_->setSupportLeg(free_gait::LimbEnum::LF_LEG, false);
         robot_state_->setSurfaceNormal(free_gait::LimbEnum::LF_LEG,Vector(0,0,1));
@@ -1412,7 +1412,7 @@ namespace balance_controller{
 
       };
     if(robot_state_msg->rf_leg_mode.support_leg){
-        ROS_INFO_STREAM("contacting");
+//        ROS_INFO_STREAM("contacting");
         robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(1), true);
         robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(1),
                                        Vector(robot_state_msg->rf_leg_mode.surface_normal.vector.x,
@@ -1427,7 +1427,7 @@ namespace balance_controller{
         st_phase.at(free_gait::LimbEnum::RF_LEG) = robot_state_msg->rf_leg_mode.phase;
         sw_phase.at(free_gait::LimbEnum::RF_LEG) = 0;
       } else {
-        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(1), false);
         robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(1),Vector(0,0,1));
         limbs_desired_state.at(free_gait::LimbEnum::RF_LEG)->setState(StateSwitcher::States::SwingNormal);
@@ -1441,7 +1441,7 @@ namespace balance_controller{
 
       };
     if(robot_state_msg->rh_leg_mode.support_leg){
-        ROS_INFO_STREAM("contacting");
+//        ROS_INFO_STREAM("contacting");
         robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(2), true);
         robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(2),
                                        Vector(robot_state_msg->rh_leg_mode.surface_normal.vector.x,
@@ -1456,7 +1456,7 @@ namespace balance_controller{
         st_phase.at(free_gait::LimbEnum::RH_LEG) = robot_state_msg->rh_leg_mode.phase;
         sw_phase.at(free_gait::LimbEnum::RH_LEG) = 0;
       } else {
-        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(2), false);
         robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(2),Vector(0,0,1));
         limbs_desired_state.at(free_gait::LimbEnum::RH_LEG)->setState(StateSwitcher::States::SwingNormal);
@@ -1470,7 +1470,7 @@ namespace balance_controller{
 
       };
     if(robot_state_msg->lh_leg_mode.support_leg){
-        ROS_INFO_STREAM("contacting");
+//        ROS_INFO_STREAM("contacting");
         robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(3), true);
         robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(3),
                                        Vector(robot_state_msg->lh_leg_mode.surface_normal.vector.x,
@@ -1485,7 +1485,7 @@ namespace balance_controller{
         st_phase.at(free_gait::LimbEnum::LH_LEG) = robot_state_msg->lh_leg_mode.phase;
         sw_phase.at(free_gait::LimbEnum::LH_LEG) = 0;
       } else {
-        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//        ROS_WARN("NO Contact !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         robot_state_->setSupportLeg(static_cast<free_gait::LimbEnum>(3), false);
         robot_state_->setSurfaceNormal(static_cast<free_gait::LimbEnum>(3),Vector(0,0,1));
         limbs_desired_state.at(free_gait::LimbEnum::LH_LEG)->setState(StateSwitcher::States::SwingNormal);

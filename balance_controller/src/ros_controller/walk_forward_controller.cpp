@@ -1,10 +1,10 @@
-#include "balance_controller/ros_controler/configure_change_controller.hpp"
+#include "balance_controller/ros_controler/walk_forward_controller.hpp"
 
 #include "quadruped_model/quadrupedkinematics.h"
 #include "ros/ros.h"
 
 namespace balance_controller{
-configure_change_controller::configure_change_controller()
+walk_forward_controller::walk_forward_controller()
 {
     limbs_.push_back(free_gait::LimbEnum::LF_LEG);
     limbs_.push_back(free_gait::LimbEnum::RF_LEG);
@@ -56,16 +56,47 @@ configure_change_controller::configure_change_controller()
     joint_init.effort.resize(12);
     joint_init.position.resize(12);
     joint_init.velocity.resize(12);
-}//configure_change_controller
 
-configure_change_controller::~configure_change_controller()
+    std::vector<double> joint_temp;
+    joint_temp.resize(12);
+
+    static rosbag::Bag bag;
+    static std::string topics("/log/joint_state");
+    bag.open("/home/hitstar/rosbags/2020-07-16-15-12-46.bag", rosbag::bagmode::Read);
+    static rosbag::View view(bag, rosbag::TopicQuery(topics));
+    static rosbag::View::iterator it = view.begin();
+
+    for (it = view.begin(); it != view.end(); it++) {
+        auto m = *it;
+        sensor_msgs::JointState::ConstPtr s = m.instantiate<sensor_msgs::JointState>();
+        if(s != NULL)
+        {
+            for (unsigned int i = 0; i < 12 ; i++) {
+                joint_temp[i] = s->position.at(i);
+            }
+            joint_angle.push_back(joint_temp);
+        }
+    }
+    std::cout << "finish the data convert" << std::endl;
+    std::cout << "the data length is " << joint_angle.size();
+//    for (unsigned int i = 0; i < joint_angle.size(); i++) {
+//        std::cout << "joint angle of " << i << " is ";
+//        for (unsigned int joint_num = 0; joint_num < 12; joint_num++) {
+//            std::cout << joint_angle[i].at(joint_num) << " ";
+//        }
+//    }
+
+    iteration = 0;
+}//walk_forward_controller
+
+walk_forward_controller::~walk_forward_controller()
 {
     base_command_sub_.shutdown();
-}//~configure_change_controller
+}
 
-bool configure_change_controller::init(hardware_interface::RobotStateInterface *hardware, ros::NodeHandle &nodehandle)
+bool walk_forward_controller::init(hardware_interface::RobotStateInterface *hardware, ros::NodeHandle &nodehandle)
 {
-    ROS_INFO("Initializing Balance Position Controller");
+    ROS_INFO("Initializing walk forward Controller");
 
     urdf::Model urdf;
     if (!urdf.initParam("/robot_description"))
@@ -112,7 +143,7 @@ bool configure_change_controller::init(hardware_interface::RobotStateInterface *
         joint_urdfs_.push_back(joint_urdf);
     }
     robot_state_handle_ = hardware->getHandle("base_controller");
-    ROS_INFO("Balance Position Controller is to be initialized");
+    ROS_INFO("walk forward Controller is to be initialized");
     for (unsigned int i = 0; i < 12; i++) {
         robot_state_handle_.getJointEffortWrite()[i] = 0;
         robot_state_handle_.motor_status_word_[i] = 0;
@@ -120,27 +151,30 @@ bool configure_change_controller::init(hardware_interface::RobotStateInterface *
     for (unsigned int i = 0; i < 4; i++) {
         robot_state_handle_.foot_contact_[i] = 1;
     }
-    //    base_command_sub_ = nodehandle.subscribe<free_gait_msgs::RobotState>("/desired_robot_state", 1, &configure_change_controller::baseCommandCallback, this);
-    base_command_sub_ = nodehandle.subscribe("/desired_robot_state", 1, &configure_change_controller::baseCommandCallback, this);
 
-    ROS_INFO("configure change Controller initialized");
+    base_command_sub_ = nodehandle.subscribe("/desired_robot_state", 1, &walk_forward_controller::baseCommandCallback, this);
 
-    log_data_srv_  = nodehandle.advertiseService("/capture_log_data_configure", &configure_change_controller::logDataCapture, this);
-    leg_state_pub_ = nodehandle.advertise<std_msgs::Int8MultiArray>("/log/leg_state_kp", log_length_);
-    contact_desired_pub_ = nodehandle.advertise<sim_assiants::FootContacts>("/log/desired_foot_contact_kp", log_length_);
-    leg_phase_pub_ = nodehandle.advertise<std_msgs::Float64MultiArray>("/log/leg_phase_kp", log_length_);
-    desired_robot_state_pub_ = nodehandle.advertise<free_gait_msgs::RobotState>("/log/desired_robot_state_kp", log_length_);
-    actual_robot_state_pub_ = nodehandle.advertise<free_gait_msgs::RobotState>("/log/actual_robot_state_kp", log_length_);
-    x_configure_sub_ = nodehandle.subscribe("/x_configure_change", 1, &configure_change_controller::change_to_x_configure_CB, this);
-    left_configure_sub_ = nodehandle.subscribe("/left_configure_change", 1, &configure_change_controller::change_to_left_configure_CB, this);
-    right_configure_sub_ = nodehandle.subscribe("/right_configure_change", 1, &configure_change_controller::change_to_right_configure_CB, this);
-    anti_x_configure_sub_ = nodehandle.subscribe("/anti_x_configure_change", 1, &configure_change_controller::change_to_anti_x_configure_CB, this);
-//    planning_curves_sub_ = nodehandle.subscribe("/planning_curves", 1, &configure_change_controller::planning_curves_CB, this);
+    ROS_INFO("walk forward Controller initialized");
+
+    log_data_srv_  = nodehandle.advertiseService("/capture_log_data_walk", &walk_forward_controller::logDataCapture, this);
+    leg_state_pub_ = nodehandle.advertise<std_msgs::Int8MultiArray>("/log/leg_state_walk", log_length_);
+    contact_desired_pub_ = nodehandle.advertise<sim_assiants::FootContacts>("/log/desired_foot_contact_walk", log_length_);
+    leg_phase_pub_ = nodehandle.advertise<std_msgs::Float64MultiArray>("/log/leg_phase_walk", log_length_);
+    desired_robot_state_pub_ = nodehandle.advertise<free_gait_msgs::RobotState>("/log/desired_robot_state_walk", log_length_);
+    actual_robot_state_pub_ = nodehandle.advertise<free_gait_msgs::RobotState>("/log/actual_robot_state_walk", log_length_);
+    joint_command_pub_ = nodehandle.advertise<sensor_msgs::JointState>("/log/joint_command_walk",log_length_);
+    x_configure_sub_ = nodehandle.subscribe("/x_configure_change", 1, &walk_forward_controller::change_to_x_configure_CB, this);
+    left_configure_sub_ = nodehandle.subscribe("/left_configure_change", 1, &walk_forward_controller::change_to_left_configure_CB, this);
+    right_configure_sub_ = nodehandle.subscribe("/right_configure_change", 1, &walk_forward_controller::change_to_right_configure_CB, this);
+    anti_x_configure_sub_ = nodehandle.subscribe("/anti_x_configure_change", 1, &walk_forward_controller::change_to_anti_x_configure_CB, this);
     return true;
 }
 
-void configure_change_controller::update(const ros::Time &time, const ros::Duration &period)
+void walk_forward_controller::update(const ros::Time &time, const ros::Duration &period)
 {
+
+
+
     sensor_msgs::JointState joint_command, joint_actual;
     joint_command.effort.resize(12);
     joint_command.position.resize(12);
@@ -148,7 +182,7 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
     joint_actual.name.resize(12);
     joint_actual.position.resize(12);
     joint_actual.velocity.resize(12);
-    joint_actual.effort.resize(12);    
+    joint_actual.effort.resize(12);
 
     std::vector<bool> leg_state;
     std_msgs::Float64MultiArray leg_phase;
@@ -164,18 +198,18 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
 
     if(init_joint_flag)
     {
-        ROS_WARN_STREAM("Init the joint angle");
+//        ROS_WARN_STREAM("Init the joint angle");
         free_gait::JointPositions jointpositions;
-        std::cout << "the joint angle is ";
+//        std::cout << "the joint angle is ";
         for (unsigned int i = 0; i < 12 ; i++) {
             joint_init.position[i] = joint_actual.position[i];
             jointpositions(i) = joint_actual.position[i];
-            std::cout << joint_init.position[i] << " ";
+//            std::cout << joint_init.position[i] << " ";
         }
         std::cout << std::endl;
        init_joint_flag = false;
        robot_state_->setAllJointPositions(jointpositions);
-       ROS_INFO_STREAM("The initial foot state is " << robot_state_->getPoseFootInBaseFrame(quadruped_model::LimbEnum::LF_LEG));
+//       ROS_INFO_STREAM("The initial foot state is " << robot_state_->getPoseFootInBaseFrame(quadruped_model::LimbEnum::LF_LEG));
 
     }
 //    ROS_INFO_STREAM("joint_actual_position of joint 3 is " << joint_actual.position[2]);
@@ -372,13 +406,25 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
     robot_state_->setJointPositionsForLimb(free_gait::LimbEnum::RH_LEG, RH_leg_joints);
     robot_state_->setJointPositionsForLimb(free_gait::LimbEnum::LH_LEG, LH_leg_joints);
 
+//    std::cout << "error here?" <<std::endl;
+    if(iteration < joint_angle.size())
+    {
+        for (unsigned int i = 0; i < 12; i++) {
+            joint_command.position[i] = joint_angle.at(iteration).at(i);
+             }
+        iteration = iteration + 1;
+        std::cout << "iteration is " << iteration << std::endl;
+    }
+
+//    std::cout << "error is here!" << std::endl;
+
 //    ROS_INFO_STREAM("Joint command is ");
     for (unsigned int joint_num = 0; joint_num < 12; joint_num++) {
         joints_[joint_num].setCommand(joint_command.position[joint_num]);
         all_joint_positions_(joint_num) = joint_command.position[joint_num];
 //        std::cout << joint_command.position[joint_num] << " ";
     }
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
     robot_state_->setCurrentLimbJoints(all_joint_positions_);
 
@@ -518,7 +564,7 @@ void configure_change_controller::update(const ros::Time &time, const ros::Durat
     }
 }
 
-void configure_change_controller::baseCommandCallback(const free_gait_msgs::RobotStateConstPtr &robot_state_msgs)
+void walk_forward_controller::baseCommandCallback(const free_gait_msgs::RobotStateConstPtr &robot_state_msgs)
 {
 
     base_desired_position_ = Position(robot_state_msgs->base_pose.pose.pose.position.x,
@@ -785,9 +831,9 @@ void configure_change_controller::baseCommandCallback(const free_gait_msgs::Robo
     };
 }
 
-void configure_change_controller::starting(const ros::Time &time)
+void walk_forward_controller::starting(const ros::Time &time)
 {
-    ROS_INFO("staring configure change controller");
+    ROS_INFO("staring walking forward controller");
     foot_desired_contact_.clear();
     leg_phases_.clear();
     desired_robot_state_.clear();
@@ -798,23 +844,24 @@ void configure_change_controller::starting(const ros::Time &time)
         joints_[i].setCommand(all_joint_positions_(i));
     }
     robot_state_->setCurrentLimbJoints(all_joint_positions_);//current joint
-    std::cout << "success started the configure controller" << std::endl;
+    std::cout << "success started the walking forward controller" << std::endl;
 }
 
-void configure_change_controller::stopping(const ros::Time &time)
+void walk_forward_controller::stopping(const ros::Time &time)
 {
     std::cout << "the length of data is " << actual_robot_state_.size() << std::endl;
     ROS_INFO("stop configure change controller");
+    joint_angle.clear();
 //    configure_time_start_flag_ = false;
 }
-bool configure_change_controller::logDataCapture(std_srvs::Empty::Request& req,
+bool walk_forward_controller::logDataCapture(std_srvs::Empty::Request& req,
                                                  std_srvs::Empty::Response& res)
 {
     ROS_INFO("Call to Capture Log Data");
     for(int index = 0; index<desired_robot_state_.size(); index++)
     {
         //        leg_state_pub_.publish(leg_states_[index]);
-        //        joint_command_pub_.publish(joint_command_[index]);
+                joint_command_pub_.publish(joint_command_[index]);
         //        joint_actual_pub_.publish(joint_actual_[index]);
         contact_desired_pub_.publish(foot_desired_contact_[index]);
         leg_phase_pub_.publish(leg_phases_[index]);
@@ -828,7 +875,7 @@ bool configure_change_controller::logDataCapture(std_srvs::Empty::Request& req,
 
 
 
-void configure_change_controller::planning_curves_CB(const std_msgs::BoolConstPtr& planning_curves)
+void walk_forward_controller::planning_curves_CB(const std_msgs::BoolConstPtr& planning_curves)
 {
     ROS_INFO_STREAM("planning curves");
     dt_ = 0;
@@ -916,9 +963,8 @@ void configure_change_controller::planning_curves_CB(const std_msgs::BoolConstPt
     trajectory_lh_.fitCurve(times_,values_lh_);
     configure_time_start_flag_ = true;
     ROS_INFO_STREAM("finish planning");
-    ROS_INFO_STREAM("finish planning");
 }
-void configure_change_controller::change_to_x_configure_CB(const std_msgs::BoolConstPtr& X_Configure)
+void walk_forward_controller::change_to_x_configure_CB(const std_msgs::BoolConstPtr& X_Configure)
 {
     ROS_INFO_STREAM("in the x configure");
     configure_last_ = configure_now_;
@@ -928,7 +974,7 @@ void configure_change_controller::change_to_x_configure_CB(const std_msgs::BoolC
     ROS_INFO_STREAM("in the x configure_end");
 }
 
-void configure_change_controller::change_to_left_configure_CB(const std_msgs::BoolConstPtr &left_Configure)
+void walk_forward_controller::change_to_left_configure_CB(const std_msgs::BoolConstPtr &left_Configure)
 {
     ROS_INFO_STREAM("in the left configure");
     configure_last_ = configure_now_;
@@ -938,7 +984,7 @@ void configure_change_controller::change_to_left_configure_CB(const std_msgs::Bo
     ROS_INFO_STREAM("in the left configure_end");
 }
 
-void configure_change_controller::change_to_right_configure_CB(const std_msgs::BoolConstPtr &right_Configure)
+void walk_forward_controller::change_to_right_configure_CB(const std_msgs::BoolConstPtr &right_Configure)
 {
     ROS_INFO_STREAM("in the right configure");
     configure_last_ = configure_now_;
@@ -948,7 +994,7 @@ void configure_change_controller::change_to_right_configure_CB(const std_msgs::B
     ROS_INFO_STREAM("in the right configure_end");
 }
 
-void configure_change_controller::change_to_anti_x_configure_CB(const std_msgs::BoolConstPtr &anti_x_Configure)
+void walk_forward_controller::change_to_anti_x_configure_CB(const std_msgs::BoolConstPtr &anti_x_Configure)
 {
     ROS_INFO_STREAM("in the anti x configure");
     configure_last_ = configure_now_;
@@ -958,11 +1004,11 @@ void configure_change_controller::change_to_anti_x_configure_CB(const std_msgs::
     ROS_INFO_STREAM("in the anti x configure_end");
 }
 
-void configure_change_controller::walking_forward()
+void walk_forward_controller::walking_forward()
 {
     ROS_INFO_STREAM("Need to implentation");
 }
 
 
 }//namespace
-PLUGINLIB_EXPORT_CLASS(balance_controller::configure_change_controller, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(balance_controller::walk_forward_controller, controller_interface::ControllerBase)

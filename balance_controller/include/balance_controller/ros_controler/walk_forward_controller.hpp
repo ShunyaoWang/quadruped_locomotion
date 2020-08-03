@@ -30,8 +30,13 @@
 #include <std_msgs/Bool.h>
 #include "quadruped_model/quadrupedkinematics.h"
 
+#include "rosbag/bag.h"
+#include "rosbag/view.h"
+#include "sensor_msgs/JointState.h"
+#include "std_msgs/String.h"
+
 namespace balance_controller{
-class configure_change_controller: public controller_interface::Controller<hardware_interface::RobotStateInterface>
+class walk_forward_controller: public controller_interface::Controller<hardware_interface::RobotStateInterface>
 {
     typedef std::unordered_map<free_gait::LimbEnum, free_gait::Vector, EnumClassHash> LimbVector;
     typedef std::unordered_map<free_gait::LimbEnum, bool, EnumClassHash> LimbFlag;
@@ -43,12 +48,13 @@ class configure_change_controller: public controller_interface::Controller<hardw
     typedef typename curves::Time Time;
 
 public:
-    configure_change_controller();
-    ~configure_change_controller();
+    walk_forward_controller();
+    ~walk_forward_controller();
     bool init(hardware_interface::RobotStateInterface *hardware, ros::NodeHandle& nodehandle);
     void update(const ros::Time& time, const ros::Duration& period);
     void starting(const ros::Time& time);
     void stopping(const ros::Time& time);
+
 
 private:
     enum leg_configuration_{x_configuration,left_configuration}leg_configuration_;
@@ -120,6 +126,12 @@ private:
     int knot_num_;
     std::string configure_last_;
     std::string configure_now_;
+
+    /*****from here*******/
+    int iteration;
+    std::vector<std::vector<double> > joint_angle;
+
+
     //    quadruped_model::JointPositionsLimb joints_position_;
     //    std::vector<bool> leg_states_;
 };
